@@ -1,6 +1,16 @@
 import logo from './logo.svg';
 import './App.css';
+import styled from 'styled-components';
 
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #0D1B2A;
+  color: #E0E1DD;
+`;
 function App() {
   return (
     <div className="App">
