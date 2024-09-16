@@ -1,0 +1,22 @@
+/* Ensure the canvas takes up the entire screen */
+canvas {
+    display: block;
+    position: fixed; /* Ensures the canvas stays in place when scrolling */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0; /* Keeps it behind any UI elements like navbar */
+  }
+  
+  /* Full-screen container for the orrery */
+  .orrery-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    background: radial-gradient(circle at center, #000020 0%, #000000 100%);
+  }
+  
+
+  
