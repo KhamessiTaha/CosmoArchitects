@@ -1,22 +1,27 @@
-import styled from 'styled-components';
+import React from 'react';
+import Navbar from '../components/Navbar';
+import Hero from '../components/Hero';
+import Features from '../components/Features';
+import Footer from '../components/Footer';
+import BackToTop from '../components/BackToTop';
+import { useNavigate } from 'react-router-dom';
 
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  background-color: #0D1B2A;
-  color: #E0E1DD;
-`;
+function Home() {
+  const navigate = useNavigate();
 
-const Home = () => {
+  const handleStartExploring = () => {
+    navigate('/simulation');
+  };
+
   return (
-    <Container>
-      <h1>Welcome to CosmoArchitects!</h1>
-      <p>Explore exoplanets like never before.</p>
-    </Container>
+    <div>
+      <Navbar />
+      <Hero handleStartExploring={handleStartExploring} />
+      <Features />
+      <Footer />
+      <BackToTop />
+    </div>
   );
-};
+}
 
 export default Home;

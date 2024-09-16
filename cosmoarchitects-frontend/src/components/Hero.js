@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import './Hero.css';
 
-function Hero() {
+function Hero({ handleStartExploring }) {
   return (
     <motion.section
       className="hero"
@@ -13,7 +13,7 @@ function Hero() {
       <div className="hero-content">
         <h1>Explore the Universe</h1>
         <p>Welcome to the Orrery, your interactive journey through the stars.</p>
-        <button className="cta-button">Start Exploring</button>
+        <button className="cta-button" onClick={handleStartExploring} >Start Exploring</button>
       </div>
     </motion.section>
   );

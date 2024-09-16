@@ -1,20 +1,16 @@
 import React from 'react';
-import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import Features from './components/Features';
-import Footer from './components/Footer';
-import BackToTop from './components/BackToTop';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Home from './pages/Home';
+import Simulation from './pages/Simulation';
 import './App.css';
-
 function App() {
   return (
-    <div className="App">
-      <Navbar />
-      <Hero />
-      <Features />
-      <Footer />
-      <BackToTop />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/simulation" element={<Simulation />} />
+      </Routes>
+    </Router>
   );
 }
 
