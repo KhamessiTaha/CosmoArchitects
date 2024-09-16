@@ -1,0 +1,63 @@
+.hero {
+  height: calc(100vh - 70px); /* Adjusting for the navbar height */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  text-align: center;
+}
+
+.cta-button {
+  background-color: #ff9000;
+  padding: 1rem 2rem;
+  border: none;
+  cursor: pointer;
+  color: white;
+  font-size: 1.2rem;
+  margin-top: 1rem;
+}
+
+.cta-button:hover {
+  background-color: #e57c00;
+}
+.hero-content h1 {
+  font-size: 3rem;
+  opacity: 0;
+  transform: translateY(-30px);
+  animation: fadeInUp 1s ease-in-out forwards;
+}
+
+.hero-content p {
+  font-size: 1.2rem;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 1.5s ease-in-out forwards;
+}
+
+.cta-button {
+  margin-top: 1.5rem;
+  opacity: 0;
+  transform: scale(0.9);
+  animation: fadeInUp 2s ease-in-out forwards;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@media (max-width: 768px) {
+  .hero-content h1 {
+    font-size: 2rem;
+  }
+
+  .hero-content p {
+    font-size: 1rem;
+  }
+
+  .cta-button {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+  }
+}
