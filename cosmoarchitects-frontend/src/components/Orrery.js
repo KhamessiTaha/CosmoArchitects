@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { TextureLoader } from 'three';
-
+import './Orrery.css'
 // Textures for Sun and Earth
 import earthTexture from './textures/earth.jpg'; // Add a texture image for Earth
 import sunTexture from './textures/sun.jpg';     // Add a texture image for Sun
