@@ -39,22 +39,97 @@ To run the project locally:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/username/interactive-orrery.git
+   git clone https://github.com/KhamessiTaha/CosmoArchitects.git
    cd interactive-orrery
    ```
 2. Install the required dependencies:
    ```bash
    npm install
-
-   
    ```
 
 
 3. Run the development server:
    ```bash
    npm run start
-
-   
    ```
 4. Open your browser and navigate to http://localhost:3000.
+
+## **Data Sources and Resources**
+
+- **NASA’s Small Body Database**: Used for retrieving Keplerian parameters and orbital data for NECs, NEAs, and PHAs.
+- **Keplerian Parameters Tutorial**: Followed the guidelines for using eccentricity, semi-major axis, inclination, argument of periapsis, true anomaly, and more to calculate elliptical orbits.
+- **Additional NASA APIs**: Used for planet position data and additional celestial information.
+
+---
+
+## **Objectives**
+
+The main objectives for this project are:
+
+- **Interactive Education**: Provide a visual and interactive platform for users to learn about the solar system and its celestial bodies.
+- **Real-time Orbit Visualization**: Accurately represent the position of celestial objects at any given time.
+- **User Engagement**: Enable users to explore and manipulate the visualization by controlling time, speed, and the point of view in the orrery.
+- **AI in Astronomy**:
+- ## **Data Sources and Resources**
+
+- **NASA’s Small Body Database**: Used for retrieving Keplerian parameters and orbital data for NECs, NEAs, and PHAs.
+- **Keplerian Parameters Tutorial**: Followed the guidelines for using eccentricity, semi-major axis, inclination, argument of periapsis, true anomaly, and more to calculate elliptical orbits.
+- **Additional NASA APIs**: Used for planet position data and additional celestial information.
+
+---
+
+## **Objectives**
+
+The main objectives for this project are:
+
+- **Interactive Education**: Provide a visual and interactive platform for users to learn about the solar system and its celestial bodies.
+- **Real-time Orbit Visualization**: Accurately represent the position of celestial objects at any given time.
+- **User Engagement**: Enable users to explore and manipulate the visualization by controlling time, speed, and the point of view in the orrery.
+- **AI in Astronomy**: Demonstrate the use of AI in developing tools for space exploration and astronomy education.
+
+---
+
+## **How to Use the Web App**
+
+1. **Navigation**: Use mouse controls or touch gestures to pan, zoom, and rotate around the solar system.
+2. **Control Panel**: Utilize the control panel to switch between labels, toggle orbital paths, and control the simulation speed.
+3. **Time Travel**: Move the timeline slider to observe the celestial positions at any past or future date.
+4. **Explore Near-Earth Objects**: Use the object filter to focus on Near-Earth Objects (NEOs) such as asteroids or comets.
+5. **AI Features**: The orbit calculation in real-time is AI-generated, making predictions for future orbits based on current parameters.
+
+---
+
+## **Future Improvements**
+
+- **Enhanced AI Orbit Predictions**: Further improve AI-generated orbits with more accurate long-term trajectory predictions.
+- **Expanded Object Database**: Include more detailed data for additional celestial bodies.
+- **Mobile-Friendly UI**: Optimize the web app for mobile devices to enhance accessibility.
+
+---
+
+## **Contributing**
+
+Contributions are welcome! If you'd like to contribute, please fork the repository and submit a pull request. Make sure to follow the guidelines outlined in the [CONTRIBUTING.md](./CONTRIBUTING.md) file.
+
+---
+
+## **Acknowledgments**
+
+- **NASA**: For the publicly available datasets and the resources that made this project possible.
+- **Three.js**: For the 3D graphics engine that powers the visualization.
+- **AI Tools**: Special thanks to AI tools used for orbit propagation code generation.
+
+---
+
+## **License**
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+
+---
+
+## **Links**
+
+- [NASA Small Body Database](https://ssd.jpl.nasa.gov/sbdb_query.cgi)
+- [Keplerian Parameters Explained](https://example.com/keplerian-tutorial)
+- [Live Demo](https://example.com/orrery-demo)
 
