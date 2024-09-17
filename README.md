@@ -123,13 +123,11 @@ Contributions are welcome! If you'd like to contribute, please fork the reposito
 
 ## **License**
 
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+This project is licensed under the LGPL-2.1 license - see the [LICENSE](./LICENSE) file for details.
 
 ---
 
 ## **Links**
 
 - [NASA Small Body Database](https://ssd.jpl.nasa.gov/sbdb_query.cgi)
-- [Keplerian Parameters Explained](https://example.com/keplerian-tutorial)
-- [Live Demo](https://example.com/orrery-demo)
 
