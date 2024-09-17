@@ -6,7 +6,7 @@ import Menu from '../components/Menu'; // Import the menu component
 function Simulation() {
   // State for controlling the speed and orbit visibility
   const [showOrbits, setShowOrbits] = useState(true);
-  const [speed, setSpeed] = useState(0.001);
+  const [speed, setSpeed] = useState(0.0001);
 
   return (
     <div>
