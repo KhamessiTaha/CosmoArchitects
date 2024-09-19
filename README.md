@@ -23,7 +23,7 @@ The web app is designed to educate users about celestial objects, with features 
 
 ---
 
-## **Technologies Used**
+## **Technologies Used**  
 
 - **3D Graphics**: Built using open-source 3D graphics libraries like Three.js/WebGL.
 - **NASA Data Integration**: Celestial body data retrieved from NASA’s Small Body Database and other public datasets.
