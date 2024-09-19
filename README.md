@@ -31,7 +31,7 @@ The web app is designed to educate users about celestial objects, with features 
 - **Web Application**: Developed as a web-based application, ensuring accessibility across multiple browsers (tested on Chrome, Firefox, Safari).
 - **AI Assistance**: Utilized AI to assist with orbit generation and handling data for real-time simulations.
 
----
+---   
 
 ## **Installation and Setup**
 
