@@ -1,4 +1,4 @@
-# CosmoArchitects 🌌     
+# CosmoArchitects 🌌        
 # **Interactive Orrery Web App**         
       
 ## **Overview**   
