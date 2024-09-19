@@ -8,7 +8,7 @@ The web app is designed to educate users about celestial objects, with features 
 
 ### **Event**: 2024 NASA Space Apps Challenge  
 ### **Categories**: Astrophysics, Space Exploration, Software, Games, Planets & Moons  
-### **Difficulty Level**: Intermediate to Advanced
+### **Difficulty Level**: Intermediate to Advanced.
 
 ---
    
