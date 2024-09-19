@@ -11,7 +11,7 @@ The web app is designed to educate users about celestial objects, with features 
 ### **Difficulty Level**: Intermediate to Advanced
 
 ---
-
+   
 ## **Features**
 
 - **Interactive 3D Visualization**: View the solar system in an interactive manner with the ability to zoom, pan, and rotate.
