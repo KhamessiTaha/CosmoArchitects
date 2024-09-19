@@ -4,7 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { TextureLoader, Raycaster, Vector2 } from 'three';
 import './Orrery.css';
 
-// Textures for Sun, Earth, Moon, Mars
+// Textures for celestial bodies
 import earthTexture from './textures/earth.jpg';
 import sunTexture from './textures/sun.jpg';
 import marsTexture from './textures/mars.jpg';
@@ -20,28 +20,30 @@ import milkywayTexture from './textures/milkyway.jpg';
 
 function Orrery() {
   const mountRef = useRef(null);
+  const cameraRef = useRef(null);     // Camera ref
+  const controlsRef = useRef(null);   // Controls ref
   const [showOrbits, setShowOrbits] = useState(true);
   const [speed, setSpeed] = useState(0.00001);
   const raycaster = new Raycaster();
   const pointer = new Vector2();
   let selectedObject = null; // Track selected celestial body
-  let controls, camera;
 
   useEffect(() => {
     // Set up scene, camera, and renderer
     const scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 30;
+    cameraRef.current = camera;  // Store camera in ref
+
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
     mountRef.current.appendChild(renderer.domElement);
 
     // Set up OrbitControls for camera movement
-    controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.1;
-    controls.enableZoom = true;
-    controls.enablePan = true;
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true; // Enable inertia for smooth camera movement
+    controlsRef.current = controls;  // Store controls in ref
 
     // Load textures
     const textureLoader = new TextureLoader();
@@ -49,15 +51,12 @@ function Orrery() {
     const earthTextureMap = textureLoader.load(earthTexture);
     const marsTextureMap = textureLoader.load(marsTexture);
     const moonTextureMap = textureLoader.load(moonTexture);
-    const milkywayTextureMap = textureLoader.load(milkywayTexture);
     const mercuryTextureMap = textureLoader.load(mercuryTexture);
     const venusTextureMap = textureLoader.load(venusTexture);
     const jupiterTextureMap = textureLoader.load(jupiterTexture);
     const saturnTextureMap = textureLoader.load(saturnTexture);
     const uranusTextureMap = textureLoader.load(uranusTexture);
     const neptuneTextureMap = textureLoader.load(neptuneTexture);
-    // Background
-    // scene.background = milkywayTextureMap;
 
     // Lighting
     const pointLight = new THREE.PointLight(0xffffff, 2, 1000);
@@ -122,7 +121,7 @@ function Orrery() {
     jupiter.position.x = 15;  // Adjust orbit radius
     scene.add(jupiter);
 
-    // Saturn with Rings
+    // Example for Saturn:
     const saturnGeometry = new THREE.SphereGeometry(1.8, 64, 64);
     const saturnMaterial = new THREE.MeshStandardMaterial({ map: saturnTextureMap });
     const saturn = new THREE.Mesh(saturnGeometry, saturnMaterial);
@@ -131,6 +130,12 @@ function Orrery() {
 
     // Saturn's rings
     const ringGeometry = new THREE.RingGeometry(2.2, 3.2, 64);
+    const ringPos = ringGeometry.attributes.position;
+    const ringVec = new THREE.Vector3();
+    for (let i = 0; i < ringPos.count; i++) {
+      ringVec.fromBufferAttribute(ringPos, i);
+      ringGeometry.attributes.uv.setXY(i, ringVec.length() < 2.7 ? 0 : 1, 1); // Adjust UVs for proper texture mapping
+    }
     const ringMaterial = new THREE.MeshBasicMaterial({
       map: textureLoader.load(saturnRingTexture),
       side: THREE.DoubleSide,
@@ -138,7 +143,7 @@ function Orrery() {
     });
     const rings = new THREE.Mesh(ringGeometry, ringMaterial);
     rings.rotation.x = Math.PI / 2;  // Make the ring horizontal
-    rings.position.x = 20;
+    rings.position.x = 20;  // Align with Saturn's position
     scene.add(rings);
 
     // Uranus
@@ -247,26 +252,23 @@ function Orrery() {
     };
     window.addEventListener('resize', handleResize);
 
-    // Handle double-click to select objects and smoothly move the camera
     const handleDoubleClick = (event) => {
       pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
       pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
       raycaster.setFromCamera(pointer, camera);
+      const intersects = raycaster.intersectObjects([saturn]); // Add other planets as needed
 
-      const intersects = raycaster.intersectObjects([earth, moon, mars]);
       if (intersects.length > 0) {
-        selectedObject = intersects[0].object; // Select the first intersected object
+        selectedObject = intersects[0].object;
         const targetPosition = new THREE.Vector3(
           selectedObject.position.x + 5,
           selectedObject.position.y + 3,
           selectedObject.position.z + 5
         );
 
-        // Animate camera movement toward the selected object
-        new THREE.Vector3().lerpVectors(camera.position, targetPosition, 0.05);
-
-        controls.target.copy(selectedObject.position); // Focus camera on the selected object
+        camera.position.lerp(targetPosition, 0.05);
+        controls.target.copy(selectedObject.position);
       }
     };
 
@@ -282,7 +284,7 @@ function Orrery() {
 
   return (
     <div>
-      <div ref={mountRef} className="orrery-container"></div>
+      <div style={{ width: '100vw', height: '100vh' }} ref={mountRef}></div>
       <div className="menu">
         <label>
           Show Orbits:
