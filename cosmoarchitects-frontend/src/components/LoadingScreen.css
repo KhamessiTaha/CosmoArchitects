@@ -3,7 +3,7 @@
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-image: url('../components/textures/LoadingScreen.jpg'); /* Use the actual path here */
+  background-image: url('../components/textures/LoadingScreen.jpg'); 
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -11,8 +11,8 @@
 
 .loading-container {
   text-align: center;
-  color: #ffffff; /* White text */
-  width: 80%; /* Width for better layout on larger screens */
+  color: #ffffff; 
+  width: 80%; 
   max-width: 600px;
   margin: 0 auto;
 }
@@ -32,7 +32,7 @@
 .progress-bar {
   position: relative;
   height: 12px;
-  background-color: #444; /* Darker background for the bar */
+  background-color: #444; 
   border-radius: 6px;
   overflow: hidden;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
@@ -40,7 +40,7 @@
 
 .progress {
   height: 100%;
-  background-color: #4caf50; /* Main progress color */
+  background-color: #4caf50; 
   transition: width 0.4s ease-in-out;
   border-radius: 6px;
 }
@@ -50,7 +50,7 @@
   top: 0;
   left: 0;
   height: 100%;
-  background-color: #888; /* Buffer color */
+  background-color: #888; 
   opacity: 0.6;
   z-index: 1;
 }
@@ -74,8 +74,8 @@
 .loading-spinner {
   width: 80px;
   height: 80px;
-  border: 10px solid #333333; /* Border color */
-  border-top: 10px solid #4caf50; /* Spinner color */
+  border: 10px solid #333333; 
+  border-top: 10px solid #4caf50; 
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

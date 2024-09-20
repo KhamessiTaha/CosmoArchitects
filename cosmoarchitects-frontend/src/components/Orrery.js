@@ -15,7 +15,7 @@ import jupiterTexture from './textures/Jupiter/jupiter2.jpg';
 import saturnTexture from './textures/Saturn/saturn.jpg';
 import uranusTexture from './textures/Uranus/uranus.jpg';
 import neptuneTexture from './textures/Neptune/neptune.jpg';
-import saturnRingTexture from './textures/Saturn/saturn_ring.png'; // Saturn's rings
+import saturnRingTexture from './textures/Saturn/saturn_ring.png'; 
 
 function Orrery() {
   const mountRef = useRef(null);
@@ -26,6 +26,7 @@ function Orrery() {
   const raycaster = new Raycaster();
   const pointer = new Vector2();
   let selectedObject = null; // Track selected celestial body
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     // Set up scene, camera, and renderer
@@ -56,6 +57,31 @@ function Orrery() {
     const saturnTextureMap = textureLoader.load(saturnTexture);
     const uranusTextureMap = textureLoader.load(uranusTexture);
     const neptuneTextureMap = textureLoader.load(neptuneTexture);
+
+    // Create starfield
+    const createStars = (scene, numStars, minDistance, maxDistance) => {
+      const starGeometry = new THREE.SphereGeometry(0.1, 24, 24);
+      const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    
+      for (let i = 0; i < numStars; i++) {
+        const star = new THREE.Mesh(starGeometry, starMaterial);
+    
+        // Random spherical coordinates to spread stars far away
+        const theta = Math.random() * Math.PI * 2;  // Random angle around Y-axis
+        const phi = Math.random() * Math.PI;  // Random angle for elevation
+        
+        // Ensure stars are placed beyond a minimum distance
+        const distance = Math.random() * (maxDistance - minDistance) + minDistance;
+    
+        star.position.x = distance * Math.sin(phi) * Math.cos(theta);
+        star.position.y = distance * Math.sin(phi) * Math.sin(theta);
+        star.position.z = distance * Math.cos(phi);
+    
+        scene.add(star);
+      }
+    };
+
+    createStars(scene, 500, 100, 300); 
 
     // Lighting
     const pointLight = new THREE.PointLight(0xffffff, 2, 1000);
@@ -280,31 +306,46 @@ function Orrery() {
       window.removeEventListener('dblclick', handleDoubleClick);
     };
   }, [showOrbits, speed]);
+  // Toggle the menu visibility
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   return (
     <div>
       <div style={{ width: '100vw', height: '100vh' }} ref={mountRef}></div>
-      <div className="menu">
-        <label>
-          Show Orbits:
-          <input
-            type="checkbox"
-            checked={showOrbits}
-            onChange={() => setShowOrbits(!showOrbits)}
-          />
-        </label>
-        <label>
-          Orbit Speed:
-          <input
-            type="range"
-            min="0.0005"
-            max="0.005"
-            step="0.0001"
-            value={speed}
-            onChange={(e) => setSpeed(parseFloat(e.target.value))}
-          />
-        </label>
+      
+      {/* Menu Toggle Button (Hamburger) */}
+      <div className={`menu-toggle ${isMenuOpen ? 'open' : ''}`} onClick={toggleMenu}>
+        <div className="bar"></div>
+        <div className="bar"></div>
+        <div className="bar"></div>
       </div>
+
+      {/* Deployable Menu */}
+      {isMenuOpen && (
+        <div className="menu">
+          <label>
+            Show Orbits:
+            <input
+              type="checkbox"
+              checked={showOrbits}
+              onChange={() => setShowOrbits(!showOrbits)}
+            />
+          </label>
+          <label>
+            Orbit Speed:
+            <input
+              type="range"
+              min="0.0005"
+              max="0.005"
+              step="0.0001"
+              value={speed}
+              onChange={(e) => setSpeed(parseFloat(e.target.value))}
+            />
+          </label>
+        </div>
+      )}
     </div>
   );
 }

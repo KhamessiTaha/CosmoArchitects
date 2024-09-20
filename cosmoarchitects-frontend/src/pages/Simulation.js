@@ -9,11 +9,11 @@ function Simulation() {
   const [showOrbits, setShowOrbits] = useState(true);
   const [speed, setSpeed] = useState(0.0001);
 
-  // Simulated loading delay
+  
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setIsLoading(false);
-    }, 14500); // Simulate a 3-second load
+    }, 14500); 
 
     return () => clearTimeout(timeoutId);
   }, []);
@@ -26,7 +26,7 @@ function Simulation() {
       ) : (
         <div>
           <Orrery showOrbits={showOrbits} speed={speed} />
-          <Menu showOrbits={showOrbits} setShowOrbits={setShowOrbits} speed={speed} setSpeed={setSpeed} />
+          
         </div>
       )}
     </div>

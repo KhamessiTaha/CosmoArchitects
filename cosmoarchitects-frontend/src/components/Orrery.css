@@ -18,5 +18,53 @@ canvas {
     background: radial-gradient(circle at center, #000020 0%, #000000 100%);
   }
   
+/* Menu Toggle Button (Hamburger) */
+.menu-toggle {
+  position: fixed;       /* Make the button fixed on screen */
+  top: 100px;             /* Position it 20px from the top */
+  right: 20px;           /* Position it 20px from the right (top-right corner) */
+  cursor: pointer;
+  z-index: 1000;         /* High z-index to appear above other elements */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 30px;
+  height: 30px;
+}
 
-  
+.menu-toggle .bar {
+  width: 100%;
+  height: 4px;
+  background-color: white;
+  transition: 0.3s;
+}
+
+.menu-toggle.open .bar:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.menu-toggle.open .bar:nth-child(2) {
+  opacity: 0;
+}
+
+.menu-toggle.open .bar:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* Menu */
+.menu {
+  position: fixed;        /* Make the menu fixed on the screen */
+  top: 100px;              /* Below the toggle button */
+  right: 20px;            /* Align with the right edge */
+  padding: 15px;
+  background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+  color: white;
+  border-radius: 8px;
+  z-index: 999;           /* Slightly lower than the button but still high */
+  display: flex;
+  flex-direction: column;
+}
+
+.menu label {
+  margin-bottom: 10px;
+}
