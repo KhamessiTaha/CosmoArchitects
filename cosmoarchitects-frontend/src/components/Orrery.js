@@ -66,9 +66,9 @@ function Orrery() {
       for (let i = 0; i < numStars; i++) {
         const star = new THREE.Mesh(starGeometry, starMaterial);
     
-        // Random spherical coordinates to spread stars far away
-        const theta = Math.random() * Math.PI * 2;  // Random angle around Y-axis
-        const phi = Math.random() * Math.PI;  // Random angle for elevation
+        
+        const theta = Math.random() * Math.PI * 2;  
+        const phi = Math.random() * Math.PI;  
         
         // Ensure stars are placed beyond a minimum distance
         const distance = Math.random() * (maxDistance - minDistance) + minDistance;

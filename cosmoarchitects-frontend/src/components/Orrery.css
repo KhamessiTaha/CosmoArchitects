@@ -1,15 +1,15 @@
-/* Ensure the canvas takes up the entire screen */
+
 canvas {
     display: block;
-    position: fixed; /* Ensures the canvas stays in place when scrolling */
+    position: fixed; 
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 0; /* Keeps it behind any UI elements like navbar */
+    z-index: 0; 
   }
   
-  /* Full-screen container for the orrery */
+  
   .orrery-container {
     position: relative;
     width: 100%;
@@ -18,13 +18,13 @@ canvas {
     background: radial-gradient(circle at center, #000020 0%, #000000 100%);
   }
   
-/* Menu Toggle Button (Hamburger) */
+
 .menu-toggle {
-  position: fixed;       /* Make the button fixed on screen */
-  top: 100px;             /* Position it 20px from the top */
-  right: 20px;           /* Position it 20px from the right (top-right corner) */
+  position: fixed;   
+  top: 100px;            
+  right: 20px;           
   cursor: pointer;
-  z-index: 1000;         /* High z-index to appear above other elements */
+  z-index: 1000;        
   display: flex;
   flex-direction: column;
   justify-content: space-around;
@@ -53,14 +53,14 @@ canvas {
 
 /* Menu */
 .menu {
-  position: fixed;        /* Make the menu fixed on the screen */
-  top: 100px;              /* Below the toggle button */
-  right: 20px;            /* Align with the right edge */
+  position: fixed;       
+  top: 100px;              
+  right: 20px;          
   padding: 15px;
-  background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+  background-color: rgba(0, 0, 0, 0.6); 
   color: white;
   border-radius: 8px;
-  z-index: 999;           /* Slightly lower than the button but still high */
+  z-index: 999;           
   display: flex;
   flex-direction: column;
 }

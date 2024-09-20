@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Orrery from '../components/Orrery';
-import Menu from '../components/Menu';
 import LoadingScreen from '../components/LoadingScreen';
 
 function Simulation() {
