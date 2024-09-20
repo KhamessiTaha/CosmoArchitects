@@ -109,6 +109,26 @@ function Orrery() {
     const ambientLight = new THREE.AmbientLight(0x404040, 1.5); // Increase intensity to brighten up shadowed areas
     scene.add(ambientLight);
     
+    // Function to create atmosphere and group it with the planet
+    const createPlanetWithAtmosphere = (planet, radius, atmosphereRadius, color, intensity, opacity) => {
+      const atmosphereGeometry = new THREE.SphereGeometry(atmosphereRadius, 64, 64);
+      const atmosphereMaterial = new THREE.MeshPhongMaterial({
+        emissive: color,
+        emissiveIntensity: intensity,
+        transparent: true,
+        opacity: opacity,
+        side: THREE.BackSide // The atmosphere is outside the planet
+      });
+      const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+
+      // Create a group and add both the planet and its atmosphere
+      const planetGroup = new THREE.Group();
+      planetGroup.add(planet);       // Add the planet to the group
+      planetGroup.add(atmosphere);   // Add the atmosphere to the group
+
+      return planetGroup;
+    };
+
     // Sun
     const sunGeometry = new THREE.SphereGeometry(3, 64, 64);
     const sunMaterial = new THREE.MeshStandardMaterial({
@@ -138,9 +158,13 @@ function Orrery() {
     const earthGeometry = new THREE.SphereGeometry(0.5, 64, 64);
     const earthMaterial = new THREE.MeshStandardMaterial({ map: earthTextureMap });
     const earth = new THREE.Mesh(earthGeometry, earthMaterial);
-    earth.position.x = 6;
     earth.rotation.z = THREE.MathUtils.degToRad(23.5); // Axial tilt for realism
-    scene.add(earth);
+
+    // Earth's Atmosphere (slightly larger than the planet)
+    const earthWithAtmosphere = createPlanetWithAtmosphere(earth, 0.5, 0.55, 0x87CEEB, 0.6, 0.3); // Atmosphere radius is slightly bigger
+    earthWithAtmosphere.position.x = 6; // Set Earth's orbit position
+
+    scene.add(earthWithAtmosphere);
 
     // Earth's Moon
     const moonGeometry = new THREE.SphereGeometry(0.2, 64, 64);
@@ -259,6 +283,8 @@ function Orrery() {
 
     scene.background = reflectionMap;  // Use this as the scene's skybox background for realism
 
+    
+
 
     // Orbits
     const createOrbit = (radius, color) => {
@@ -302,12 +328,10 @@ function Orrery() {
       venus.position.x = Math.cos(Date.now() * speed * 1.2) * 5;
       venus.position.z = Math.sin(Date.now() * speed * 1.2) * 5;
 
-      // Earth and Moon Orbit and Rotation
-      earth.rotation.y += 0.01;
-      earth.position.x = Math.cos(Date.now() * speed) * 6;
-      earth.position.z = Math.sin(Date.now() * speed) * 6;
-      moon.position.x = earth.position.x + Math.cos(Date.now() * 0.005) * 1;
-      moon.position.z = earth.position.z + Math.sin(Date.now() * 0.005) * 1;
+      // Earth Orbit and Rotation (planet and atmosphere move together)
+      earthWithAtmosphere.rotation.y += 0.01; // Earth rotation
+      earthWithAtmosphere.position.x = Math.cos(Date.now() * speed) * 6;
+      earthWithAtmosphere.position.z = Math.sin(Date.now() * speed) * 6; 
 
       // Mars rotation and orbit
       mars.rotation.y += 0.008;
