@@ -5,8 +5,8 @@ import LoadingScreen from '../components/LoadingScreen';
 
 function Simulation() {
   const [isLoading, setIsLoading] = useState(true);
-  const [showOrbits, setShowOrbits] = useState(true);
-  const [speed, setSpeed] = useState(0.0001);
+  const showOrbits = useState(true);
+  const speed = useState(0.0001);
 
   
   useEffect(() => {

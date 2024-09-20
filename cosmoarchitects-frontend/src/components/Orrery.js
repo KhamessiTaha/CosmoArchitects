@@ -84,11 +84,18 @@ function Orrery() {
     createStars(scene, 500, 100, 300); 
 
     // Lighting
-    const pointLight = new THREE.PointLight(0xffffff, 2, 1000);
-    pointLight.position.set(0, 0, 0); // Sun as light source
+    const pointLight = new THREE.PointLight(0xffffff, 2, 1000);  // Brightness and range of light
+    pointLight.position.set(0, 0, 0); // Sun's position
+    pointLight.castShadow = true;  // Enable shadow casting
+    pointLight.shadow.mapSize.width = 1024; // Higher resolution shadows
+    pointLight.shadow.mapSize.height = 1024;
+    pointLight.shadow.camera.near = 1;
+    pointLight.shadow.camera.far = 1000;  // Distance of shadow rendering
+
     scene.add(pointLight);
 
-    const ambientLight = new THREE.AmbientLight(0x404040, 1.5);
+    // Ambient light for softer lighting across the scene
+    const ambientLight = new THREE.AmbientLight(0x404040, 1.5); // Increase intensity to brighten up shadowed areas
     scene.add(ambientLight);
 
     // Sun
