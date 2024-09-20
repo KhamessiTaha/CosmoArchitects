@@ -15,7 +15,7 @@ import jupiterTexture from './textures/Jupiter/jupiter2.jpg';
 import saturnTexture from './textures/Saturn/saturn.jpg';
 import uranusTexture from './textures/Uranus/uranus.jpg';
 import neptuneTexture from './textures/Neptune/neptune.jpg';
-import saturnRingTexture from './textures/Saturn/saturn_ring.png'; // Saturn's rings
+import saturnRingTexture from './textures/Saturn/saturn_ring.png'; 
 
 function Orrery() {
   const mountRef = useRef(null);
@@ -26,6 +26,7 @@ function Orrery() {
   const raycaster = new Raycaster();
   const pointer = new Vector2();
   let selectedObject = null; // Track selected celestial body
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     // Set up scene, camera, and renderer
@@ -57,12 +58,44 @@ function Orrery() {
     const uranusTextureMap = textureLoader.load(uranusTexture);
     const neptuneTextureMap = textureLoader.load(neptuneTexture);
 
+    // Create starfield
+    const createStars = (scene, numStars, minDistance, maxDistance) => {
+      const starGeometry = new THREE.SphereGeometry(0.1, 24, 24);
+      const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    
+      for (let i = 0; i < numStars; i++) {
+        const star = new THREE.Mesh(starGeometry, starMaterial);
+    
+        
+        const theta = Math.random() * Math.PI * 2;  
+        const phi = Math.random() * Math.PI;  
+        
+        // Ensure stars are placed beyond a minimum distance
+        const distance = Math.random() * (maxDistance - minDistance) + minDistance;
+    
+        star.position.x = distance * Math.sin(phi) * Math.cos(theta);
+        star.position.y = distance * Math.sin(phi) * Math.sin(theta);
+        star.position.z = distance * Math.cos(phi);
+    
+        scene.add(star);
+      }
+    };
+
+    createStars(scene, 500, 100, 300); 
+
     // Lighting
-    const pointLight = new THREE.PointLight(0xffffff, 2, 1000);
-    pointLight.position.set(0, 0, 0); // Sun as light source
+    const pointLight = new THREE.PointLight(0xffffff, 2, 1000);  // Brightness and range of light
+    pointLight.position.set(0, 0, 0); // Sun's position
+    pointLight.castShadow = true;  // Enable shadow casting
+    pointLight.shadow.mapSize.width = 1024; // Higher resolution shadows
+    pointLight.shadow.mapSize.height = 1024;
+    pointLight.shadow.camera.near = 1;
+    pointLight.shadow.camera.far = 1000;  // Distance of shadow rendering
+
     scene.add(pointLight);
 
-    const ambientLight = new THREE.AmbientLight(0x404040, 1.5);
+    // Ambient light for softer lighting across the scene
+    const ambientLight = new THREE.AmbientLight(0x404040, 1.5); // Increase intensity to brighten up shadowed areas
     scene.add(ambientLight);
 
     // Sun
@@ -280,31 +313,46 @@ function Orrery() {
       window.removeEventListener('dblclick', handleDoubleClick);
     };
   }, [showOrbits, speed]);
+  // Toggle the menu visibility
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   return (
     <div>
       <div style={{ width: '100vw', height: '100vh' }} ref={mountRef}></div>
-      <div className="menu">
-        <label>
-          Show Orbits:
-          <input
-            type="checkbox"
-            checked={showOrbits}
-            onChange={() => setShowOrbits(!showOrbits)}
-          />
-        </label>
-        <label>
-          Orbit Speed:
-          <input
-            type="range"
-            min="0.0005"
-            max="0.005"
-            step="0.0001"
-            value={speed}
-            onChange={(e) => setSpeed(parseFloat(e.target.value))}
-          />
-        </label>
+      
+      {/* Menu Toggle Button (Hamburger) */}
+      <div className={`menu-toggle ${isMenuOpen ? 'open' : ''}`} onClick={toggleMenu}>
+        <div className="bar"></div>
+        <div className="bar"></div>
+        <div className="bar"></div>
       </div>
+
+      {/* Deployable Menu */}
+      {isMenuOpen && (
+        <div className="menu">
+          <label>
+            Show Orbits:
+            <input
+              type="checkbox"
+              checked={showOrbits}
+              onChange={() => setShowOrbits(!showOrbits)}
+            />
+          </label>
+          <label>
+            Orbit Speed:
+            <input
+              type="range"
+              min="0.0005"
+              max="0.005"
+              step="0.0001"
+              value={speed}
+              onChange={(e) => setSpeed(parseFloat(e.target.value))}
+            />
+          </label>
+        </div>
+      )}
     </div>
   );
 }

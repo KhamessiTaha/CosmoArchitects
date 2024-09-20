@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './LoadingScreen.css'; // Ensure this is imported
+import './LoadingScreen.css'; 
 
 function LoadingScreen() {
   const [progress, setProgress] = useState(0);
@@ -7,7 +7,7 @@ function LoadingScreen() {
   const [message, setMessage] = useState('Loading Orrery Simulation...');
 
   useEffect(() => {
-    // Simulate slower loading progress
+    
     const intervalId = setInterval(() => {
       if (progress < 100) {
         setProgress((prev) => prev + 1);
@@ -18,7 +18,7 @@ function LoadingScreen() {
         clearInterval(intervalId);
         setMessage('Simulation ready to explore!');
       }
-    }, 100); // Slower interval for loading speed
+    }, 100); 
 
     return () => clearInterval(intervalId);
   }, [progress]);
