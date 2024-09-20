@@ -1,13 +1,42 @@
 import React, { useState, useEffect } from 'react';
-import './LoadingScreen.css'; // For styling the loading screen
+import './LoadingScreen.css'; // Ensure this is imported
 
-function LoadingScreen({ progress }) {
+function LoadingScreen() {
+  const [progress, setProgress] = useState(0);
+  const [buffer, setBuffer] = useState(0);
+  const [message, setMessage] = useState('Loading Orrery Simulation...');
+
+  useEffect(() => {
+    // Simulate slower loading progress
+    const intervalId = setInterval(() => {
+      if (progress < 100) {
+        setProgress((prev) => prev + 1);
+        setBuffer((prev) => Math.max(prev, progress + Math.random() * 10));
+        setMessage('Preparing celestial bodies...');
+      } else {
+        clearInterval(intervalId);
+        setMessage('Simulation ready to explore!');
+      }
+    }, 100); // Slower interval for loading speed
+
+    return () => clearInterval(intervalId);
+  }, [progress]);
+
   return (
     <div className="loading-screen">
-      <div className="loading-bar-container">
-        <div className="loading-bar" style={{ width: `${progress}%` }}></div>
+      <div className="loading-container">
+        <h1 className="loading-title">{message}</h1>
+        <div className="progress-bar-container">
+          <div className="progress-bar">
+            <div className="progress" style={{ width: `${progress}%` }} />
+            <div className="buffer" style={{ width: `${buffer}%` }} />
+          </div>
+          <div className="progress-percentage">{progress}%</div>
+        </div>
+        <div className="loading-animation">
+          <div className="loading-spinner"></div>
+        </div>
       </div>
-      <p>Loading {progress}%</p>
     </div>
   );
 }
