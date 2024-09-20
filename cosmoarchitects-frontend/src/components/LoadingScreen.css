@@ -1,24 +1,90 @@
 .loading-screen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #000; /* Black background */
-  color: #fff;
-  z-index: 999;
+  height: 100vh;
+  background-image: url('../components/textures/LoadingScreen.jpg'); /* Use the actual path here */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-.loading-bar-container {
-  width: 80%;
-  height: 20px;
-  background-color: #444;
+.loading-container {
+  text-align: center;
+  color: #ffffff; /* White text */
+  width: 80%; /* Width for better layout on larger screens */
+  max-width: 600px;
+  margin: 0 auto;
 }
 
-.loading-bar {
+.loading-title {
+  font-size: 26px;
+  margin-bottom: 30px;
+  font-weight: bold;
+  color: #f0f0f0;
+}
+
+.progress-bar-container {
+  position: relative;
+  margin-bottom: 30px;
+}
+
+.progress-bar {
+  position: relative;
+  height: 12px;
+  background-color: #444; /* Darker background for the bar */
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.progress {
   height: 100%;
-  background-color: #00ff00; /* Green progress bar */
+  background-color: #4caf50; /* Main progress color */
+  transition: width 0.4s ease-in-out;
+  border-radius: 6px;
+}
+
+.buffer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background-color: #888; /* Buffer color */
+  opacity: 0.6;
+  z-index: 1;
+}
+
+.progress-percentage {
+  position: absolute;
+  top: -30px;
+  right: 0;
+  font-size: 18px;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.loading-animation {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loading-spinner {
+  width: 80px;
+  height: 80px;
+  border: 10px solid #333333; /* Border color */
+  border-top: 10px solid #4caf50; /* Spinner color */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
