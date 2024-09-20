@@ -129,6 +129,18 @@ function Orrery() {
       return planetGroup;
     };
 
+    // Planet parameters for atmospheres
+    const planets = {
+      earth: { radius: 0.5, atmosphereRadius: 0.529, color: 0x87CEEB, intensity: 0.6, opacity: 0.3, positionX: 6 },
+      venus: { radius: 0.6, atmosphereRadius: 0.625, color: 0xFFA500, intensity: 0.5, opacity: 0.4, positionX: 5 },
+      mars: { radius: 0.6, atmosphereRadius: 0.625, color: 0xFF4500, intensity: 0.5, opacity: 0.25, positionX: 10 },
+      jupiter: { radius: 2, atmosphereRadius: 2.05, color: 0xFFFF00, intensity: 0.4, opacity: 0.2, positionX: 15 },
+      saturn: { radius: 1.8, atmosphereRadius: 1.85, color: 0xFFFACD, intensity: 0.3, opacity: 0.2, positionX: 20 },
+      uranus: { radius: 1.4, atmosphereRadius: 1.45, color: 0x00FFFF, intensity: 0.3, opacity: 0.2, positionX: 25 },
+      neptune: { radius: 1.3, atmosphereRadius: 1.31, color: 0x0000FF, intensity: 0.4, opacity: 0.25, positionX: 30 }
+};
+
+
     // Sun
     const sunGeometry = new THREE.SphereGeometry(3, 64, 64);
     const sunMaterial = new THREE.MeshStandardMaterial({
@@ -147,23 +159,23 @@ function Orrery() {
     scene.add(mercury);
 
     // Venus
-    const venusGeometry = new THREE.SphereGeometry(0.6, 64, 64);
+    const venusGeometry = new THREE.SphereGeometry(planets.venus.radius, 64, 64);
     const venusMaterial = new THREE.MeshStandardMaterial({ map: venusTextureMap });
     const venus = new THREE.Mesh(venusGeometry, venusMaterial);
-    venus.position.x = 5;  // Adjust orbit radius
-    scene.add(venus);
+
+    const venusWithAtmosphere = createPlanetWithAtmosphere(venus, planets.venus.radius , planets.venus.atmosphereRadius, planets.venus.color, planets.venus.intensity, planets.venus.opacity);
+    venusWithAtmosphere.position.x = planets.venus.positionX;
+    scene.add(venusWithAtmosphere);
 
 
     // Earth
-    const earthGeometry = new THREE.SphereGeometry(0.5, 64, 64);
+    const earthGeometry = new THREE.SphereGeometry(planets.earth.radius, 64, 64);
     const earthMaterial = new THREE.MeshStandardMaterial({ map: earthTextureMap });
     const earth = new THREE.Mesh(earthGeometry, earthMaterial);
-    earth.rotation.z = THREE.MathUtils.degToRad(23.5); // Axial tilt for realism
+    earth.rotation.z = THREE.MathUtils.degToRad(23.5); // Earth's axial tilt
 
-    // Earth's Atmosphere (slightly larger than the planet)
-    const earthWithAtmosphere = createPlanetWithAtmosphere(earth, 0.5, 0.55, 0x87CEEB, 0.6, 0.3); // Atmosphere radius is slightly bigger
-    earthWithAtmosphere.position.x = 6; // Set Earth's orbit position
-
+    const earthWithAtmosphere = createPlanetWithAtmosphere(earth,planets.earth.radius ,planets.earth.atmosphereRadius, planets.earth.color, planets.earth.intensity, planets.earth.opacity);
+    earthWithAtmosphere.position.x = planets.earth.positionX;
     scene.add(earthWithAtmosphere);
 
     // Earth's Moon
@@ -174,26 +186,33 @@ function Orrery() {
     scene.add(moon);
 
     // Mars
-    const marsGeometry = new THREE.SphereGeometry(0.6, 64, 64);
+    const marsGeometry = new THREE.SphereGeometry(planets.mars.radius, 64, 64);
     const marsMaterial = new THREE.MeshStandardMaterial({ map: marsTextureMap });
     const mars = new THREE.Mesh(marsGeometry, marsMaterial);
-    mars.position.x = 10;
-    mars.rotation.z = THREE.MathUtils.degToRad(25); // Axial tilt for realism
-    scene.add(mars);
+    mars.rotation.z = THREE.MathUtils.degToRad(25); // Mars's axial tilt
+
+    const marsWithAtmosphere = createPlanetWithAtmosphere(mars,planets.mars.radius , planets.mars.atmosphereRadius, planets.mars.color, planets.mars.intensity, planets.mars.opacity);
+    marsWithAtmosphere.position.x = planets.mars.positionX;
+    scene.add(marsWithAtmosphere);
 
     // Jupiter
-    const jupiterGeometry = new THREE.SphereGeometry(2, 64, 64);
+    const jupiterGeometry = new THREE.SphereGeometry(planets.jupiter.radius, 64, 64);
     const jupiterMaterial = new THREE.MeshStandardMaterial({ map: jupiterTextureMap });
     const jupiter = new THREE.Mesh(jupiterGeometry, jupiterMaterial);
-    jupiter.position.x = 15;  // Adjust orbit radius
-    scene.add(jupiter);
 
-    // Example for Saturn:
-    const saturnGeometry = new THREE.SphereGeometry(1.8, 64, 64);
+    const jupiterWithAtmosphere = createPlanetWithAtmosphere(jupiter,planets.jupiter.radius , planets.jupiter.atmosphereRadius, planets.jupiter.color, planets.jupiter.intensity, planets.jupiter.opacity);
+    jupiterWithAtmosphere.position.x = planets.jupiter.positionX;
+    scene.add(jupiterWithAtmosphere);
+
+
+    // Saturn
+    const saturnGeometry = new THREE.SphereGeometry(planets.saturn.radius, 64, 64);
     const saturnMaterial = new THREE.MeshStandardMaterial({ map: saturnTextureMap });
     const saturn = new THREE.Mesh(saturnGeometry, saturnMaterial);
-    saturn.position.x = 20;  // Adjust orbit radius
-    scene.add(saturn);
+
+    const saturnWithAtmosphere = createPlanetWithAtmosphere(saturn,planets.saturn.radius , planets.saturn.atmosphereRadius, planets.saturn.color, planets.saturn.intensity, planets.saturn.opacity);
+    saturnWithAtmosphere.position.x = planets.saturn.positionX;
+    scene.add(saturnWithAtmosphere);
 
     // Saturn's rings
     const ringGeometry = new THREE.RingGeometry(2.2, 3.2, 64);
@@ -214,18 +233,22 @@ function Orrery() {
     scene.add(rings);
 
     // Uranus
-    const uranusGeometry = new THREE.SphereGeometry(1.4, 64, 64);
+    const uranusGeometry = new THREE.SphereGeometry(planets.uranus.radius, 64, 64);
     const uranusMaterial = new THREE.MeshStandardMaterial({ map: uranusTextureMap });
     const uranus = new THREE.Mesh(uranusGeometry, uranusMaterial);
-    uranus.position.x = 25;  // Adjust orbit radius
-    scene.add(uranus);
+
+    const uranusWithAtmosphere = createPlanetWithAtmosphere(uranus,planets.uranus.radius , planets.uranus.atmosphereRadius, planets.uranus.color, planets.uranus.intensity, planets.uranus.opacity);
+    uranusWithAtmosphere.position.x = planets.uranus.positionX;
+    scene.add(uranusWithAtmosphere);
 
     // Neptune
-    const neptuneGeometry = new THREE.SphereGeometry(1.3, 64, 64);
+    const neptuneGeometry = new THREE.SphereGeometry(planets.neptune.radius, 64, 64);
     const neptuneMaterial = new THREE.MeshStandardMaterial({ map: neptuneTextureMap });
     const neptune = new THREE.Mesh(neptuneGeometry, neptuneMaterial);
-    neptune.position.x = 30;  // Adjust orbit radius
-    scene.add(neptune);
+
+    const neptuneWithAtmosphere = createPlanetWithAtmosphere(neptune,planets.neptune.radius , planets.neptune.atmosphereRadius, planets.neptune.color, planets.neptune.intensity, planets.neptune.opacity);
+    neptuneWithAtmosphere.position.x = planets.neptune.positionX;
+    scene.add(neptuneWithAtmosphere);
 
     // Sun
     sun.castShadow = false; // The Sun doesn't cast shadows on itself
@@ -261,10 +284,11 @@ function Orrery() {
     rings.castShadow = true; // Enable shadows on Saturn's rings
     rings.receiveShadow = true;
 
-    // Uranus and Neptune
+    // Uranus 
     uranus.castShadow = true;
     uranus.receiveShadow = true;
-
+    
+    // Neptune
     neptune.castShadow = true;
     neptune.receiveShadow = true;
 
@@ -324,41 +348,48 @@ function Orrery() {
       mercury.position.z = Math.sin(Date.now() * speed * 1.6) * 4;
 
       // Venus Orbit and Rotation
-      venus.rotation.y += 0.005;
-      venus.position.x = Math.cos(Date.now() * speed * 1.2) * 5;
-      venus.position.z = Math.sin(Date.now() * speed * 1.2) * 5;
+      venusWithAtmosphere.rotation.y += 0.005; // Venus rotation
+      venusWithAtmosphere.position.x = Math.cos(Date.now() * speed * 1.2) * 5; // Venus orbit x position
+      venusWithAtmosphere.position.z = Math.sin(Date.now() * speed * 1.2) * 5; // Venus orbit z position
 
-      // Earth Orbit and Rotation (planet and atmosphere move together)
+      // Earth Orbit and Rotation
       earthWithAtmosphere.rotation.y += 0.01; // Earth rotation
-      earthWithAtmosphere.position.x = Math.cos(Date.now() * speed) * 6;
-      earthWithAtmosphere.position.z = Math.sin(Date.now() * speed) * 6; 
+      earthWithAtmosphere.position.x = Math.cos(Date.now() * speed) * 6; // Earth's orbit x position
+      earthWithAtmosphere.position.z = Math.sin(Date.now() * speed) * 6; // Earth's orbit z position 
+
+      // Moon's Orbit and Rotation (relative to Earth)
+      moon.position.x = earthWithAtmosphere.position.x + Math.cos(Date.now() * speed * 10) * 1.5; // Moon orbit x position
+      moon.position.z = earthWithAtmosphere.position.z + Math.sin(Date.now() * speed * 10) * 1.5; // Moon orbit z position
+      moon.rotation.y += 0.01; // Moon rotation
 
       // Mars rotation and orbit
-      mars.rotation.y += 0.008;
-      mars.position.x = Math.cos(Date.now() * speed) * 10;
-      mars.position.z = Math.sin(Date.now() * speed) * 10;
+      marsWithAtmosphere.rotation.y += 0.008; // Mars rotation
+      marsWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.8) * 10; // Mars orbit x position
+      marsWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.8) * 10; // Mars orbit z position
 
-      // Jupiter Orbit and Rotation
-      jupiter.rotation.y += 0.02;
-      jupiter.position.x = Math.cos(Date.now() * speed * 0.4) * 15;
-      jupiter.position.z = Math.sin(Date.now() * speed * 0.4) * 15;
 
-      // Saturn Orbit and Rotation (and rings)
-      saturn.rotation.y += 0.02;
-      saturn.position.x = Math.cos(Date.now() * speed * 0.3) * 20;
-      saturn.position.z = Math.sin(Date.now() * speed * 0.3) * 20;
-      rings.position.x = saturn.position.x;
-      rings.position.z = saturn.position.z;
+      // Jupiter rotation and orbit
+      jupiterWithAtmosphere.rotation.y += 0.02; // Jupiter rotation
+      jupiterWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.6) * 15; // Jupiter orbit x position
+      jupiterWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.6) * 15; // Jupiter orbit z position
 
-      // Uranus Orbit and Rotation
-      uranus.rotation.y += 0.015;
-      uranus.position.x = Math.cos(Date.now() * speed * 0.2) * 25;
-      uranus.position.z = Math.sin(Date.now() * speed * 0.2) * 25;
+      // Saturn rotation and orbit
+      saturnWithAtmosphere.rotation.y += 0.018; // Saturn rotation
+      saturnWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.5) * 20; // Saturn orbit x position
+      saturnWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.5) * 20; // Saturn orbit z position
+      rings.position.x = saturnWithAtmosphere.position.x;
+      rings.position.z = saturnWithAtmosphere.position.z;
 
-      // Neptune Orbit and Rotation
-      neptune.rotation.y += 0.01;
-      neptune.position.x = Math.cos(Date.now() * speed * 0.1) * 30;
-      neptune.position.z = Math.sin(Date.now() * speed * 0.1) * 30;
+      // Uranus rotation and orbit
+      uranusWithAtmosphere.rotation.y += 0.015; // Uranus rotation
+      uranusWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.3) * 25; // Uranus orbit x position
+      uranusWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.3) * 25; // Uranus orbit z position
+
+
+      // Neptune rotation and orbit
+      neptuneWithAtmosphere.rotation.y += 0.012; // Neptune rotation
+      neptuneWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.25) * 30; // Neptune orbit x position
+      neptuneWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.25) * 30; // Neptune orbit z position
 
 
       controls.update();
