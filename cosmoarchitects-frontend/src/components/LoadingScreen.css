@@ -3,9 +3,8 @@
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #1c1c1c; /* Fallback solid dark color */
-  background-image: url('../assets/Images/CosmoArchitects.webp'); /* Add your background image here */
-  background-size: cover; /* Ensures the image covers the entire screen */
+  background-image: url('../components/textures/LoadingScreen.jpg'); /* Use the actual path here */
+  background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 }

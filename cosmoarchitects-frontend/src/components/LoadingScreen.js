@@ -13,7 +13,8 @@ function LoadingScreen() {
         setProgress((prev) => prev + 1);
         setBuffer((prev) => Math.max(prev, progress + Math.random() * 10));
         setMessage('Preparing celestial bodies...');
-      } else {
+      } 
+      else {
         clearInterval(intervalId);
         setMessage('Simulation ready to explore!');
       }
