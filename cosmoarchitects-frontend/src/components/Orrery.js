@@ -16,6 +16,14 @@ import saturnTexture from './textures/Saturn/saturn.jpg';
 import uranusTexture from './textures/Uranus/uranus.jpg';
 import neptuneTexture from './textures/Neptune/neptune.jpg';
 import saturnRingTexture from './textures/Saturn/saturn_ring.png'; 
+import x1 from './textures/skybox/right.png' 
+import x2 from './textures/skybox/left.png' 
+import y1 from './textures/skybox/top.png' 
+import y2 from './textures/skybox/bottom.png' 
+import z1 from './textures/skybox/front.png'  
+import z2 from './textures/skybox/back.png'  
+
+
 
 function Orrery() {
   const mountRef = useRef(null);
@@ -83,6 +91,9 @@ function Orrery() {
 
     createStars(scene, 500, 100, 300); 
 
+
+    
+
     // Lighting
     const pointLight = new THREE.PointLight(0xffffff, 2, 1000);  // Brightness and range of light
     pointLight.position.set(0, 0, 0); // Sun's position
@@ -97,7 +108,7 @@ function Orrery() {
     // Ambient light for softer lighting across the scene
     const ambientLight = new THREE.AmbientLight(0x404040, 1.5); // Increase intensity to brighten up shadowed areas
     scene.add(ambientLight);
-
+    
     // Sun
     const sunGeometry = new THREE.SphereGeometry(3, 64, 64);
     const sunMaterial = new THREE.MeshStandardMaterial({
@@ -191,6 +202,62 @@ function Orrery() {
     const neptune = new THREE.Mesh(neptuneGeometry, neptuneMaterial);
     neptune.position.x = 30;  // Adjust orbit radius
     scene.add(neptune);
+
+    // Sun
+    sun.castShadow = false; // The Sun doesn't cast shadows on itself
+    sun.receiveShadow = false;
+
+    // Mercury
+    mercury.castShadow = true;
+    mercury.receiveShadow = true;
+
+    // Venus
+    venus.castShadow = true;
+    venus.receiveShadow = true;
+
+    // Earth
+    earth.castShadow = true;
+    earth.receiveShadow = true;
+
+    // Moon
+    moon.castShadow = true;
+    moon.receiveShadow = true;
+
+    // Mars
+    mars.castShadow = true;
+    mars.receiveShadow = true;
+
+    // Jupiter
+    jupiter.castShadow = true;
+    jupiter.receiveShadow = true;
+
+    // Saturn and Rings
+    saturn.castShadow = true;
+    saturn.receiveShadow = true;
+    rings.castShadow = true; // Enable shadows on Saturn's rings
+    rings.receiveShadow = true;
+
+    // Uranus and Neptune
+    uranus.castShadow = true;
+    uranus.receiveShadow = true;
+
+    neptune.castShadow = true;
+    neptune.receiveShadow = true;
+
+    renderer.shadowMap.enabled = true;  // Enable shadows globally
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;  // Soft shadows for smooth transitions
+
+    const cubeTextureLoader = new THREE.CubeTextureLoader();
+    const reflectionMap = cubeTextureLoader.load([
+      x1, // +X face
+      x2, // -X face
+      y1, // +Y face
+      y2, // -Y face
+      z1, // +Z face
+      z2, // -Z face
+    ]);
+
+    scene.background = reflectionMap;  // Use this as the scene's skybox background for realism
 
 
     // Orbits
