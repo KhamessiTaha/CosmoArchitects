@@ -70,7 +70,7 @@ function Orrery() {
 
     // Create starfield
     const createStars = (scene, numStars, minDistance, maxDistance) => {
-      const starGeometry = new THREE.SphereGeometry(0.1, 24, 24);
+      const starGeometry = new THREE.SphereGeometry(0.2, 24, 24);
       const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
     
       for (let i = 0; i < numStars; i++) {
