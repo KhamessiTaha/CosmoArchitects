@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { TextureLoader, Raycaster, Vector2 } from 'three';
+import { gsap } from 'gsap';
 import './Orrery.css';
 
 // Textures for celestial bodies
@@ -33,7 +34,8 @@ function Orrery() {
   const [speed, setSpeed] = useState(0.00001);
   const raycaster = new Raycaster();
   const pointer = new Vector2();
-  let selectedObject = null; // Track selected celestial body
+  let selectedObject = null; // select celestial body
+  let isTracking = false; // Track celestial booty
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -391,7 +393,19 @@ function Orrery() {
       neptuneWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.25) * 30; // Neptune orbit x position
       neptuneWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.25) * 30; // Neptune orbit z position
 
-
+      // If a planet is selected, keep the camera focused and tracking its movement
+      if (selectedObject && isTracking) {
+        const targetPosition = new THREE.Vector3(
+          selectedObject.position.x + 5, // Adjust offsets for better framing
+          selectedObject.position.y + 3,
+          selectedObject.position.z + 5
+        );
+        // Smoothly update the camera position to follow the planet
+        camera.position.lerp(targetPosition, 0.05);  // Adjust lerp factor for smoother follow
+        camera.lookAt(selectedObject.position);
+        controls.target.copy(selectedObject.position);  // Keep controls target on the planet
+        controls.update();
+      }
       controls.update();
       renderer.render(scene, camera);
     };
@@ -406,23 +420,51 @@ function Orrery() {
     };
     window.addEventListener('resize', handleResize);
 
+    const selectableObjects = [
+      mercury, venusWithAtmosphere, earthWithAtmosphere, marsWithAtmosphere,
+      jupiterWithAtmosphere, saturnWithAtmosphere, uranusWithAtmosphere, neptuneWithAtmosphere
+    ];
+
+    //camera trackinng
     const handleDoubleClick = (event) => {
       pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
       pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
       raycaster.setFromCamera(pointer, camera);
-      const intersects = raycaster.intersectObjects([saturn]); // Add other planets as needed
+      const intersects = raycaster.intersectObjects(selectableObjects);
 
       if (intersects.length > 0) {
         selectedObject = intersects[0].object;
+        isTracking = true;
         const targetPosition = new THREE.Vector3(
           selectedObject.position.x + 5,
           selectedObject.position.y + 3,
           selectedObject.position.z + 5
         );
-
-        camera.position.lerp(targetPosition, 0.05);
-        controls.target.copy(selectedObject.position);
+        // Animate the camera position
+        gsap.to(camera.position, {
+          duration: 2, 
+          x: targetPosition.x,
+          y: targetPosition.y,
+          z: targetPosition.z,
+          ease: 'power2.inOut', // Easing function for smoothness
+          onUpdate: () => {
+            camera.lookAt(selectedObject.position);
+            controls.update();
+          },
+        });
+        // Smoothly update the camera controls' target
+        gsap.to(controls.target, {
+          duration: 2,   // Sync duration with the camera movement
+          x: selectedObject.position.x,
+          y: selectedObject.position.y,
+          z: selectedObject.position.z,
+          ease: 'power2.inOut',
+          onUpdate: () => {
+            controls.update();
+          },
+        });
+        
       }
     };
 
