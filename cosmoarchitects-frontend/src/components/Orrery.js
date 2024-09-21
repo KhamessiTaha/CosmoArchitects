@@ -133,13 +133,13 @@ function Orrery() {
 
     // Planet parameters for atmospheres
     const planets = {
-      earth: { radius: 0.5, atmosphereRadius: 0.529, color: 0x87CEEB, intensity: 0.6, opacity: 0.3, positionX: 6 },
-      venus: { radius: 0.6, atmosphereRadius: 0.625, color: 0xFFA500, intensity: 0.5, opacity: 0.4, positionX: 5 },
-      mars: { radius: 0.6, atmosphereRadius: 0.625, color: 0xFF4500, intensity: 0.5, opacity: 0.25, positionX: 10 },
+      earth: { radius: 0.5, atmosphereRadius: 0.52, color: 0x87CEEB, intensity: 0.6, opacity: 0.3, positionX: 6 },
+      venus: { radius: 0.6, atmosphereRadius: 0.621, color: 0xFFA500, intensity: 0.5, opacity: 0.4, positionX: 5 },
+      mars: { radius: 0.6, atmosphereRadius: 0.624, color: 0xFF4500, intensity: 0.5, opacity: 0.25, positionX: 10 },
       jupiter: { radius: 2, atmosphereRadius: 2.05, color: 0xFFFF00, intensity: 0.4, opacity: 0.2, positionX: 15 },
       saturn: { radius: 1.8, atmosphereRadius: 1.85, color: 0xFFFACD, intensity: 0.3, opacity: 0.2, positionX: 20 },
-      uranus: { radius: 1.4, atmosphereRadius: 1.45, color: 0x00FFFF, intensity: 0.3, opacity: 0.2, positionX: 25 },
-      neptune: { radius: 1.3, atmosphereRadius: 1.31, color: 0x0000FF, intensity: 0.4, opacity: 0.25, positionX: 30 }
+      uranus: { radius: 1.4, atmosphereRadius: 1.47, color: 0x00FFFF, intensity: 0.3, opacity: 0.2, positionX: 25 },
+      neptune: { radius: 1.3, atmosphereRadius: 1.33, color: 0x0000FF, intensity: 0.4, opacity: 0.25, positionX: 30 }
 };
 
 
