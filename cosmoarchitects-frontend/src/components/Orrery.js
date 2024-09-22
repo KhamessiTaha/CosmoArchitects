@@ -139,40 +139,28 @@ function Orrery() {
       const atmosphereGeometry = new THREE.SphereGeometry(atmosphereRadius, 64, 64);
       const atmosphereMaterial = new THREE.ShaderMaterial({
         uniforms: {
-          sunPosition: { value: new THREE.Vector3(0, 0, 0) },
+          sunPosition: { value: new THREE.Vector3(1, 0, 0) },
           planetPosition: { value: planet.position },
-          c: { value: intensity },
-          p: { value: 6.0 },
+          c: { value: 0.1 },
+          p: { value: 4.5 },
           glowColor: { value: new THREE.Color(color) },
           viewVector: { value: camera.position }
         },
         vertexShader: `
           uniform vec3 viewVector;
-          uniform vec3 sunPosition;
-          uniform vec3 planetPosition;
           varying float intensity;
-          varying vec3 vSunDir;
-          varying vec3 vNormal;
           void main() {
-            vNormal = normalize(normalMatrix * normal);
-            vec3 worldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
-            vSunDir = normalize(sunPosition - worldPosition);
-            vec3 viewDir = normalize(viewVector - worldPosition);
-            intensity = pow(0.5 - dot(vNormal, viewDir), 2.0);
+            vec3 vNormal = normalize(normalMatrix * normal);
+            vec3 vNormel = normalize(normalMatrix * viewVector);
+            intensity = pow(0.5 - dot(vNormal, vNormel), 2.0);
             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
           }
         `,
         fragmentShader: `
-          uniform float c;
-          uniform float p;
           uniform vec3 glowColor;
           varying float intensity;
-          varying vec3 vSunDir;
-          varying vec3 vNormal;
           void main() {
-            float sunDot = max(dot(vSunDir, vNormal), 0.0);
-            float glow = pow(sunDot, p) * c;
-            gl_FragColor = vec4(glowColor, 1.0) * intensity * (glow + 0.1);
+            gl_FragColor = vec4(glowColor, 1.0) * intensity;
           }
         `,
         side: THREE.BackSide,
@@ -213,7 +201,7 @@ function Orrery() {
     scene.add(sun);
     
     // Add a glow effect to the sun
-    const sunGlowGeometry = new THREE.SphereGeometry(sunRadius * 1.2, 64, 64);
+    const sunGlowGeometry = new THREE.SphereGeometry(sunRadius * 1.5, 64, 64);
     const sunGlowMaterial = new THREE.ShaderMaterial({
       uniforms: {
         viewVector: { value: camera.position }
@@ -450,7 +438,7 @@ function Orrery() {
 
     // Orbits
     const createOrbit = (radius, color) => {
-      const orbitGeometry = new THREE.RingGeometry(radius, radius + 0.05, 64);
+      const orbitGeometry = new THREE.RingGeometry(radius, radius + 0.01, 256);
       const orbitMaterial = new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide });
       const orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
       orbit.rotation.x = Math.PI / 2; // Make the ring horizontal
