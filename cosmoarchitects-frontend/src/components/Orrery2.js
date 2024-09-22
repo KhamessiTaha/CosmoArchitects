@@ -105,7 +105,44 @@ function Orrery() {
     createStars(scene, 500, 100, 300); 
 
 
-    
+    // Function to calculate planet position using Keplerian elements
+    function calculateKeplerianPosition(a, e, i, L, ω, Ω, T) {
+      // Convert degrees to radians
+      const degToRad = THREE.MathUtils.degToRad;
+
+      // Mean Anomaly (M) in radians
+      const M = degToRad((L - ω) % 360); // L is Mean Longitude and ω is Argument of Perihelion
+
+      // Solve Kepler's Equation to find Eccentric Anomaly (E)
+      let E = M; // initial guess for E
+      let delta = 1e-6; // tolerance for iterative solving
+
+      while (true) {
+        let nextE = E - (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E));
+        if (Math.abs(nextE - E) < delta) break;
+        E = nextE;
+      }
+
+      // Calculate the true anomaly (v) and distance (r) from the central body
+      const v = 2 * Math.atan2(Math.sqrt(1 + e) * Math.sin(E / 2), Math.sqrt(1 - e) * Math.cos(E / 2));
+      const r = a * (1 - e * Math.cos(E)); // distance in AU
+
+      // Heliocentric coordinates in the orbital plane
+      let xOrb = r * Math.cos(v);
+      let yOrb = r * Math.sin(v);
+
+      // Rotation to align with the correct inclination and orientation
+      const x = (xOrb * (Math.cos(degToRad(Ω)) * Math.cos(degToRad(ω)) - Math.sin(degToRad(Ω)) * Math.sin(degToRad(ω)) * Math.cos(degToRad(i)))) -
+                (yOrb * (Math.cos(degToRad(Ω)) * Math.sin(degToRad(ω)) + Math.sin(degToRad(Ω)) * Math.cos(degToRad(ω)) * Math.cos(degToRad(i))));
+
+      const y = (xOrb * (Math.sin(degToRad(Ω)) * Math.cos(degToRad(ω)) + Math.cos(degToRad(Ω)) * Math.sin(degToRad(ω)) * Math.cos(degToRad(i)))) -
+                (yOrb * (Math.sin(degToRad(Ω)) * Math.sin(degToRad(ω)) - Math.cos(degToRad(Ω)) * Math.cos(degToRad(ω)) * Math.cos(degToRad(i))));
+
+      const z = (xOrb * Math.sin(degToRad(i)) * Math.sin(degToRad(ω))) + (yOrb * Math.sin(degToRad(i)) * Math.cos(degToRad(ω)));
+
+      return new THREE.Vector3(x, y, z);
+    } 
+
     
 
     // Lighting
@@ -468,6 +505,58 @@ function Orrery() {
     // Animation loop
     const animate = () => {
       requestAnimationFrame(animate);
+
+      const julianDate = Date.now() / 86400000 + 2440587.5; // Get Julian Date
+      const T = (julianDate - 2451545.0) / 36525; // Centuries since J2000
+
+      // Mercury
+  const mercuryPosition = calculateKeplerianPosition(
+    0.38709927, 0.20563593, 7.00497902, 252.25032350, 77.45779628, 48.33076593, T
+  );
+  mercury.position.copy(mercuryPosition);
+
+  // Venus
+  const venusPosition = calculateKeplerianPosition(
+    0.72333566, 0.00677672, 3.39467605, 181.97909950, 131.60246718, 76.67984255, T
+  );
+  venusWithAtmosphere.position.copy(venusPosition);
+
+  // Earth
+  const earthPosition = calculateKeplerianPosition(
+    1.00000261, 0.01671123, -0.00001531, 100.46457166, 102.93768193, 0.0, T
+  );
+  earthWithAtmosphere.position.copy(earthPosition);
+
+  // Mars
+  const marsPosition = calculateKeplerianPosition(
+    1.52371034, 0.09339410, 1.84969142, -4.55343205, -23.94362959, 49.55953891, T
+  );
+  marsWithAtmosphere.position.copy(marsPosition);
+
+  // Jupiter
+  const jupiterPosition = calculateKeplerianPosition(
+    5.20288700, 0.04838624, 1.30439695, 34.39644051, 14.72847983, 100.47390909, T
+  );
+  jupiterWithAtmosphere.position.copy(jupiterPosition);
+
+  // Saturn
+  const saturnPosition = calculateKeplerianPosition(
+    9.53667594, 0.05386179, 2.48599187, 49.95424423, 92.59887831, 113.66242448, T
+  );
+  saturnWithAtmosphere.position.copy(saturnPosition);
+  rings.position.copy(saturnPosition); // Update rings position too
+
+  // Uranus
+  const uranusPosition = calculateKeplerianPosition(
+    19.18916464, 0.04725744, 0.77263783, 313.23810451, 170.95427630, 74.01692503, T
+  );
+  uranusWithAtmosphere.position.copy(uranusPosition);
+
+  // Neptune
+  const neptunePosition = calculateKeplerianPosition(
+    30.06992276, 0.00859048, 1.77004347, -55.12002969, 44.96476227, 131.78422574, T
+  );
+  neptuneWithAtmosphere.position.copy(neptunePosition);
 
       // Mercury Orbit and Rotation
       mercury.rotation.y += 0.01;
