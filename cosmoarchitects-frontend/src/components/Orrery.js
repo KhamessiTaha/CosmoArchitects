@@ -17,12 +17,18 @@ import saturnTexture from './textures/Saturn/saturn.jpg';
 import uranusTexture from './textures/Uranus/uranus.jpg';
 import neptuneTexture from './textures/Neptune/neptune.jpg';
 import saturnRingTexture from './textures/Saturn/saturn_ring.png'; 
-import x1 from './textures/skybox/right.png' 
-import x2 from './textures/skybox/left.png' 
-import y1 from './textures/skybox/top.png' 
-import y2 from './textures/skybox/bottom.png' 
-import z1 from './textures/skybox/front.png'  
-import z2 from './textures/skybox/back.png'  
+import earthbump from "./textures/Earth/earthbump.jpg" ;
+import earthcloud from "./textures/Earth/earthcloud.jpg" ;
+import earthcloudtrans from "./textures/Earth/earthcloudtrans.jpg" ;
+import earthlights from "./textures/Earth/earthlights.jpg" ;
+import earthspec from "./textures/Earth/earthspec.jpg" ;
+
+import x1 from './textures/skybox/right.png' ;
+import x2 from './textures/skybox/left.png' ;
+import y1 from './textures/skybox/top.png' ;
+import y2 from './textures/skybox/bottom.png' ;
+import z1 from './textures/skybox/front.png'  ;
+import z2 from './textures/skybox/back.png'  ;
 
 
 
@@ -67,6 +73,11 @@ function Orrery() {
     const saturnTextureMap = textureLoader.load(saturnTexture);
     const uranusTextureMap = textureLoader.load(uranusTexture);
     const neptuneTextureMap = textureLoader.load(neptuneTexture);
+    const bumpMap = textureLoader.load(earthbump);
+    const specularMap = textureLoader.load(earthspec);
+    const cloudTexture = textureLoader.load(earthcloud);
+    const cloudTransparency = textureLoader.load(earthcloudtrans);
+    const nightLights = textureLoader.load(earthlights);
 
     // Create starfield
     const createStars = (scene, numStars, minDistance, maxDistance) => {
@@ -97,43 +108,89 @@ function Orrery() {
     
 
     // Lighting
-    const pointLight = new THREE.PointLight(0xffffff, 2, 1000);  // Brightness and range of light
-    pointLight.position.set(0, 0, 0); // Sun's position
+    const sunRadius = 3;
+    const lightOffset = 5;
+
+    const pointLight = new THREE.PointLight(0xffffff, 2, 0);  // Brightness and range of light
+    pointLight.position.set(0, 0); // Sun's position
     pointLight.castShadow = true;  // Enable shadow casting
-    pointLight.shadow.mapSize.width = 1024; // Higher resolution shadows
-    pointLight.shadow.mapSize.height = 1024;
+    pointLight.shadow.mapSize.width = 2048; // Higher resolution shadows
+    pointLight.shadow.mapSize.height = 2048;
     pointLight.shadow.camera.near = 1;
-    pointLight.shadow.camera.far = 1000;  // Distance of shadow rendering
+    pointLight.shadow.camera.far = 5000;  // Distance of shadow rendering
 
     scene.add(pointLight);
 
-    // Ambient light for softer lighting across the scene
-    const ambientLight = new THREE.AmbientLight(0x404040, 1.5); // Increase intensity to brighten up shadowed areas
-    scene.add(ambientLight);
+
+
     
-    // Function to create atmosphere and group it with the planet
+    // Function to create a planet with realistic lighting and atmosphere
     const createPlanetWithAtmosphere = (planet, radius, atmosphereRadius, color, intensity, opacity) => {
-      const atmosphereGeometry = new THREE.SphereGeometry(atmosphereRadius, 64, 64);
-      const atmosphereMaterial = new THREE.MeshPhongMaterial({
-        emissive: color,
-        emissiveIntensity: intensity,
-        transparent: true,
-        opacity: opacity,
-        side: THREE.BackSide // The atmosphere is outside the planet
+      // Update planet material for better light interaction
+      planet.material = new THREE.MeshPhongMaterial({
+        map: planet.material.map,
+        bumpMap: planet.material.bumpMap,
+        bumpScale: planet.material.bumpScale,
+        specularMap: planet.material.specularMap,
+        specular: planet.material.specular,
+        shininess: 5,
       });
+
+      const atmosphereGeometry = new THREE.SphereGeometry(atmosphereRadius, 64, 64);
+      const atmosphereMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          sunPosition: { value: new THREE.Vector3(0, 0, 0) },
+          planetPosition: { value: planet.position },
+          c: { value: intensity },
+          p: { value: 6.0 },
+          glowColor: { value: new THREE.Color(color) },
+          viewVector: { value: camera.position }
+        },
+        vertexShader: `
+          uniform vec3 viewVector;
+          uniform vec3 sunPosition;
+          uniform vec3 planetPosition;
+          varying float intensity;
+          varying vec3 vSunDir;
+          varying vec3 vNormal;
+          void main() {
+            vNormal = normalize(normalMatrix * normal);
+            vec3 worldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
+            vSunDir = normalize(sunPosition - worldPosition);
+            vec3 viewDir = normalize(viewVector - worldPosition);
+            intensity = pow(0.5 - dot(vNormal, viewDir), 2.0);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform float c;
+          uniform float p;
+          uniform vec3 glowColor;
+          varying float intensity;
+          varying vec3 vSunDir;
+          varying vec3 vNormal;
+          void main() {
+            float sunDot = max(dot(vSunDir, vNormal), 0.0);
+            float glow = pow(sunDot, p) * c;
+            gl_FragColor = vec4(glowColor, 1.0) * intensity * (glow + 0.1);
+          }
+        `,
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending,
+        transparent: true
+      });
+
       const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
 
-      // Create a group and add both the planet and its atmosphere
       const planetGroup = new THREE.Group();
-      planetGroup.add(planet);       // Add the planet to the group
-      planetGroup.add(atmosphere);   // Add the atmosphere to the group
+      planetGroup.add(planet);
+      planetGroup.add(atmosphere);
 
       return planetGroup;
     };
-
     // Planet parameters for atmospheres
     const planets = {
-      earth: { radius: 0.5, atmosphereRadius: 0.52, color: 0x87CEEB, intensity: 0.6, opacity: 0.3, positionX: 6 },
+      earth: { radius: 0.5, atmosphereRadius: 0.511, color: 0x0000ff, intensity: 0.7, opacity: 0.1, positionX: 6 },
       venus: { radius: 0.6, atmosphereRadius: 0.621, color: 0xFFA500, intensity: 0.5, opacity: 0.4, positionX: 5 },
       mars: { radius: 0.6, atmosphereRadius: 0.624, color: 0xFF4500, intensity: 0.5, opacity: 0.25, positionX: 10 },
       jupiter: { radius: 2, atmosphereRadius: 2.05, color: 0xFFFF00, intensity: 0.4, opacity: 0.2, positionX: 15 },
@@ -144,25 +201,63 @@ function Orrery() {
 
 
     // Sun
-    const sunGeometry = new THREE.SphereGeometry(3, 64, 64);
-    const sunMaterial = new THREE.MeshStandardMaterial({
+    const sunGeometry = new THREE.SphereGeometry(sunRadius, 64, 64);
+    const sunMaterial = new THREE.MeshBasicMaterial({
       map: sunTextureMap,
-      emissive: 0xffff00,
-      emissiveIntensity: 3,
+      emissive: new THREE.Color(0xffff00),
+      emissiveIntensity: 1.5
     });
     const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+    sun.castShadow = false;
+    sun.receiveShadow = false;
     scene.add(sun);
     
+    // Add a glow effect to the sun
+    const sunGlowGeometry = new THREE.SphereGeometry(sunRadius * 1.2, 64, 64);
+    const sunGlowMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        viewVector: { value: camera.position }
+      },
+      vertexShader: `
+        uniform vec3 viewVector;
+        varying float intensity;
+        void main() {
+          vec3 vNormal = normalize(normalMatrix * normal);
+          vec3 vNormel = normalize(normalMatrix * viewVector);
+          intensity = pow(0.7 - dot(vNormal, vNormel), 4.0);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying float intensity;
+        void main() {
+          gl_FragColor = vec4(1.0, 0.7, 0.3, 1.0) * intensity;
+        }
+      `,
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending,
+      transparent: true
+    });
+    const sunGlow = new THREE.Mesh(sunGlowGeometry, sunGlowMaterial);
+    scene.add(sunGlow);
+
+    
+
+
     // Mercury
     const mercuryGeometry = new THREE.SphereGeometry(0.3, 64, 64);
-    const mercuryMaterial = new THREE.MeshStandardMaterial({ map: mercuryTextureMap });
+    const mercuryMaterial = new THREE.MeshStandardMaterial({ map: mercuryTextureMap,
+      roughness: 1,
+      metalness: 0,  });
     const mercury = new THREE.Mesh(mercuryGeometry, mercuryMaterial);
     mercury.position.x = 4;  // Adjust orbit radius
     scene.add(mercury);
 
     // Venus
     const venusGeometry = new THREE.SphereGeometry(planets.venus.radius, 64, 64);
-    const venusMaterial = new THREE.MeshStandardMaterial({ map: venusTextureMap });
+    const venusMaterial = new THREE.MeshStandardMaterial({ map: venusTextureMap, 
+      roughness: 1,
+      metalness: 0,  });
     const venus = new THREE.Mesh(venusGeometry, venusMaterial);
 
     const venusWithAtmosphere = createPlanetWithAtmosphere(venus, planets.venus.radius , planets.venus.atmosphereRadius, planets.venus.color, planets.venus.intensity, planets.venus.opacity);
@@ -172,24 +267,55 @@ function Orrery() {
 
     // Earth
     const earthGeometry = new THREE.SphereGeometry(planets.earth.radius, 64, 64);
-    const earthMaterial = new THREE.MeshStandardMaterial({ map: earthTextureMap });
+    const earthMaterial = new THREE.MeshStandardMaterial({ map: earthTextureMap,
+      bumpMap: bumpMap,
+      bumpScale: 0.2,
+      specularMap: specularMap,
+      specular: new THREE.Color('grey'),
+      emissiveMap: nightLights,
+      emissive: new THREE.Color('white'),
+      emissiveIntensity: 0.6,
+      color: new THREE.Color('rgb(70,130,180)'),
+      roughness: 1,
+      metalness: 0, 
+  
+    
+    });
     const earth = new THREE.Mesh(earthGeometry, earthMaterial);
     earth.rotation.z = THREE.MathUtils.degToRad(23.5); // Earth's axial tilt
 
-    const earthWithAtmosphere = createPlanetWithAtmosphere(earth,planets.earth.radius ,planets.earth.atmosphereRadius, planets.earth.color, planets.earth.intensity, planets.earth.opacity);
+    const earthWithAtmosphere = createPlanetWithAtmosphere(earth, planets.earth.radius, planets.earth.atmosphereRadius, planets.earth.color, planets.earth.intensity, planets.earth.opacity);
     earthWithAtmosphere.position.x = planets.earth.positionX;
     scene.add(earthWithAtmosphere);
+    // Add cloud layer
+    const cloudGeometry = new THREE.SphereGeometry(0.51, 64, 64); // Slightly larger than Earth
+    const cloudMaterial = new THREE.MeshPhongMaterial({
+      map: cloudTexture,
+      alphaMap: cloudTransparency,
+      transparent: true,
+      opacity: 0.2,
+      depthWrite: false,
+    });
+    const cloudMesh = new THREE.Mesh(cloudGeometry, cloudMaterial);
+    cloudMesh.position.x = earthWithAtmosphere.position.x;
+    cloudMesh.position.y = earthWithAtmosphere.position.y;
+
+    scene.add(cloudMesh);
 
     // Earth's Moon
     const moonGeometry = new THREE.SphereGeometry(0.2, 64, 64);
-    const moonMaterial = new THREE.MeshStandardMaterial({ map: moonTextureMap });
+    const moonMaterial = new THREE.MeshStandardMaterial({ map: moonTextureMap,
+      roughness: 1,
+      metalness: 0,  });
     const moon = new THREE.Mesh(moonGeometry, moonMaterial);
     moon.position.set(6.5, 0, 0);
     scene.add(moon);
 
     // Mars
     const marsGeometry = new THREE.SphereGeometry(planets.mars.radius, 64, 64);
-    const marsMaterial = new THREE.MeshStandardMaterial({ map: marsTextureMap });
+    const marsMaterial = new THREE.MeshStandardMaterial({ map: marsTextureMap,
+      roughness: 1,
+      metalness: 0,  });
     const mars = new THREE.Mesh(marsGeometry, marsMaterial);
     mars.rotation.z = THREE.MathUtils.degToRad(25); // Mars's axial tilt
 
@@ -199,7 +325,9 @@ function Orrery() {
 
     // Jupiter
     const jupiterGeometry = new THREE.SphereGeometry(planets.jupiter.radius, 64, 64);
-    const jupiterMaterial = new THREE.MeshStandardMaterial({ map: jupiterTextureMap });
+    const jupiterMaterial = new THREE.MeshStandardMaterial({ map: jupiterTextureMap,
+      roughness: 1,
+      metalness: 0,  });
     const jupiter = new THREE.Mesh(jupiterGeometry, jupiterMaterial);
 
     const jupiterWithAtmosphere = createPlanetWithAtmosphere(jupiter,planets.jupiter.radius , planets.jupiter.atmosphereRadius, planets.jupiter.color, planets.jupiter.intensity, planets.jupiter.opacity);
@@ -209,7 +337,9 @@ function Orrery() {
 
     // Saturn
     const saturnGeometry = new THREE.SphereGeometry(planets.saturn.radius, 64, 64);
-    const saturnMaterial = new THREE.MeshStandardMaterial({ map: saturnTextureMap });
+    const saturnMaterial = new THREE.MeshStandardMaterial({ map: saturnTextureMap,
+      roughness: 1,
+      metalness: 0,  });
     const saturn = new THREE.Mesh(saturnGeometry, saturnMaterial);
 
     const saturnWithAtmosphere = createPlanetWithAtmosphere(saturn,planets.saturn.radius , planets.saturn.atmosphereRadius, planets.saturn.color, planets.saturn.intensity, planets.saturn.opacity);
@@ -228,6 +358,8 @@ function Orrery() {
       map: textureLoader.load(saturnRingTexture),
       side: THREE.DoubleSide,
       transparent: true,
+      roughness: 1,
+      metalness: 0, 
     });
     const rings = new THREE.Mesh(ringGeometry, ringMaterial);
     rings.rotation.x = Math.PI / 2;  // Make the ring horizontal
@@ -236,7 +368,9 @@ function Orrery() {
 
     // Uranus
     const uranusGeometry = new THREE.SphereGeometry(planets.uranus.radius, 64, 64);
-    const uranusMaterial = new THREE.MeshStandardMaterial({ map: uranusTextureMap });
+    const uranusMaterial = new THREE.MeshStandardMaterial({ map: uranusTextureMap,
+      roughness: 1,
+      metalness: 0,  });
     const uranus = new THREE.Mesh(uranusGeometry, uranusMaterial);
 
     const uranusWithAtmosphere = createPlanetWithAtmosphere(uranus,planets.uranus.radius , planets.uranus.atmosphereRadius, planets.uranus.color, planets.uranus.intensity, planets.uranus.opacity);
@@ -245,7 +379,9 @@ function Orrery() {
 
     // Neptune
     const neptuneGeometry = new THREE.SphereGeometry(planets.neptune.radius, 64, 64);
-    const neptuneMaterial = new THREE.MeshStandardMaterial({ map: neptuneTextureMap });
+    const neptuneMaterial = new THREE.MeshStandardMaterial({ map: neptuneTextureMap,
+      roughness: 1,
+      metalness: 0,  });
     const neptune = new THREE.Mesh(neptuneGeometry, neptuneMaterial);
 
     const neptuneWithAtmosphere = createPlanetWithAtmosphere(neptune,planets.neptune.radius , planets.neptune.atmosphereRadius, planets.neptune.color, planets.neptune.intensity, planets.neptune.opacity);
@@ -358,6 +494,10 @@ function Orrery() {
       earthWithAtmosphere.rotation.y += 0.01; // Earth rotation
       earthWithAtmosphere.position.x = Math.cos(Date.now() * speed) * 6; // Earth's orbit x position
       earthWithAtmosphere.position.z = Math.sin(Date.now() * speed) * 6; // Earth's orbit z position 
+      cloudMesh.rotation.y += 0.008;
+      cloudMesh.position.x = earthWithAtmosphere.position.x;
+      cloudMesh.position.z = earthWithAtmosphere.position.z;
+
 
       // Moon's Orbit and Rotation (relative to Earth)
       moon.position.x = earthWithAtmosphere.position.x + Math.cos(Date.now() * speed * 10) * 1.5; // Moon orbit x position
