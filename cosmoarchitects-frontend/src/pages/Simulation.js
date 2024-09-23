@@ -5,10 +5,9 @@ import LoadingScreen from '../components/LoadingScreen';
 
 function Simulation() {
   const [isLoading, setIsLoading] = useState(true);
-  const showOrbits = useState(true);
-  const speed = useState(0.0001);
+  const [showOrbits] = useState(true);
+  const [speed] = useState(0.0001);
 
-  
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setIsLoading(false);
@@ -20,12 +19,10 @@ function Simulation() {
   return (
     <div>
       <Navbar />
-      {isLoading ? (
-        <LoadingScreen />
-      ) : (
+      <LoadingScreen isVisible={isLoading} />
+      {!isLoading && (
         <div>
           <Orrery showOrbits={showOrbits} speed={speed} />
-          
         </div>
       )}
     </div>
