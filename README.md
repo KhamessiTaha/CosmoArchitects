@@ -1,5 +1,5 @@
 # CosmoArchitects 🌌                    
-# **Interactive Orrery Web App** 
+# **Interactive Orrery Web App**  
                                         
 ## **Overview**                 
 This project is our submission for the **2024 NASA Space Apps Challenge**. Our aim is to create an interactive orrery web app that visualizes celestial bodies such as planets, Near-Earth Asteroids (NEAs), Near-Earth Comets (NECs), and Potentially Hazardous Asteroids (PHAs) in our solar system. The orrery offers both a static view and a dynamic, animated model that showcases the orbital paths and positions of these celestial bodies over time.    
