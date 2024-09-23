@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './LoadingScreen.css'; 
 
-function LoadingScreen() {
+function LoadingScreen({ isVisible }) {
   const [progress, setProgress] = useState(0);
   const [buffer, setBuffer] = useState(0);
   const [message, setMessage] = useState('Loading Orrery Simulation...');
@@ -22,7 +22,7 @@ function LoadingScreen() {
 
     return () => clearInterval(intervalId);
   }, [progress]);
-
+  if (!isVisible) return null;
   return (
     <div className="loading-screen">
       <div className="loading-container">

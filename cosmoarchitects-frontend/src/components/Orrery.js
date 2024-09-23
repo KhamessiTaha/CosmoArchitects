@@ -32,7 +32,7 @@ import z2 from './textures/skybox/back.png'  ;
 
 
 
-function Orrery() {
+function Orrery({ isInitializing }) {
   const mountRef = useRef(null);
   const cameraRef = useRef(null);     // Camera ref
   const controlsRef = useRef(null);   // Controls ref
@@ -465,10 +465,10 @@ function Orrery() {
     // Camera position
     camera.position.set(10, 5, 15);
 
-    // Animation loop
+    // Animation loop!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     const animate = () => {
       requestAnimationFrame(animate);
-
+      if (!isInitializing) {
       // Mercury Orbit and Rotation
       mercury.rotation.y += 0.01;
       mercury.position.x = Math.cos(Date.now() * speed * 1.6) * 4;
@@ -537,6 +537,7 @@ function Orrery() {
       }
       controls.update();
       renderer.render(scene, camera);
+      }
     };
 
     animate();
@@ -605,7 +606,7 @@ function Orrery() {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('dblclick', handleDoubleClick);
     };
-  }, [showOrbits, speed]);
+  }, [showOrbits, speed, isInitializing]);
   // Toggle the menu visibility
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
