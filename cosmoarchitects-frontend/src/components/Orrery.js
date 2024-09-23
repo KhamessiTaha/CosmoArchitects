@@ -5,6 +5,7 @@ import { TextureLoader, Raycaster, Vector2 } from 'three';
 import { gsap } from 'gsap';
 import './Orrery.css';
 
+
 // Textures for celestial bodies
 import earthTexture from './textures/Earth/earth.jpg';
 import sunTexture from './textures/Sun/sun.jpg';
@@ -231,7 +232,7 @@ function Orrery({ isInitializing }) {
     scene.add(sunGlow);
 
     
-
+    
 
     // Mercury
     const mercuryGeometry = new THREE.SphereGeometry(0.3, 64, 64);
