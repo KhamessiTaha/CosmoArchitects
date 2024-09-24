@@ -6,6 +6,7 @@ import { gsap } from 'gsap';
 import './Orrery.css';
 
 
+
 // Textures for celestial bodies
 import earthTexture from './textures/Earth/earth.jpg';
 import sunTexture from './textures/Sun/sun.jpg';
