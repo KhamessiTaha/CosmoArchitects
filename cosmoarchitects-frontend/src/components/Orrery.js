@@ -6,7 +6,6 @@ import { gsap } from 'gsap';
 import './Orrery.css';
 
 
-
 // Textures for celestial bodies
 import earthTexture from './textures/Earth/earth.jpg';
 import sunTexture from './textures/Sun/sun.jpg';
@@ -107,7 +106,8 @@ function Orrery({ isInitializing }) {
     createStars(scene, 500, 100, 300); 
 
 
-    
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.5);  // Soft ambient lighting
+    scene.add(ambientLight);
     
 
     // Lighting
@@ -441,7 +441,7 @@ function Orrery({ isInitializing }) {
 
     // Orbits
     const createOrbit = (radius, color) => {
-      const orbitGeometry = new THREE.RingGeometry(radius, radius + 0.01, 256);
+      const orbitGeometry = new THREE.RingGeometry(radius, radius + 0.05, 256);
       const orbitMaterial = new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide });
       const orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
       orbit.rotation.x = Math.PI / 2; // Make the ring horizontal
