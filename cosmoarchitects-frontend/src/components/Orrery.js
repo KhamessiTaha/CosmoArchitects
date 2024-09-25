@@ -106,7 +106,8 @@ function Orrery({ isInitializing }) {
     createStars(scene, 500, 100, 300); 
 
 
-    
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.5);  // Soft ambient lighting
+    scene.add(ambientLight);
     
 
     // Lighting
@@ -180,13 +181,13 @@ function Orrery({ isInitializing }) {
     };
     // Planet parameters for atmospheres
     const planets = {
-      earth: { radius: 0.5, atmosphereRadius: 0.511, color: 0x0000ff, intensity: 0.7, opacity: 0.1, positionX: 6 },
-      venus: { radius: 0.6, atmosphereRadius: 0.621, color: 0xFFA500, intensity: 0.5, opacity: 0.4, positionX: 5 },
-      mars: { radius: 0.6, atmosphereRadius: 0.624, color: 0xFF4500, intensity: 0.5, opacity: 0.25, positionX: 10 },
-      jupiter: { radius: 2, atmosphereRadius: 2.05, color: 0xFFFF00, intensity: 0.4, opacity: 0.2, positionX: 15 },
-      saturn: { radius: 1.8, atmosphereRadius: 1.85, color: 0xFFFACD, intensity: 0.3, opacity: 0.2, positionX: 20 },
-      uranus: { radius: 1.4, atmosphereRadius: 1.47, color: 0x00FFFF, intensity: 0.3, opacity: 0.2, positionX: 25 },
-      neptune: { radius: 1.3, atmosphereRadius: 1.33, color: 0x0000FF, intensity: 0.4, opacity: 0.25, positionX: 30 }
+      earth: { radius: 0.5, atmosphereRadius: 0.511, color: 0x0000ff, intensity: 0.7, opacity: 0.1, positionX: 16 },
+      venus: { radius: 0.6, atmosphereRadius: 0.621, color: 0xFFA500, intensity: 0.5, opacity: 0.4, positionX: 12 },
+      mars: { radius: 0.6, atmosphereRadius: 0.624, color: 0xFF4500, intensity: 0.5, opacity: 0.25, positionX: 22 },
+      jupiter: { radius: 2, atmosphereRadius: 2.05, color: 0xFFFF00, intensity: 0.4, opacity: 0.2, positionX: 30 },
+      saturn: { radius: 1.8, atmosphereRadius: 1.85, color: 0xFFFACD, intensity: 0.3, opacity: 0.2, positionX: 40 },
+      uranus: { radius: 1.4, atmosphereRadius: 1.47, color: 0x00FFFF, intensity: 0.3, opacity: 0.2, positionX: 50 },
+      neptune: { radius: 1.3, atmosphereRadius: 1.33, color: 0x0000FF, intensity: 0.4, opacity: 0.25, positionX: 60 }
 };
 
 
@@ -240,7 +241,7 @@ function Orrery({ isInitializing }) {
       roughness: 1,
       metalness: 0,  });
     const mercury = new THREE.Mesh(mercuryGeometry, mercuryMaterial);
-    mercury.position.x = 4;  // Adjust orbit radius
+    mercury.position.x = 8;  // Adjust orbit radius
     scene.add(mercury);
 
     // Venus
@@ -353,7 +354,7 @@ function Orrery({ isInitializing }) {
     });
     const rings = new THREE.Mesh(ringGeometry, ringMaterial);
     rings.rotation.x = Math.PI / 2;  // Make the ring horizontal
-    rings.position.x = 20;  // Align with Saturn's position
+    rings.position.x = 40;  // Align with Saturn's position
     scene.add(rings);
 
     // Uranus
@@ -435,12 +436,118 @@ function Orrery({ isInitializing }) {
 
     scene.background = reflectionMap;  // Use this as the scene's skybox background for realism
 
-    
 
+    const getObjectRadius = (object) => {
+      if (object.geometry && object.geometry.boundingSphere) {
+        return object.geometry.boundingSphere.radius;
+      } else if (object.children && object.children.length > 0) {
+        // For groups (planets with atmospheres), get the radius of the first child
+        return object.children[0].geometry.boundingSphere.radius;
+      }
+      return 1; // Default radius if we can't determine it
+    };
+    
+    // Planets with and without atmospheres (only planet meshes are selectable)
+    const selectableObjects = [
+      mercury, 
+      venusWithAtmosphere,
+      earthWithAtmosphere,
+      marsWithAtmosphere,
+      jupiterWithAtmosphere,
+      saturnWithAtmosphere,
+      uranusWithAtmosphere,
+      neptuneWithAtmosphere,
+      moon
+    ];
+    let selectedObject = null;  // Store the selected planet
+    let isTracking = false; 
+
+
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+
+    // Update the handleDoubleClick function
+    const handleDoubleClick = (event) => {
+      event.preventDefault();
+
+      pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+      pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(pointer, camera);
+      const intersects = raycaster.intersectObjects(selectableObjects, true);
+
+      if (intersects.length > 0) {
+        let targetObject = intersects[0].object;
+
+        // Find the top-level parent (either the planet mesh or the atmosphere group)
+        while (targetObject.parent && !selectableObjects.includes(targetObject)) {
+          targetObject = targetObject.parent;
+        }
+
+        selectedObject = targetObject;
+        isTracking = true;
+
+        controls.target.copy(selectedObject.position);
+        
+        const objectRadius = getObjectRadius(targetObject);
+        const offsetDistance = objectRadius * 3;
+
+        // gsap zoom-in effect
+        gsap.to(camera.position, {
+          duration: 2,
+          x: targetObject.position.x + offsetDistance,
+          y: targetObject.position.y + offsetDistance * 0.5,
+          z: targetObject.position.z + offsetDistance,
+          ease: 'power2.inOut',
+          onUpdate: () => {
+            controls.update();
+          }
+        });
+        
+      } else {
+        selectedObject = null;
+        isTracking = false;
+      }
+    };
+
+    window.addEventListener('dblclick', handleDoubleClick);
+
+    // Handle reset camera on "R" key press
+    const handleKeyPress = (event) => {
+      if (event.key === 'r' || event.key === 'R') {
+        // Reset the camera to its default position
+        gsap.to(camera.position, {
+          duration: 2,
+          x: 10,  // Default camera position
+          y: 5,
+          z: 30,
+          ease: 'power2.inOut',
+          onUpdate: () => {
+            camera.lookAt(0, 0, 0);  // Focus back to the center (default)
+            controls.update();
+          }
+        });
+        gsap.to(controls.target, {
+          duration: 2,
+          x: 0,
+          y: 0,
+          z: 0,
+          ease: 'power2.inOut',
+          onUpdate: () => {
+            controls.update();
+          }
+        });
+
+        selectedObject = null;  // Clear the selected planet
+        isTracking = false;     // Disable tracking
+      }
+    };
+    window.addEventListener('keypress', handleKeyPress);
 
     // Orbits
     const createOrbit = (radius, color) => {
-      const orbitGeometry = new THREE.RingGeometry(radius, radius + 0.01, 256);
+      const orbitGeometry = new THREE.RingGeometry(radius, radius + 0.05, 256);
       const orbitMaterial = new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide });
       const orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
       orbit.rotation.x = Math.PI / 2; // Make the ring horizontal
@@ -449,14 +556,14 @@ function Orrery({ isInitializing }) {
 
     if (showOrbits) {
       // Create orbits for all planets with distinct colors
-      const mercuryOrbit = createOrbit(4, 0xaaaaaa);  // Gray for Mercury
-      const venusOrbit = createOrbit(5, 0xffa500);    // Orange for Venus
-      const earthOrbit = createOrbit(6, 0x0000ff);    // Blue for Earth
-      const marsOrbit = createOrbit(10, 0xff0000);    // Red for Mars
-      const jupiterOrbit = createOrbit(15, 0xffff00); // Yellow for Jupiter
-      const saturnOrbit = createOrbit(20, 0xffa500);  // Orange for Saturn
-      const uranusOrbit = createOrbit(25, 0x00ffff);  // Cyan for Uranus
-      const neptuneOrbit = createOrbit(30, 0x0000ff); // Blue for Neptune
+      const mercuryOrbit = createOrbit(8, 0xaaaaaa);  // Gray for Mercury
+      const venusOrbit = createOrbit(12, 0xffa500);    // Orange for Venus
+      const earthOrbit = createOrbit(16, 0x0000ff);    // Blue for Earth
+      const marsOrbit = createOrbit(22, 0xff0000);    // Red for Mars
+      const jupiterOrbit = createOrbit(30, 0xffff00); // Yellow for Jupiter
+      const saturnOrbit = createOrbit(40, 0xffa500);  // Orange for Saturn
+      const uranusOrbit = createOrbit(50, 0x00ffff);  // Cyan for Uranus
+      const neptuneOrbit = createOrbit(60, 0x0000ff); // Blue for Neptune
   
       // Add all orbits to the scene
       scene.add(mercuryOrbit, venusOrbit, earthOrbit, marsOrbit, jupiterOrbit, saturnOrbit, uranusOrbit, neptuneOrbit);
@@ -464,7 +571,7 @@ function Orrery({ isInitializing }) {
 
 
     // Camera position
-    camera.position.set(10, 5, 15);
+    
 
     // Animation loop!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     const animate = () => {
@@ -472,18 +579,18 @@ function Orrery({ isInitializing }) {
       if (!isInitializing) {
       // Mercury Orbit and Rotation
       mercury.rotation.y += 0.01;
-      mercury.position.x = Math.cos(Date.now() * speed * 1.6) * 4;
-      mercury.position.z = Math.sin(Date.now() * speed * 1.6) * 4;
+      mercury.position.x = Math.cos(Date.now() * speed * 1.6) * 8;
+      mercury.position.z = Math.sin(Date.now() * speed * 1.6) * 8;
 
       // Venus Orbit and Rotation
       venusWithAtmosphere.rotation.y += 0.005; // Venus rotation
-      venusWithAtmosphere.position.x = Math.cos(Date.now() * speed * 1.2) * 5; // Venus orbit x position
-      venusWithAtmosphere.position.z = Math.sin(Date.now() * speed * 1.2) * 5; // Venus orbit z position
+      venusWithAtmosphere.position.x = Math.cos(Date.now() * speed * 1.2) * 12; // Venus orbit x position
+      venusWithAtmosphere.position.z = Math.sin(Date.now() * speed * 1.2) * 12; // Venus orbit z position
 
       // Earth Orbit and Rotation
       earthWithAtmosphere.rotation.y += 0.01; // Earth rotation
-      earthWithAtmosphere.position.x = Math.cos(Date.now() * speed) * 6; // Earth's orbit x position
-      earthWithAtmosphere.position.z = Math.sin(Date.now() * speed) * 6; // Earth's orbit z position 
+      earthWithAtmosphere.position.x = Math.cos(Date.now() * speed) * 16; // Earth's orbit x position
+      earthWithAtmosphere.position.z = Math.sin(Date.now() * speed) * 16; // Earth's orbit z position 
       cloudMesh.rotation.y += 0.008;
       cloudMesh.position.x = earthWithAtmosphere.position.x;
       cloudMesh.position.z = earthWithAtmosphere.position.z;
@@ -496,45 +603,36 @@ function Orrery({ isInitializing }) {
 
       // Mars rotation and orbit
       marsWithAtmosphere.rotation.y += 0.008; // Mars rotation
-      marsWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.8) * 10; // Mars orbit x position
-      marsWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.8) * 10; // Mars orbit z position
+      marsWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.8) * 22; // Mars orbit x position
+      marsWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.8) * 22; // Mars orbit z position
 
 
       // Jupiter rotation and orbit
       jupiterWithAtmosphere.rotation.y += 0.02; // Jupiter rotation
-      jupiterWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.6) * 15; // Jupiter orbit x position
-      jupiterWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.6) * 15; // Jupiter orbit z position
+      jupiterWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.6) * 30; // Jupiter orbit x position
+      jupiterWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.6) * 30; // Jupiter orbit z position
 
       // Saturn rotation and orbit
       saturnWithAtmosphere.rotation.y += 0.018; // Saturn rotation
-      saturnWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.5) * 20; // Saturn orbit x position
-      saturnWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.5) * 20; // Saturn orbit z position
+      saturnWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.5) * 40; // Saturn orbit x position
+      saturnWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.5) * 40; // Saturn orbit z position
       rings.position.x = saturnWithAtmosphere.position.x;
       rings.position.z = saturnWithAtmosphere.position.z;
 
       // Uranus rotation and orbit
       uranusWithAtmosphere.rotation.y += 0.015; // Uranus rotation
-      uranusWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.3) * 25; // Uranus orbit x position
-      uranusWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.3) * 25; // Uranus orbit z position
+      uranusWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.3) * 50; // Uranus orbit x position
+      uranusWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.3) * 50; // Uranus orbit z position
 
 
       // Neptune rotation and orbit
       neptuneWithAtmosphere.rotation.y += 0.012; // Neptune rotation
-      neptuneWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.25) * 30; // Neptune orbit x position
-      neptuneWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.25) * 30; // Neptune orbit z position
+      neptuneWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.25) * 60; // Neptune orbit x position
+      neptuneWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.25) * 60; // Neptune orbit z position
 
       // If a planet is selected, keep the camera focused and tracking its movement
       if (selectedObject && isTracking) {
-        const targetPosition = new THREE.Vector3(
-          selectedObject.position.x + 5, // Adjust offsets for better framing
-          selectedObject.position.y + 3,
-          selectedObject.position.z + 5
-        );
-        // Smoothly update the camera position to follow the planet
-        camera.position.lerp(targetPosition, 0.05);  // Adjust lerp factor for smoother follow
-        camera.lookAt(selectedObject.position);
-        controls.target.copy(selectedObject.position);  // Keep controls target on the planet
-        controls.update();
+        controls.target.copy(selectedObject.position);
       }
       controls.update();
       renderer.render(scene, camera);
@@ -551,61 +649,17 @@ function Orrery({ isInitializing }) {
     };
     window.addEventListener('resize', handleResize);
 
-    const selectableObjects = [
-      mercury, venusWithAtmosphere, earthWithAtmosphere, marsWithAtmosphere,
-      jupiterWithAtmosphere, saturnWithAtmosphere, uranusWithAtmosphere, neptuneWithAtmosphere
-    ];
+    
 
-    //camera trackinng
-    const handleDoubleClick = (event) => {
-      pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-      pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    
 
-      raycaster.setFromCamera(pointer, camera);
-      const intersects = raycaster.intersectObjects(selectableObjects);
-
-      if (intersects.length > 0) {
-        selectedObject = intersects[0].object;
-        isTracking = true;
-        const targetPosition = new THREE.Vector3(
-          selectedObject.position.x + 5,
-          selectedObject.position.y + 3,
-          selectedObject.position.z + 5
-        );
-        // Animate the camera position
-        gsap.to(camera.position, {
-          duration: 2, 
-          x: targetPosition.x,
-          y: targetPosition.y,
-          z: targetPosition.z,
-          ease: 'power2.inOut', // Easing function for smoothness
-          onUpdate: () => {
-            camera.lookAt(selectedObject.position);
-            controls.update();
-          },
-        });
-        // Smoothly update the camera controls' target
-        gsap.to(controls.target, {
-          duration: 2,   // Sync duration with the camera movement
-          x: selectedObject.position.x,
-          y: selectedObject.position.y,
-          z: selectedObject.position.z,
-          ease: 'power2.inOut',
-          onUpdate: () => {
-            controls.update();
-          },
-        });
-        
-      }
-    };
-
-    window.addEventListener('dblclick', handleDoubleClick);
 
     // Clean up on component unmount
     return () => {
       mountRef.current.removeChild(renderer.domElement);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('dblclick', handleDoubleClick);
+      window.removeEventListener('keypress', handleKeyPress);
     };
   }, [showOrbits, speed, isInitializing]);
   // Toggle the menu visibility
