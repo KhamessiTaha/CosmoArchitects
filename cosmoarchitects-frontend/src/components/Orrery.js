@@ -469,95 +469,95 @@ function Orrery({ isInitializing }) {
 
     // Update the handleDoubleClick function
     const handleDoubleClick = (event) => {
-    event.preventDefault();
+      event.preventDefault();
 
-    pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-    pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+      pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-    raycaster.setFromCamera(pointer, camera);
-    const intersects = raycaster.intersectObjects(selectableObjects, true);
+      raycaster.setFromCamera(pointer, camera);
+      const intersects = raycaster.intersectObjects(selectableObjects, true);
 
-    if (intersects.length > 0) {
-      let targetObject = intersects[0].object;
+      if (intersects.length > 0) {
+        let targetObject = intersects[0].object;
 
-    // Find the top-level parent (either the planet mesh or the atmosphere group)
-      while (targetObject.parent && !selectableObjects.includes(targetObject)) {
-        targetObject = targetObject.parent;
+        // Find the top-level parent (either the planet mesh or the atmosphere group)
+        while (targetObject.parent && !selectableObjects.includes(targetObject)) {
+          targetObject = targetObject.parent;
+        }
+
+        selectedObject = targetObject;
+        isTracking = true;
+
+        const objectRadius = getObjectRadius(targetObject);
+        const offsetDistance = objectRadius * 3;
+
+        const targetPosition = new THREE.Vector3(
+          targetObject.position.x + offsetDistance,
+          targetObject.position.y + offsetDistance * 0.5,
+          targetObject.position.z + offsetDistance
+        );
+
+        gsap.to(camera.position, {
+          duration: 2,
+          x: targetPosition.x,
+          y: targetPosition.y,
+          z: targetPosition.z,
+          ease: 'power2.inOut',
+          onUpdate: () => {
+            camera.lookAt(targetObject.position);
+            controls.update();
+          }
+        });
+
+        gsap.to(controls.target, {
+          duration: 2,
+          x: targetObject.position.x,
+          y: targetObject.position.y,
+          z: targetObject.position.z,
+          ease: 'power2.inOut',
+          onUpdate: () => {
+            controls.update();
+          }
+        });
+      } else {
+        selectedObject = null;
+        isTracking = false;
       }
+    };
 
-      selectedObject = targetObject;
-      isTracking = true;
+    window.addEventListener('dblclick', handleDoubleClick);
 
-      const objectRadius = getObjectRadius(targetObject);
-      const offsetDistance = objectRadius * 3;
+    // Handle reset camera on "R" key press
+    const handleKeyPress = (event) => {
+      if (event.key === 'r' || event.key === 'R') {
+        // Reset the camera to its default position
+        gsap.to(camera.position, {
+          duration: 2,
+          x: 10,  // Default camera position
+          y: 5,
+          z: 30,
+          ease: 'power2.inOut',
+          onUpdate: () => {
+            camera.lookAt(0, 0, 0);  // Focus back to the center (default)
+            controls.update();
+          }
+        });
+        gsap.to(controls.target, {
+          duration: 2,
+          x: 0,
+          y: 0,
+          z: 0,
+          ease: 'power2.inOut',
+          onUpdate: () => {
+            controls.update();
+          }
+        });
 
-      const targetPosition = new THREE.Vector3(
-        targetObject.position.x + offsetDistance,
-        targetObject.position.y + offsetDistance * 0.5,
-        targetObject.position.z + offsetDistance
-      );
-
-      gsap.to(camera.position, {
-        duration: 2,
-        x: targetPosition.x,
-        y: targetPosition.y,
-        z: targetPosition.z,
-        ease: 'power2.inOut',
-        onUpdate: () => {
-          camera.lookAt(targetObject.position);
-          controls.update();
-        }
-      });
-
-      gsap.to(controls.target, {
-        duration: 2,
-        x: targetObject.position.x,
-        y: targetObject.position.y,
-        z: targetObject.position.z,
-        ease: 'power2.inOut',
-        onUpdate: () => {
-          controls.update();
-        }
-      });
-    } else {
-      selectedObject = null;
-      isTracking = false;
-    }
-  };
-
-  window.addEventListener('dblclick', handleDoubleClick);
-
-  // Handle reset camera on "R" key press
-  const handleKeyPress = (event) => {
-    if (event.key === 'r' || event.key === 'R') {
-      // Reset the camera to its default position
-      gsap.to(camera.position, {
-        duration: 2,
-        x: 10,  // Default camera position
-        y: 5,
-        z: 30,
-        ease: 'power2.inOut',
-        onUpdate: () => {
-          camera.lookAt(0, 0, 0);  // Focus back to the center (default)
-          controls.update();
-        }
-      });
-      gsap.to(controls.target, {
-        duration: 2,
-        x: 0,
-        y: 0,
-        z: 0,
-        ease: 'power2.inOut',
-        onUpdate: () => {
-          controls.update();
-        }
-      });
-
-      selectedObject = null;  // Clear the selected planet
-      isTracking = false;     // Disable tracking
-    }
-  };
-  window.addEventListener('keypress', handleKeyPress);
+        selectedObject = null;  // Clear the selected planet
+        isTracking = false;     // Disable tracking
+      }
+    };
+    window.addEventListener('keypress', handleKeyPress);
 
     // Orbits
     const createOrbit = (radius, color) => {
