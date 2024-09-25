@@ -436,8 +436,128 @@ function Orrery({ isInitializing }) {
 
     scene.background = reflectionMap;  // Use this as the scene's skybox background for realism
 
-    
 
+    const getObjectRadius = (object) => {
+      if (object.geometry && object.geometry.boundingSphere) {
+        return object.geometry.boundingSphere.radius;
+      } else if (object.children && object.children.length > 0) {
+        // For groups (planets with atmospheres), get the radius of the first child
+        return object.children[0].geometry.boundingSphere.radius;
+      }
+      return 1; // Default radius if we can't determine it
+    };
+    
+    // Planets with and without atmospheres (only planet meshes are selectable)
+    const selectableObjects = [
+      mercury, 
+      venusWithAtmosphere,
+      earthWithAtmosphere,
+      marsWithAtmosphere,
+      jupiterWithAtmosphere,
+      saturnWithAtmosphere,
+      uranusWithAtmosphere,
+      neptuneWithAtmosphere,
+      moon
+    ];
+    let selectedObject = null;  // Store the selected planet
+    let isTracking = false; 
+
+
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+
+    // Update the handleDoubleClick function
+    const handleDoubleClick = (event) => {
+    event.preventDefault();
+
+    pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+    pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(pointer, camera);
+    const intersects = raycaster.intersectObjects(selectableObjects, true);
+
+    if (intersects.length > 0) {
+      let targetObject = intersects[0].object;
+
+    // Find the top-level parent (either the planet mesh or the atmosphere group)
+      while (targetObject.parent && !selectableObjects.includes(targetObject)) {
+        targetObject = targetObject.parent;
+      }
+
+      selectedObject = targetObject;
+      isTracking = true;
+
+      const objectRadius = getObjectRadius(targetObject);
+      const offsetDistance = objectRadius * 3;
+
+      const targetPosition = new THREE.Vector3(
+        targetObject.position.x + offsetDistance,
+        targetObject.position.y + offsetDistance * 0.5,
+        targetObject.position.z + offsetDistance
+      );
+
+      gsap.to(camera.position, {
+        duration: 2,
+        x: targetPosition.x,
+        y: targetPosition.y,
+        z: targetPosition.z,
+        ease: 'power2.inOut',
+        onUpdate: () => {
+          camera.lookAt(targetObject.position);
+          controls.update();
+        }
+      });
+
+      gsap.to(controls.target, {
+        duration: 2,
+        x: targetObject.position.x,
+        y: targetObject.position.y,
+        z: targetObject.position.z,
+        ease: 'power2.inOut',
+        onUpdate: () => {
+          controls.update();
+        }
+      });
+    } else {
+      selectedObject = null;
+      isTracking = false;
+    }
+  };
+
+  window.addEventListener('dblclick', handleDoubleClick);
+
+  // Handle reset camera on "R" key press
+  const handleKeyPress = (event) => {
+    if (event.key === 'r' || event.key === 'R') {
+      // Reset the camera to its default position
+      gsap.to(camera.position, {
+        duration: 2,
+        x: 10,  // Default camera position
+        y: 5,
+        z: 30,
+        ease: 'power2.inOut',
+        onUpdate: () => {
+          camera.lookAt(0, 0, 0);  // Focus back to the center (default)
+          controls.update();
+        }
+      });
+      gsap.to(controls.target, {
+        duration: 2,
+        x: 0,
+        y: 0,
+        z: 0,
+        ease: 'power2.inOut',
+        onUpdate: () => {
+          controls.update();
+        }
+      });
+
+      selectedObject = null;  // Clear the selected planet
+      isTracking = false;     // Disable tracking
+    }
+  };
+  window.addEventListener('keypress', handleKeyPress);
 
     // Orbits
     const createOrbit = (radius, color) => {
@@ -465,7 +585,7 @@ function Orrery({ isInitializing }) {
 
 
     // Camera position
-    camera.position.set(10, 5, 15);
+    
 
     // Animation loop!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     const animate = () => {
@@ -526,15 +646,18 @@ function Orrery({ isInitializing }) {
 
       // If a planet is selected, keep the camera focused and tracking its movement
       if (selectedObject && isTracking) {
+        const objectRadius = getObjectRadius(selectedObject); 
+        const offsetDistance = objectRadius * 3;
+  
         const targetPosition = new THREE.Vector3(
-          selectedObject.position.x + 5, // Adjust offsets for better framing
-          selectedObject.position.y + 3,
-          selectedObject.position.z + 5
+          selectedObject.position.x + offsetDistance,
+          selectedObject.position.y + offsetDistance * 0.5,
+          selectedObject.position.z + offsetDistance
         );
-        // Smoothly update the camera position to follow the planet
-        camera.position.lerp(targetPosition, 0.05);  // Adjust lerp factor for smoother follow
+  
+        camera.position.lerp(targetPosition, 0.05);
         camera.lookAt(selectedObject.position);
-        controls.target.copy(selectedObject.position);  // Keep controls target on the planet
+        controls.target.copy(selectedObject.position);
         controls.update();
       }
       controls.update();
@@ -552,61 +675,17 @@ function Orrery({ isInitializing }) {
     };
     window.addEventListener('resize', handleResize);
 
-    const selectableObjects = [
-      mercury, venusWithAtmosphere, earthWithAtmosphere, marsWithAtmosphere,
-      jupiterWithAtmosphere, saturnWithAtmosphere, uranusWithAtmosphere, neptuneWithAtmosphere
-    ];
+    
 
-    //camera trackinng
-    const handleDoubleClick = (event) => {
-      pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-      pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    
 
-      raycaster.setFromCamera(pointer, camera);
-      const intersects = raycaster.intersectObjects(selectableObjects);
-
-      if (intersects.length > 0) {
-        selectedObject = intersects[0].object;
-        isTracking = true;
-        const targetPosition = new THREE.Vector3(
-          selectedObject.position.x + 5,
-          selectedObject.position.y + 3,
-          selectedObject.position.z + 5
-        );
-        // Animate the camera position
-        gsap.to(camera.position, {
-          duration: 2, 
-          x: targetPosition.x,
-          y: targetPosition.y,
-          z: targetPosition.z,
-          ease: 'power2.inOut', // Easing function for smoothness
-          onUpdate: () => {
-            camera.lookAt(selectedObject.position);
-            controls.update();
-          },
-        });
-        // Smoothly update the camera controls' target
-        gsap.to(controls.target, {
-          duration: 2,   // Sync duration with the camera movement
-          x: selectedObject.position.x,
-          y: selectedObject.position.y,
-          z: selectedObject.position.z,
-          ease: 'power2.inOut',
-          onUpdate: () => {
-            controls.update();
-          },
-        });
-        
-      }
-    };
-
-    window.addEventListener('dblclick', handleDoubleClick);
 
     // Clean up on component unmount
     return () => {
       mountRef.current.removeChild(renderer.domElement);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('dblclick', handleDoubleClick);
+      window.removeEventListener('keypress', handleKeyPress);
     };
   }, [showOrbits, speed, isInitializing]);
   // Toggle the menu visibility
