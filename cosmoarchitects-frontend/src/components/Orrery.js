@@ -488,37 +488,23 @@ function Orrery({ isInitializing }) {
         selectedObject = targetObject;
         isTracking = true;
 
+        controls.target.copy(selectedObject.position);
+        
         const objectRadius = getObjectRadius(targetObject);
         const offsetDistance = objectRadius * 3;
 
-        const targetPosition = new THREE.Vector3(
-          targetObject.position.x + offsetDistance,
-          targetObject.position.y + offsetDistance * 0.5,
-          targetObject.position.z + offsetDistance
-        );
-
+        // gsap zoom-in effect
         gsap.to(camera.position, {
           duration: 2,
-          x: targetPosition.x,
-          y: targetPosition.y,
-          z: targetPosition.z,
-          ease: 'power2.inOut',
-          onUpdate: () => {
-            camera.lookAt(targetObject.position);
-            controls.update();
-          }
-        });
-
-        gsap.to(controls.target, {
-          duration: 2,
-          x: targetObject.position.x,
-          y: targetObject.position.y,
-          z: targetObject.position.z,
+          x: targetObject.position.x + offsetDistance,
+          y: targetObject.position.y + offsetDistance * 0.5,
+          z: targetObject.position.z + offsetDistance,
           ease: 'power2.inOut',
           onUpdate: () => {
             controls.update();
           }
         });
+        
       } else {
         selectedObject = null;
         isTracking = false;
@@ -646,19 +632,7 @@ function Orrery({ isInitializing }) {
 
       // If a planet is selected, keep the camera focused and tracking its movement
       if (selectedObject && isTracking) {
-        const objectRadius = getObjectRadius(selectedObject); 
-        const offsetDistance = objectRadius * 3;
-  
-        const targetPosition = new THREE.Vector3(
-          selectedObject.position.x + offsetDistance,
-          selectedObject.position.y + offsetDistance * 0.5,
-          selectedObject.position.z + offsetDistance
-        );
-  
-        camera.position.lerp(targetPosition, 0.05);
-        camera.lookAt(selectedObject.position);
         controls.target.copy(selectedObject.position);
-        controls.update();
       }
       controls.update();
       renderer.render(scene, camera);
