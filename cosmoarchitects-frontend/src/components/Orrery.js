@@ -342,14 +342,14 @@ function Orrery({ isInitializing }) {
     const ringVec = new THREE.Vector3();
     for (let i = 0; i < ringPos.count; i++) {
       ringVec.fromBufferAttribute(ringPos, i);
-      ringGeometry.attributes.uv.setXY(i, ringVec.length() < 2.7 ? 0 : 1, 1); // Adjust UVs for proper texture mapping
+      ringGeometry.attributes.uv.setXY(i, ringVec.length() < 2.7 ? 0 : 1, 1); // UVs for texture mapping
     }
     const ringMaterial = new THREE.MeshBasicMaterial({
       map: textureLoader.load(saturnRingTexture),
       side: THREE.DoubleSide,
       transparent: true,
       roughness: 1,
-      metalness: 0, 
+      metalness: 0,
     });
     const rings = new THREE.Mesh(ringGeometry, ringMaterial);
     rings.rotation.x = Math.PI / 2;  // Make the ring horizontal
