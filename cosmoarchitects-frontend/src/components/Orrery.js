@@ -6,6 +6,7 @@ import { gsap } from 'gsap';
 import './Orrery.css';
 
 
+
 // Textures for celestial bodies
 import earthTexture from './textures/Earth/earth.jpg';
 import sunTexture from './textures/Sun/sun.jpg';
@@ -33,13 +34,21 @@ import z2 from './textures/skybox/back.png'  ;
 
 
 
-function Orrery({ isInitializing }) {
+function Orrery({ isInitializing,  }) {
   const mountRef = useRef(null);
   const cameraRef = useRef(null);     // Camera ref
   const controlsRef = useRef(null);   // Controls ref
+  const sceneRef = useRef(null);
   const [showOrbits, setShowOrbits] = useState(true);
-  const [speed, setSpeed] = useState(0.00001);
+  const [timeSpeed, setTimeSpeed] = useState(1);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const animationRef = useRef({
+    showOrbits: true,
+    timeSpeed: 1,
+    lastTime: 0,
+    elapsedTime: 0,
+  });
 
   useEffect(() => {
     // Set up scene, camera, and renderer
@@ -555,16 +564,22 @@ function Orrery({ isInitializing }) {
     };
     window.addEventListener('keypress', handleKeyPress);
 
+    sceneRef.current = scene;
+    cameraRef.current = camera;
+    controlsRef.current = controls;
+
+
     // Orbits
     const createOrbit = (radius, color) => {
       const orbitGeometry = new THREE.RingGeometry(radius, radius + 0.05, 256);
       const orbitMaterial = new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide });
       const orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
       orbit.rotation.x = Math.PI / 2; // Make the ring horizontal
+      orbit.isOrbit = true;
       return orbit;
     };
 
-    if (showOrbits) {
+    
       // Create orbits for all planets with distinct colors
       const mercuryOrbit = createOrbit(8, 0xaaaaaa);  // Gray for Mercury
       const venusOrbit = createOrbit(12, 0xffa500);    // Orange for Venus
@@ -574,71 +589,99 @@ function Orrery({ isInitializing }) {
       const saturnOrbit = createOrbit(40, 0xffa500);  // Orange for Saturn
       const uranusOrbit = createOrbit(50, 0x00ffff);  // Cyan for Uranus
       const neptuneOrbit = createOrbit(60, 0x0000ff); // Blue for Neptune
+
+      const orbits = [
+        createOrbit(8, 0xaaaaaa),
+        createOrbit(12, 0xffa500),
+        createOrbit(16, 0x0000ff),
+        createOrbit(22, 0xff0000),
+        createOrbit(30, 0xffff00),
+        createOrbit(40, 0xffa500),
+        createOrbit(50, 0x00ffff),
+        createOrbit(60, 0x0000ff)
+      ];
   
       // Add all orbits to the scene
-      scene.add(mercuryOrbit, venusOrbit, earthOrbit, marsOrbit, jupiterOrbit, saturnOrbit, uranusOrbit, neptuneOrbit);
-    }
+      orbits.forEach(orbit => {
+        orbit.visible = animationRef.current.showOrbits;
+        scene.add(orbit);
+      });
+      
 
 
-    // Camera position
+    
+
+
     
 
     // Animation loop!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    const animate = () => {
+    const animate = (currentTime) => {
       requestAnimationFrame(animate);
       if (!isInitializing) {
+
+      const { showOrbits, timeSpeed, lastTime, elapsedTime } = animationRef.current;
+      // Calculate delta time and update elapsed time
+      const deltaTime = currentTime - lastTime;
+      animationRef.current.lastTime = currentTime;
+      animationRef.current.elapsedTime += deltaTime * 0.001 * timeSpeed; // Convert to seconds and apply time speed
+      
+      scene.children.filter(child => child.isOrbit).forEach(orbit => {
+        orbit.visible = showOrbits;
+      });
+
+      const time = animationRef.current.elapsedTime*0.1;
       // Mercury Orbit and Rotation
       mercury.rotation.y += 0.01;
-      mercury.position.x = Math.cos(Date.now() * speed * 1.6) * 8;
-      mercury.position.z = Math.sin(Date.now() * speed * 1.6) * 8;
+      mercury.position.x = Math.cos(time * 1.6) * 8;
+      mercury.position.z = Math.sin(time * 1.6) * 8;
 
       // Venus Orbit and Rotation
       venusWithAtmosphere.rotation.y += 0.005; // Venus rotation
-      venusWithAtmosphere.position.x = Math.cos(Date.now() * speed * 1.2) * 12; // Venus orbit x position
-      venusWithAtmosphere.position.z = Math.sin(Date.now() * speed * 1.2) * 12; // Venus orbit z position
+      venusWithAtmosphere.position.x = Math.cos(time * 1.2) * 12; // Venus orbit x position
+      venusWithAtmosphere.position.z = Math.sin(time * 1.2) * 12; // Venus orbit z position
 
       // Earth Orbit and Rotation
       earthWithAtmosphere.rotation.y += 0.01; // Earth rotation
-      earthWithAtmosphere.position.x = Math.cos(Date.now() * speed) * 16; // Earth's orbit x position
-      earthWithAtmosphere.position.z = Math.sin(Date.now() * speed) * 16; // Earth's orbit z position 
+      earthWithAtmosphere.position.x = Math.cos(time) * 16; // Earth's orbit x position
+      earthWithAtmosphere.position.z = Math.sin(time) * 16; // Earth's orbit z position 
       cloudMesh.rotation.y += 0.008;
       cloudMesh.position.x = earthWithAtmosphere.position.x;
       cloudMesh.position.z = earthWithAtmosphere.position.z;
 
 
       // Moon's Orbit and Rotation (relative to Earth)
-      moon.position.x = earthWithAtmosphere.position.x + Math.cos(Date.now() * speed * 10) * 1.5; // Moon orbit x position
-      moon.position.z = earthWithAtmosphere.position.z + Math.sin(Date.now() * speed * 10) * 1.5; // Moon orbit z position
+      moon.position.x = earthWithAtmosphere.position.x + Math.cos(time * 10) * 1.5; // Moon orbit x position
+      moon.position.z = earthWithAtmosphere.position.z + Math.sin(time * 10) * 1.5; // Moon orbit z position
       moon.rotation.y += 0; // Moon rotation
 
       // Mars rotation and orbit
       marsWithAtmosphere.rotation.y += 0.008; // Mars rotation
-      marsWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.8) * 22; // Mars orbit x position
-      marsWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.8) * 22; // Mars orbit z position
+      marsWithAtmosphere.position.x = Math.cos(time * 0.8) * 22; // Mars orbit x position
+      marsWithAtmosphere.position.z = Math.sin(time * 0.8) * 22; // Mars orbit z position
 
 
       // Jupiter rotation and orbit
       jupiterWithAtmosphere.rotation.y += 0.02; // Jupiter rotation
-      jupiterWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.6) * 30; // Jupiter orbit x position
-      jupiterWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.6) * 30; // Jupiter orbit z position
+      jupiterWithAtmosphere.position.x = Math.cos(time * 0.6) * 30; // Jupiter orbit x position
+      jupiterWithAtmosphere.position.z = Math.sin(time * 0.6) * 30; // Jupiter orbit z position
 
       // Saturn rotation and orbit
       saturnWithAtmosphere.rotation.y += 0.018; // Saturn rotation
-      saturnWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.5) * 40; // Saturn orbit x position
-      saturnWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.5) * 40; // Saturn orbit z position
+      saturnWithAtmosphere.position.x = Math.cos(time * 0.5) * 40; // Saturn orbit x position
+      saturnWithAtmosphere.position.z = Math.sin(time * 0.5) * 40; // Saturn orbit z position
       rings.position.x = saturnWithAtmosphere.position.x;
       rings.position.z = saturnWithAtmosphere.position.z;
 
       // Uranus rotation and orbit
       uranusWithAtmosphere.rotation.y += 0.015; // Uranus rotation
-      uranusWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.3) * 50; // Uranus orbit x position
-      uranusWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.3) * 50; // Uranus orbit z position
+      uranusWithAtmosphere.position.x = Math.cos(time * 0.3) * 50; // Uranus orbit x position
+      uranusWithAtmosphere.position.z = Math.sin(time * 0.3) * 50; // Uranus orbit z position
 
 
       // Neptune rotation and orbit
       neptuneWithAtmosphere.rotation.y += 0.012; // Neptune rotation
-      neptuneWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.25) * 60; // Neptune orbit x position
-      neptuneWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.25) * 60; // Neptune orbit z position
+      neptuneWithAtmosphere.position.x = Math.cos(time * 0.25) * 60; // Neptune orbit x position
+      neptuneWithAtmosphere.position.z = Math.sin(time * 0.25) * 60; // Neptune orbit z position
       
 
       const sunPosition = new THREE.Vector3(0, 0, 0);
@@ -655,12 +698,12 @@ function Orrery({ isInitializing }) {
       if (selectedObject && isTracking) {
         controls.target.copy(selectedObject.position);
       }
-      controls.update();
+      controlsRef.current.update();
       renderer.render(scene, camera);
       }
     };
-
-    animate();
+    
+    animate(0);
 
     // Handle window resize
     const handleResize = () => {
@@ -682,12 +725,25 @@ function Orrery({ isInitializing }) {
       window.removeEventListener('dblclick', handleDoubleClick);
       window.removeEventListener('keypress', handleKeyPress);
     };
-  }, [showOrbits, speed, isInitializing]);
+  }, [isInitializing]);
   // Toggle the menu visibility
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+  useEffect(() => {
+    animationRef.current.showOrbits = showOrbits;
+  }, [showOrbits]);
+  useEffect(() => {
+    animationRef.current.timeSpeed = timeSpeed;
+  }, [timeSpeed]);
 
+  const handleTimeControl = (adjustment) => {
+    setTimeSpeed(prevSpeed => {
+      const newSpeed = prevSpeed * adjustment;
+      // Limit the speed between 0.01 and 10
+      return Math.max(0.01, Math.min(newSpeed, 10));
+    });
+  };
   return (
     <div>
       <div style={{ width: '100vw', height: '100vh' }} ref={mountRef}></div>
@@ -702,25 +758,32 @@ function Orrery({ isInitializing }) {
       {/* Deployable Menu */}
       {isMenuOpen && (
         <div className="menu">
-          <label>
-            Show Orbits:
+          <label className="orbit-toggle">
             <input
               type="checkbox"
               checked={showOrbits}
               onChange={() => setShowOrbits(!showOrbits)}
             />
+            <span className="slider"></span>
+            <span className="label-text">Show Orbits</span>
           </label>
-          <label>
-            Orbit Speed:
-            <input
-              type="range"
-              min="0.0005"
-              max="0.005"
-              step="0.0001"
-              value={speed}
-              onChange={(e) => setSpeed(parseFloat(e.target.value))}
-            />
-          </label>
+          <div className="time-control">
+            <h3>Time Control</h3>
+            <div className="button-group">
+              <button onClick={() => handleTimeControl(0.5)} className="time-button slow">
+                <i className="fas fa-backward"></i> Slower
+              </button>
+              <button onClick={() => setTimeSpeed(1)} className="time-button normal">
+                <i className="fas fa-sync"></i> Normal
+              </button>
+              <button onClick={() => handleTimeControl(2)} className="time-button fast">
+                <i className="fas fa-forward"></i> Faster
+              </button>
+            </div>
+            <div className="speed-display">
+              Current Speed: {timeSpeed.toFixed(2)}x
+            </div>
+          </div>
         </div>
       )}
     </div>
