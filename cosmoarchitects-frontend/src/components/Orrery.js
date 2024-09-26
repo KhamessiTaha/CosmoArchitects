@@ -113,8 +113,8 @@ function Orrery({ isInitializing }) {
     const pointLight = new THREE.PointLight(0xffffff, 250, 0);  // Brightness and range of light
     pointLight.position.set(0, 0); // Sun's position
     pointLight.castShadow = true;  // Enable shadow casting
-    pointLight.shadow.mapSize.width = 2048; // Higher resolution shadows
-    pointLight.shadow.mapSize.height = 2048;
+    pointLight.shadow.mapSize.width = 4096; // Higher resolution shadows
+    pointLight.shadow.mapSize.height = 4096;
     pointLight.shadow.camera.near = 1;
     pointLight.shadow.camera.far = 5000;  // Distance of shadow rendering
 
