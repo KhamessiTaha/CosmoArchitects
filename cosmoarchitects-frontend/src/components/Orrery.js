@@ -609,7 +609,7 @@ function Orrery({ isInitializing }) {
       // Moon's Orbit and Rotation (relative to Earth)
       moon.position.x = earthWithAtmosphere.position.x + Math.cos(Date.now() * speed * 10) * 1.5; // Moon orbit x position
       moon.position.z = earthWithAtmosphere.position.z + Math.sin(Date.now() * speed * 10) * 1.5; // Moon orbit z position
-      moon.rotation.y += 0.01; // Moon rotation
+      moon.rotation.y += 0; // Moon rotation
 
       // Mars rotation and orbit
       marsWithAtmosphere.rotation.y += 0.008; // Mars rotation
