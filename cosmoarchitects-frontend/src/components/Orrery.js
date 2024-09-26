@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { TextureLoader, Raycaster, Vector2 } from 'three';
+import { TextureLoader } from 'three';
 import { gsap } from 'gsap';
 import './Orrery.css';
 
@@ -39,10 +39,6 @@ function Orrery({ isInitializing }) {
   const controlsRef = useRef(null);   // Controls ref
   const [showOrbits, setShowOrbits] = useState(true);
   const [speed, setSpeed] = useState(0.00001);
-  const raycaster = new Raycaster();
-  const pointer = new Vector2();
-  let selectedObject = null; // select celestial body
-  let isTracking = false; // Track celestial booty
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -106,15 +102,15 @@ function Orrery({ isInitializing }) {
     createStars(scene, 500, 100, 300); 
 
 
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.5);  // Soft ambient lighting
-    scene.add(ambientLight);
+   
     
+
+   
 
     // Lighting
     const sunRadius = 3;
-    const lightOffset = 5;
 
-    const pointLight = new THREE.PointLight(0xffffff, 2, 0);  // Brightness and range of light
+    const pointLight = new THREE.PointLight(0xffffff, 250, 0);  // Brightness and range of light
     pointLight.position.set(0, 0); // Sun's position
     pointLight.castShadow = true;  // Enable shadow casting
     pointLight.shadow.mapSize.width = 2048; // Higher resolution shadows
@@ -125,6 +121,7 @@ function Orrery({ isInitializing }) {
     scene.add(pointLight);
 
 
+    
 
     
     // Function to create a planet with realistic lighting and atmosphere
@@ -196,7 +193,7 @@ function Orrery({ isInitializing }) {
     const sunMaterial = new THREE.MeshBasicMaterial({
       map: sunTextureMap,
       emissive: new THREE.Color(0xffff00),
-      emissiveIntensity: 1.5
+      emissiveIntensity: 100
     });
     const sun = new THREE.Mesh(sunGeometry, sunMaterial);
     sun.castShadow = false;
@@ -239,7 +236,9 @@ function Orrery({ isInitializing }) {
     const mercuryGeometry = new THREE.SphereGeometry(0.3, 64, 64);
     const mercuryMaterial = new THREE.MeshStandardMaterial({ map: mercuryTextureMap,
       roughness: 1,
-      metalness: 0,  });
+      metalness: 0, 
+      emissive: new THREE.Color(0x111111),  // Add emissive property
+      emissiveIntensity: 0.5,   });
     const mercury = new THREE.Mesh(mercuryGeometry, mercuryMaterial);
     mercury.position.x = 8;  // Adjust orbit radius
     scene.add(mercury);
@@ -262,10 +261,10 @@ function Orrery({ isInitializing }) {
       bumpMap: bumpMap,
       bumpScale: 0.2,
       specularMap: specularMap,
-      specular: new THREE.Color('grey'),
+      specular: new THREE.Color('black'),
       emissiveMap: nightLights,
       emissive: new THREE.Color('white'),
-      emissiveIntensity: 0.6,
+      emissiveIntensity: 1,
       color: new THREE.Color('rgb(70,130,180)'),
       roughness: 1,
       metalness: 0, 
@@ -338,7 +337,7 @@ function Orrery({ isInitializing }) {
     scene.add(saturnWithAtmosphere);
 
     // Saturn's rings
-    const ringGeometry = new THREE.RingGeometry(2.2, 3.2, 64);
+    const ringGeometry = new THREE.RingGeometry(2.2, 3.2, 120);
     const ringPos = ringGeometry.attributes.position;
     const ringVec = new THREE.Vector3();
     for (let i = 0; i < ringPos.count; i++) {
@@ -423,6 +422,17 @@ function Orrery({ isInitializing }) {
 
     renderer.shadowMap.enabled = true;  // Enable shadows globally
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;  // Soft shadows for smooth transitions
+    
+    const updatePlanetLighting = (planet, lightPosition) => {
+      if (planet.material && planet.material.emissive) {  // Check if emissive property exists
+        const planetPosition = planet.position.clone();
+        const lightDirection = lightPosition.clone().sub(planetPosition).normalize();
+        // Calculate how much light the planet gets on the sun-facing side
+        const lightIntensity = Math.max(0, lightDirection.dot(planetPosition.normalize())) * 0.7;
+        planet.material.emissive.setHSL(0.1, 0.9, lightIntensity);
+      }
+    };
+
 
     const cubeTextureLoader = new THREE.CubeTextureLoader();
     const reflectionMap = cubeTextureLoader.load([
@@ -629,6 +639,17 @@ function Orrery({ isInitializing }) {
       neptuneWithAtmosphere.rotation.y += 0.012; // Neptune rotation
       neptuneWithAtmosphere.position.x = Math.cos(Date.now() * speed * 0.25) * 60; // Neptune orbit x position
       neptuneWithAtmosphere.position.z = Math.sin(Date.now() * speed * 0.25) * 60; // Neptune orbit z position
+      
+
+      const sunPosition = new THREE.Vector3(0, 0, 0);
+      updatePlanetLighting(earthWithAtmosphere, sunPosition);
+      updatePlanetLighting(venusWithAtmosphere, sunPosition);
+      updatePlanetLighting(marsWithAtmosphere, sunPosition);
+      updatePlanetLighting(jupiterWithAtmosphere, sunPosition);
+      updatePlanetLighting(saturnWithAtmosphere, sunPosition);
+      updatePlanetLighting(uranusWithAtmosphere, sunPosition);
+      updatePlanetLighting(neptuneWithAtmosphere, sunPosition);
+
 
       // If a planet is selected, keep the camera focused and tracking its movement
       if (selectedObject && isTracking) {
