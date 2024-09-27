@@ -34,6 +34,8 @@ import z2 from './textures/skybox/back.png'  ;
 
 
 
+
+
 function Orrery({ isInitializing,  }) {
   const mountRef = useRef(null);
   const cameraRef = useRef(null);     // Camera ref
@@ -196,9 +198,10 @@ function Orrery({ isInitializing,  }) {
       saturn: { radius: 1.8, atmosphereRadius: 1.85, color: 0xFFFACD, intensity: 0.3, opacity: 0.2, positionX: 40 },
       uranus: { radius: 1.4, atmosphereRadius: 1.47, color: 0x00FFFF, intensity: 0.3, opacity: 0.2, positionX: 50 },
       neptune: { radius: 1.3, atmosphereRadius: 1.33, color: 0x0000FF, intensity: 0.4, opacity: 0.25, positionX: 60 }
-};
+    };
 
 
+    
     // Sun
     const sunGeometry = new THREE.SphereGeometry(sunRadius, 64, 64);
     const sunMaterial = new THREE.MeshBasicMaterial({
