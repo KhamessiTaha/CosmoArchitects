@@ -170,6 +170,15 @@ canvas {
 .time-button.fast {
   background-color: #f39c12;
 }
+.time-button.pause,
+.time-button.play {
+  background-color: #3498db;
+}
+
+.time-button.pause:hover,
+.time-button.play:hover {
+  background-color: #2980b9;
+}
 
 .speed-display {
   font-size: 14px;

@@ -42,12 +42,14 @@ function Orrery({ isInitializing,  }) {
   const [showOrbits, setShowOrbits] = useState(true);
   const [timeSpeed, setTimeSpeed] = useState(1);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   const animationRef = useRef({
     showOrbits: true,
     timeSpeed: 1,
     lastTime: 0,
     elapsedTime: 0,
+    isPaused: false,
   });
 
   useEffect(() => {
@@ -617,7 +619,7 @@ function Orrery({ isInitializing,  }) {
     // Animation loop!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     const animate = (currentTime) => {
       requestAnimationFrame(animate);
-      if (!isInitializing) {
+      if (!isInitializing && !animationRef.current.isPaused) {
 
       const { showOrbits, timeSpeed, lastTime, elapsedTime } = animationRef.current;
       // Calculate delta time and update elapsed time
@@ -630,18 +632,28 @@ function Orrery({ isInitializing,  }) {
       });
 
       const time = animationRef.current.elapsedTime*0.1;
+      const rotationSpeed = 0.01 * timeSpeed;
+        mercury.rotation.y += rotationSpeed * 1;
+        venusWithAtmosphere.rotation.y += rotationSpeed * 0.5;
+        earthWithAtmosphere.rotation.y += rotationSpeed;
+        cloudMesh.rotation.y += rotationSpeed * 0.8;
+        marsWithAtmosphere.rotation.y += rotationSpeed * 0.8;
+        jupiterWithAtmosphere.rotation.y += rotationSpeed * 2;
+        saturnWithAtmosphere.rotation.y += rotationSpeed * 1.8;
+        uranusWithAtmosphere.rotation.y += rotationSpeed * 1.5;
+        neptuneWithAtmosphere.rotation.y += rotationSpeed * 1.2;
       // Mercury Orbit and Rotation
-      mercury.rotation.y += 0.01;
+      
       mercury.position.x = Math.cos(time * 1.6) * 8;
       mercury.position.z = Math.sin(time * 1.6) * 8;
 
       // Venus Orbit and Rotation
-      venusWithAtmosphere.rotation.y += 0.005; // Venus rotation
+      
       venusWithAtmosphere.position.x = Math.cos(time * 1.2) * 12; // Venus orbit x position
       venusWithAtmosphere.position.z = Math.sin(time * 1.2) * 12; // Venus orbit z position
 
       // Earth Orbit and Rotation
-      earthWithAtmosphere.rotation.y += 0.01; // Earth rotation
+      
       earthWithAtmosphere.position.x = Math.cos(time) * 16; // Earth's orbit x position
       earthWithAtmosphere.position.z = Math.sin(time) * 16; // Earth's orbit z position 
       cloudMesh.rotation.y += 0.008;
@@ -655,31 +667,31 @@ function Orrery({ isInitializing,  }) {
       moon.rotation.y += 0; // Moon rotation
 
       // Mars rotation and orbit
-      marsWithAtmosphere.rotation.y += 0.008; // Mars rotation
+      
       marsWithAtmosphere.position.x = Math.cos(time * 0.8) * 22; // Mars orbit x position
       marsWithAtmosphere.position.z = Math.sin(time * 0.8) * 22; // Mars orbit z position
 
 
       // Jupiter rotation and orbit
-      jupiterWithAtmosphere.rotation.y += 0.02; // Jupiter rotation
+      
       jupiterWithAtmosphere.position.x = Math.cos(time * 0.6) * 30; // Jupiter orbit x position
       jupiterWithAtmosphere.position.z = Math.sin(time * 0.6) * 30; // Jupiter orbit z position
 
       // Saturn rotation and orbit
-      saturnWithAtmosphere.rotation.y += 0.018; // Saturn rotation
+      
       saturnWithAtmosphere.position.x = Math.cos(time * 0.5) * 40; // Saturn orbit x position
       saturnWithAtmosphere.position.z = Math.sin(time * 0.5) * 40; // Saturn orbit z position
       rings.position.x = saturnWithAtmosphere.position.x;
       rings.position.z = saturnWithAtmosphere.position.z;
 
       // Uranus rotation and orbit
-      uranusWithAtmosphere.rotation.y += 0.015; // Uranus rotation
+      
       uranusWithAtmosphere.position.x = Math.cos(time * 0.3) * 50; // Uranus orbit x position
       uranusWithAtmosphere.position.z = Math.sin(time * 0.3) * 50; // Uranus orbit z position
 
 
       // Neptune rotation and orbit
-      neptuneWithAtmosphere.rotation.y += 0.012; // Neptune rotation
+      
       neptuneWithAtmosphere.position.x = Math.cos(time * 0.25) * 60; // Neptune orbit x position
       neptuneWithAtmosphere.position.z = Math.sin(time * 0.25) * 60; // Neptune orbit z position
       
@@ -736,6 +748,9 @@ function Orrery({ isInitializing,  }) {
   useEffect(() => {
     animationRef.current.timeSpeed = timeSpeed;
   }, [timeSpeed]);
+  useEffect(() => {
+    animationRef.current.isPaused = isPaused;
+  }, [isPaused]);
 
   const handleTimeControl = (adjustment) => {
     setTimeSpeed(prevSpeed => {
@@ -743,19 +758,21 @@ function Orrery({ isInitializing,  }) {
       // Limit the speed between 0.01 and 10
       return Math.max(0.01, Math.min(newSpeed, 10));
     });
+  
+  };
+  const togglePause = () => {
+    setIsPaused(!isPaused);
   };
   return (
     <div>
       <div style={{ width: '100vw', height: '100vh' }} ref={mountRef}></div>
       
-      {/* Menu Toggle Button (Hamburger) */}
       <div className={`menu-toggle ${isMenuOpen ? 'open' : ''}`} onClick={toggleMenu}>
         <div className="bar"></div>
         <div className="bar"></div>
         <div className="bar"></div>
       </div>
 
-      {/* Deployable Menu */}
       {isMenuOpen && (
         <div className="menu">
           <label className="orbit-toggle">
@@ -778,6 +795,9 @@ function Orrery({ isInitializing,  }) {
               </button>
               <button onClick={() => handleTimeControl(2)} className="time-button fast">
                 <i className="fas fa-forward"></i> Faster
+              </button>
+              <button onClick={togglePause} className={`time-button ${isPaused ? 'play' : 'pause'}`}>
+                <i className={`fas fa-${isPaused ? 'play' : 'pause'}`}></i> {isPaused ? 'Play' : 'Pause'}
               </button>
             </div>
             <div className="speed-display">
