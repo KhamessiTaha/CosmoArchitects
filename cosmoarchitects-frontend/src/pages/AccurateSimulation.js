@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import Orrery from '../components/Orrery';
+import AccurateOrrery from '../components/AccurateOrrery';
 import LoadingScreen from '../components/LoadingScreen';
 
-
-function Simulation() {
+function AccurateSimulation() {
   const [isLoading, setIsLoading] = useState(true);
-  const [showOrbits] = useState(true);
-  const [speed] = useState(0.0001);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setIsLoading(false);
-    }, 14500); 
+    }, 3000); // Shorter loading time for testing, adjust as needed
 
     return () => clearTimeout(timeoutId);
   }, []);
@@ -23,11 +20,11 @@ function Simulation() {
       <LoadingScreen isVisible={isLoading} />
       {!isLoading && (
         <div>
-          <Orrery showOrbits={showOrbits} speed={speed} />
+          <AccurateOrrery />
         </div>
       )}
     </div>
   );
 }
 
-export default Simulation;
+export default AccurateSimulation;

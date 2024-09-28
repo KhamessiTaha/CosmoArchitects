@@ -637,7 +637,7 @@ function Orrery({ isInitializing,  }) {
     const stats = new StatsJS();
     stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
     stats.dom.style.position = 'absolute';
-    stats.dom.style.top = '10px';
+    stats.dom.style.top = '70px';
     stats.dom.style.left = '10px';
     mountRef.current.appendChild(stats.dom);
     statsRef.current = stats;
