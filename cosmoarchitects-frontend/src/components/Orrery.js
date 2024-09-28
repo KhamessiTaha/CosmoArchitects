@@ -1,9 +1,11 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState , useCallback } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { TextureLoader } from 'three';
 import { gsap } from 'gsap';
 import './Orrery.css';
+
+import { Maximize2, Minimize2 } from 'lucide-react';
 
 
 
@@ -45,6 +47,8 @@ function Orrery({ isInitializing,  }) {
   const [timeSpeed, setTimeSpeed] = useState(1);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const orreryContainerRef = useRef(null);
 
   const animationRef = useRef({
     showOrbits: true,
@@ -53,6 +57,18 @@ function Orrery({ isInitializing,  }) {
     elapsedTime: 0,
     isPaused: false,
   });
+
+  const toggleFullScreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      if (orreryContainerRef.current.requestFullscreen) {
+        orreryContainerRef.current.requestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  }, []);
 
   useEffect(() => {
     // Set up scene, camera, and renderer
@@ -754,6 +770,14 @@ function Orrery({ isInitializing,  }) {
   useEffect(() => {
     animationRef.current.isPaused = isPaused;
   }, [isPaused]);
+  useEffect(() => {
+    const handleFullScreenChange = () => {
+      setIsFullScreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullScreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullScreenChange);
+  }, []);
 
   const handleTimeControl = (adjustment) => {
     setTimeSpeed(prevSpeed => {
@@ -767,48 +791,60 @@ function Orrery({ isInitializing,  }) {
     setIsPaused(!isPaused);
   };
   return (
-    <div>
-      <div style={{ width: '100vw', height: '100vh' }} ref={mountRef}></div>
+    <div className={`orrery-container ${isFullScreen ? 'fullscreen' : ''}`} ref={orreryContainerRef}>
+      <div style={{ width: '100%', height: '100%' }} ref={mountRef}></div>
       
-      <div className={`menu-toggle ${isMenuOpen ? 'open' : ''}`} onClick={toggleMenu}>
-        <div className="bar"></div>
-        <div className="bar"></div>
-        <div className="bar"></div>
-      </div>
-
-      {isMenuOpen && (
-        <div className="menu">
-          <label className="orbit-toggle">
-            <input
-              type="checkbox"
-              checked={showOrbits}
-              onChange={() => setShowOrbits(!showOrbits)}
-            />
-            <span className="slider"></span>
-            <span className="label-text">Show Orbits</span>
-          </label>
-          <div className="time-control">
-            <h3>Time Control</h3>
-            <div className="button-group">
-              <button onClick={() => handleTimeControl(0.5)} className="time-button slow">
-                <i className="fas fa-backward"></i> Slower
-              </button>
-              <button onClick={() => setTimeSpeed(1)} className="time-button normal">
-                <i className="fas fa-sync"></i> Normal
-              </button>
-              <button onClick={() => handleTimeControl(2)} className="time-button fast">
-                <i className="fas fa-forward"></i> Faster
-              </button>
-              <button onClick={togglePause} className={`time-button ${isPaused ? 'play' : 'pause'}`}>
-                <i className={`fas fa-${isPaused ? 'play' : 'pause'}`}></i> {isPaused ? 'Play' : 'Pause'}
-              </button>
-            </div>
-            <div className="speed-display">
-              Current Speed: {timeSpeed.toFixed(2)}x
-            </div>
+      {!isFullScreen && (
+        <>
+          <div className={`menu-toggle ${isMenuOpen ? 'open' : ''}`} onClick={toggleMenu}>
+            <div className="bar"></div>
+            <div className="bar"></div>
+            <div className="bar"></div>
           </div>
-        </div>
+
+          {isMenuOpen && (
+            <div className="menu space-theme">
+              <label className="orbit-toggle">
+                <input
+                  type="checkbox"
+                  checked={showOrbits}
+                  onChange={() => setShowOrbits(!showOrbits)}
+                />
+                <span className="slider"></span>
+                <span className="label-text">Show Orbits</span>
+              </label>
+              <div className="time-control">
+                <h3>Time Control</h3>
+                <div className="button-group">
+                  <button onClick={() => handleTimeControl(0.5)} className="time-button slow">
+                    <i className="fas fa-backward"></i> Slower
+                  </button>
+                  <button onClick={() => setTimeSpeed(1)} className="time-button normal">
+                    <i className="fas fa-sync"></i> Normal
+                  </button>
+                  <button onClick={() => handleTimeControl(2)} className="time-button fast">
+                    <i className="fas fa-forward"></i> Faster
+                  </button>
+                  <button onClick={togglePause} className={`time-button ${isPaused ? 'play' : 'pause'}`}>
+                    <i className={`fas fa-${isPaused ? 'play' : 'pause'}`}></i> {isPaused ? 'Play' : 'Pause'}
+                  </button>
+                </div>
+                <div className="speed-display">
+                  Current Speed: {timeSpeed.toFixed(2)}x
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
+      
+      <button 
+        className="fullscreen-button" 
+        onClick={toggleFullScreen}
+        aria-label={isFullScreen ? "Exit full screen" : "Enter full screen"}
+      >
+        {isFullScreen ? <Minimize2 size={24} /> : <Maximize2 size={24} />}
+      </button>
     </div>
   );
 }

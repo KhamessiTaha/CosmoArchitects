@@ -16,21 +16,40 @@ canvas {
     height: 100vh;
     overflow: hidden;
     background: radial-gradient(circle at center, #000020 0%, #000000 100%);
+    transition: all 0.3s ease;
+  }
+
+  .orrery-container.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
   }
   
 
-.menu-toggle {
-  position: fixed;   
-  top: 100px;            
-  right: 20px;           
-  cursor: pointer;
-  z-index: 1000;        
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  width: 30px;
-  height: 30px;
-}
+  .menu-toggle {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    cursor: pointer;
+    z-index: 1000;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+  .menu-toggle:hover {
+    background: rgba(0, 0, 0, 0.7);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+  }
 
 .menu-toggle .bar {
   width: 100%;
@@ -53,20 +72,33 @@ canvas {
 
 /* Menu */
 .menu {
-  position: fixed;       
-  top: 100px;              
-  right: 20px;          
-  padding: 15px;
-  background-color: rgba(0, 0, 0, 0.6); 
+  position: fixed;
+  top: 100px;
+  right: 20px;
+  padding: 20px;
+  background-color: rgba(10, 10, 30, 0.8);
   color: white;
-  border-radius: 8px;
-  z-index: 999;           
+  border-radius: 10px;
+  z-index: 999;
   display: flex;
   flex-direction: column;
+  border: 1px solid #30a0ff;
+  box-shadow: 0 0 20px rgba(0, 100, 255, 0.5);
+  transition: all 0.3s ease;
+  transform: translateY(-20px);
+  opacity: 0;
+  animation: slideIn 0.3s ease forwards;
+}
+
+@keyframes slideIn {
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .menu label {
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 .menu.space-theme {
@@ -153,10 +185,11 @@ canvas {
 
 .time-button:hover {
   background-color: #34495e;
+  transform: translateY(-2px);
 }
 
 .time-button:active {
-  transform: scale(0.95);
+  transform: translateY(1px);
 }
 
 .time-button.slow {
@@ -183,6 +216,58 @@ canvas {
 .speed-display {
   font-size: 14px;
   color: #bdc3c7;
+}
+
+
+.orrery-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: radial-gradient(circle at center, #000020 0%, #000000 100%);
+  transition: all 0.3s ease;
+}
+
+
+
+.fullscreen-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+}
+
+.fullscreen-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.fullscreen-button:active {
+  transform: scale(0.95);
+}
+
+/* ... (rest of the styles for fullscreen-button remain the same) */
+
+.orrery-container.fullscreen .menu-toggle,
+.orrery-container.fullscreen .menu {
+  display: none;
+}
+
+/* Ensure the Orrery container takes up the full height of its parent */
+#root, body, html {
+  height: 100%;
 }
 
 /* Add this if you haven't already included Font Awesome */
