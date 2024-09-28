@@ -134,6 +134,8 @@ function AccurateOrrery() {
     const sunGeometry = new THREE.SphereGeometry(sunRadius, 64, 64);
     const sunMaterial = new THREE.MeshBasicMaterial({
       map: textureLoaderInstance.load(sunTexture),
+      emissive: 0xffffff,
+      emissiveIntensity: 500,
     });
     const sun = new THREE.Mesh(sunGeometry, sunMaterial);
     scene.add(sun);
@@ -148,7 +150,7 @@ function AccurateOrrery() {
       uniforms: {
         c: { type: "f", value: 0.5 },
         p: { type: "f", value: 5.5 },
-        glowColor: { type: "c", value: new THREE.Color(0xffff00) },
+        glowColor: { type: "c", value: new THREE.Color(0xfffff0) },
         viewVector: { type: "v3", value: camera.position }
       },
       vertexShader: `
