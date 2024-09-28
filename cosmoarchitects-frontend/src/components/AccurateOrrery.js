@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { TextureLoader } from 'three';
@@ -17,6 +17,7 @@ import neptuneTexture from './textures/Neptune/neptune.jpg';
 
 function AccurateOrrery() {
   const mountRef = useRef(null);
+  const [focusedPlanet, setFocusedPlanet] = useState(null);
 
   useEffect(() => {
     // Scene setup
@@ -24,12 +25,12 @@ function AccurateOrrery() {
 
     // Camera setup
     const camera = new THREE.PerspectiveCamera(
-      45,
+      75,
       window.innerWidth / window.innerHeight,
       0.1,
-      10000
+      1e15
     );
-    camera.position.set(0, 200, 500);
+    camera.position.set(0, 1e9, 2e9);
 
     // Renderer setup
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -47,12 +48,13 @@ function AccurateOrrery() {
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
+    controls.maxDistance = 1e12;
 
-    // Planet data (in millions of km, degrees, and Earth days)
+    // Planet data (in km, degrees, and Earth days)
     const planetData = [
       {
         name: 'Mercury',
-        semiMajorAxis: 57.9,
+        semiMajorAxis: 57.9e6,
         radius: 2439.7,
         inclination: 7.0,
         eccentricity: 0.205630,
@@ -61,7 +63,7 @@ function AccurateOrrery() {
       },
       {
         name: 'Venus',
-        semiMajorAxis: 108.2,
+        semiMajorAxis: 108.2e6,
         radius: 6051.8,
         inclination: 3.4,
         eccentricity: 0.006772,
@@ -70,7 +72,7 @@ function AccurateOrrery() {
       },
       {
         name: 'Earth',
-        semiMajorAxis: 149.6,
+        semiMajorAxis: 149.6e6,
         radius: 6371,
         inclination: 0.0,
         eccentricity: 0.0167086,
@@ -79,7 +81,7 @@ function AccurateOrrery() {
       },
       {
         name: 'Mars',
-        semiMajorAxis: 227.9,
+        semiMajorAxis: 227.9e6,
         radius: 3389.5,
         inclination: 1.9,
         eccentricity: 0.0934,
@@ -88,7 +90,7 @@ function AccurateOrrery() {
       },
       {
         name: 'Jupiter',
-        semiMajorAxis: 778.5,
+        semiMajorAxis: 778.5e6,
         radius: 69911,
         inclination: 1.3,
         eccentricity: 0.0489,
@@ -97,7 +99,7 @@ function AccurateOrrery() {
       },
       {
         name: 'Saturn',
-        semiMajorAxis: 1434.0,
+        semiMajorAxis: 1434.0e6,
         radius: 58232,
         inclination: 2.5,
         eccentricity: 0.0565,
@@ -106,7 +108,7 @@ function AccurateOrrery() {
       },
       {
         name: 'Uranus',
-        semiMajorAxis: 2871.0,
+        semiMajorAxis: 2871.0e6,
         radius: 25362,
         inclination: 0.8,
         eccentricity: 0.0457,
@@ -115,7 +117,7 @@ function AccurateOrrery() {
       },
       {
         name: 'Neptune',
-        semiMajorAxis: 4495.0,
+        semiMajorAxis: 4495.0e6,
         radius: 24622,
         inclination: 1.8,
         eccentricity: 0.0113,
@@ -124,16 +126,12 @@ function AccurateOrrery() {
       },
     ];
 
-    // Scale factors
-    const sizeScale = 1 / 100000; // Scale down radii
-    const distanceScale = 1 / 10; // Scale down distances
-
     // Texture loader
     const textureLoaderInstance = new TextureLoader();
 
     // Create Sun
     const sunRadius = 696340; // in km
-    const sunGeometry = new THREE.SphereGeometry(sunRadius * sizeScale, 64, 64);
+    const sunGeometry = new THREE.SphereGeometry(sunRadius, 64, 64);
     const sunMaterial = new THREE.MeshBasicMaterial({
       map: textureLoaderInstance.load(sunTexture),
     });
@@ -150,7 +148,7 @@ function AccurateOrrery() {
       scene.add(planetGroup);
 
       // Create planet
-      const geometry = new THREE.SphereGeometry(planet.radius * sizeScale, 32, 32);
+      const geometry = new THREE.SphereGeometry(planet.radius, 32, 32);
       const material = new THREE.MeshStandardMaterial({
         map: textureLoaderInstance.load(planet.texture),
       });
@@ -170,7 +168,7 @@ function AccurateOrrery() {
       for (let i = 0; i <= segments; i++) {
         const theta = (i / segments) * Math.PI * 2;
         const e = planet.eccentricity;
-        const a = planet.semiMajorAxis * distanceScale;
+        const a = planet.semiMajorAxis;
         const r = (a * (1 - e * e)) / (1 + e * Math.cos(theta));
         const x = r * Math.cos(theta);
         const y = r * Math.sin(theta);
@@ -184,7 +182,7 @@ function AccurateOrrery() {
       // Apply inclination to the entire group
       planetGroup.rotation.x = (planet.inclination * Math.PI) / 180;
 
-      return { mesh, group: planetGroup };
+      return { mesh, group: planetGroup, name: planet.name };
     });
 
     // Animation loop
@@ -194,8 +192,8 @@ function AccurateOrrery() {
       const elapsed = Date.now() * 0.00001; // Adjust the multiplier for speed
 
       planetData.forEach((planet, index) => {
-        const a = planet.semiMajorAxis * distanceScale; // Semi-major axis
-        const e = planet.eccentricity; // Eccentricity
+        const a = planet.semiMajorAxis;
+        const e = planet.eccentricity;
         const angle = (elapsed / planet.orbitalPeriod) * 2 * Math.PI;
 
         // Calculate position in elliptical orbit
@@ -224,14 +222,42 @@ function AccurateOrrery() {
     };
     window.addEventListener('resize', handleResize);
 
+    // Focus on a specific planet
+    const focusOnPlanet = (planetName) => {
+      const planet = planets.find(p => p.name === planetName);
+      if (planet) {
+        const position = new THREE.Vector3();
+        planet.mesh.getWorldPosition(position);
+        controls.target.copy(position);
+        camera.position.set(position.x, position.y + planet.mesh.geometry.parameters.radius * 10, position.z + planet.mesh.geometry.parameters.radius * 10);
+        controls.update();
+      }
+    };
+
+    // Add event listener for planet focus
+    window.addEventListener('keydown', (event) => {
+      const planetIndex = parseInt(event.key) - 1;
+      if (planetIndex >= 0 && planetIndex < planets.length) {
+        focusOnPlanet(planets[planetIndex].name);
+      }
+    });
+
     // Clean up on unmount
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('keydown', focusOnPlanet);
       mountRef.current.removeChild(renderer.domElement);
     };
   }, []);
 
-  return <div ref={mountRef}></div>;
+  return (
+    <div>
+      <div ref={mountRef}></div>
+      <div style={{position: 'absolute', top: 10, left: 10, color: 'white'}}>
+        Press 1-8 to focus on planets (1: Mercury, 2: Venus, ..., 8: Neptune)
+      </div>
+    </div>
+  );
 }
 
 export default AccurateOrrery;
