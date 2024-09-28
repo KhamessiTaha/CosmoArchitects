@@ -37,7 +37,7 @@ function AccurateOrrery() {
     mountRef.current.appendChild(renderer.domElement);
 
     // Lighting
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.5); // Soft white light
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
     scene.add(ambientLight);
 
     const pointLight = new THREE.PointLight(0xffffff, 2, 0);
@@ -52,72 +52,72 @@ function AccurateOrrery() {
     const planetData = [
       {
         name: 'Mercury',
-        distance: 57.9,
+        semiMajorAxis: 57.9,
         radius: 2439.7,
-        tilt: 0.034,
+        inclination: 7.0,
         eccentricity: 0.205630,
         orbitalPeriod: 87.97,
         texture: mercuryTexture,
       },
       {
         name: 'Venus',
-        distance: 108.2,
+        semiMajorAxis: 108.2,
         radius: 6051.8,
-        tilt: 177.4,
+        inclination: 3.4,
         eccentricity: 0.006772,
         orbitalPeriod: 224.70,
         texture: venusTexture,
       },
       {
         name: 'Earth',
-        distance: 149.6,
+        semiMajorAxis: 149.6,
         radius: 6371,
-        tilt: 23.4,
+        inclination: 0.0,
         eccentricity: 0.0167086,
         orbitalPeriod: 365.26,
         texture: earthTexture,
       },
       {
         name: 'Mars',
-        distance: 227.9,
+        semiMajorAxis: 227.9,
         radius: 3389.5,
-        tilt: 25.2,
+        inclination: 1.9,
         eccentricity: 0.0934,
         orbitalPeriod: 686.98,
         texture: marsTexture,
       },
       {
         name: 'Jupiter',
-        distance: 778.5,
+        semiMajorAxis: 778.5,
         radius: 69911,
-        tilt: 3.1,
+        inclination: 1.3,
         eccentricity: 0.0489,
         orbitalPeriod: 4332.59,
         texture: jupiterTexture,
       },
       {
         name: 'Saturn',
-        distance: 1434.0,
+        semiMajorAxis: 1434.0,
         radius: 58232,
-        tilt: 26.7,
+        inclination: 2.5,
         eccentricity: 0.0565,
         orbitalPeriod: 10759.22,
         texture: saturnTexture,
       },
       {
         name: 'Uranus',
-        distance: 2871.0,
+        semiMajorAxis: 2871.0,
         radius: 25362,
-        tilt: 97.8,
+        inclination: 0.8,
         eccentricity: 0.0457,
         orbitalPeriod: 30688.5,
         texture: uranusTexture,
       },
       {
         name: 'Neptune',
-        distance: 4495.0,
+        semiMajorAxis: 4495.0,
         radius: 24622,
-        tilt: 28.3,
+        inclination: 1.8,
         eccentricity: 0.0113,
         orbitalPeriod: 60182,
         texture: neptuneTexture,
@@ -140,76 +140,74 @@ function AccurateOrrery() {
     const sun = new THREE.Mesh(sunGeometry, sunMaterial);
     scene.add(sun);
 
-    // Optional: Add Sun Light to illuminate planets
+    // Add Sun Light to illuminate planets
     const sunLight = new THREE.PointLight(0xffffff, 1.5, 0);
     sun.add(sunLight);
 
-    // Create Planets
+    // Create Planets and Orbits
     const planets = planetData.map((planet) => {
+      const planetGroup = new THREE.Group();
+      scene.add(planetGroup);
+
+      // Create planet
       const geometry = new THREE.SphereGeometry(planet.radius * sizeScale, 32, 32);
       const material = new THREE.MeshStandardMaterial({
         map: textureLoaderInstance.load(planet.texture),
       });
       const mesh = new THREE.Mesh(geometry, material);
-      scene.add(mesh);
-      return mesh;
-    });
+      planetGroup.add(mesh);
 
-    // Optional: Create Orbit Lines for Visualization
-    const createOrbit = (planet) => {
-      const curve = new THREE.EllipseCurve(
-        0, 0, // ax, aY
-        planet.distance * distanceScale, // xRadius
-        planet.distance * distanceScale * Math.sqrt(1 - planet.eccentricity ** 2), // yRadius
-        0, 2 * Math.PI, // startAngle, endAngle
-        false, // clockwise
-        0 // rotation
-      );
-
-      const points = curve.getPoints(100);
-      const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points);
+      // Create orbit
+      const orbitGeometry = new THREE.BufferGeometry();
       const orbitMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
         transparent: true,
         opacity: 0.3,
       });
+      const orbitPoints = [];
+      const segments = 256;
+
+      for (let i = 0; i <= segments; i++) {
+        const theta = (i / segments) * Math.PI * 2;
+        const e = planet.eccentricity;
+        const a = planet.semiMajorAxis * distanceScale;
+        const r = (a * (1 - e * e)) / (1 + e * Math.cos(theta));
+        const x = r * Math.cos(theta);
+        const y = r * Math.sin(theta);
+        orbitPoints.push(new THREE.Vector3(x, 0, y));
+      }
+
+      orbitGeometry.setFromPoints(orbitPoints);
       const orbit = new THREE.Line(orbitGeometry, orbitMaterial);
+      planetGroup.add(orbit);
 
-      // Apply inclination
-      orbit.rotation.x = (planet.tilt * Math.PI) / 180;
+      // Apply inclination to the entire group
+      planetGroup.rotation.x = (planet.inclination * Math.PI) / 180;
 
-      scene.add(orbit);
-    };
-
-    planetData.forEach(createOrbit);
+      return { mesh, group: planetGroup };
+    });
 
     // Animation loop
     const animate = () => {
       requestAnimationFrame(animate);
 
-      const elapsed = Date.now() * 0.0001; // Adjust the multiplier for speed
+      const elapsed = Date.now() * 0.00001; // Adjust the multiplier for speed
 
       planetData.forEach((planet, index) => {
-        const orbitRadius = planet.distance * distanceScale;
+        const a = planet.semiMajorAxis * distanceScale; // Semi-major axis
+        const e = planet.eccentricity; // Eccentricity
         const angle = (elapsed / planet.orbitalPeriod) * 2 * Math.PI;
 
         // Calculate position in elliptical orbit
-        const a = orbitRadius; // Semi-major axis
-        const e = planet.eccentricity; // Eccentricity
-        const b = a * Math.sqrt(1 - e ** 2); // Semi-minor axis
+        const r = (a * (1 - e * e)) / (1 + e * Math.cos(angle));
+        const x = r * Math.cos(angle);
+        const z = r * Math.sin(angle);
 
-        const x = a * Math.cos(angle);
-        const z = b * Math.sin(angle);
+        // Update planet position
+        planets[index].mesh.position.set(x, 0, z);
 
-        // Apply inclination
-        const inclination = (planet.tilt * Math.PI) / 180;
-        const y = z * Math.sin(inclination);
-        const adjustedZ = z * Math.cos(inclination);
-
-        planets[index].position.set(x, y, adjustedZ);
-
-        // Rotate the planet on its axis
-        planets[index].rotation.y += 0.01;
+        // Rotate the planet on its axis (simplified)
+        planets[index].mesh.rotation.y += 0.01 / planet.orbitalPeriod;
       });
 
       controls.update();
