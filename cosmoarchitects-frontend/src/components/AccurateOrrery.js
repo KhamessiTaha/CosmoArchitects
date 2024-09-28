@@ -41,7 +41,7 @@ function AccurateOrrery() {
     const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
     scene.add(ambientLight);
 
-    const pointLight = new THREE.PointLight(0xffffff, 2, 0);
+    const pointLight = new THREE.PointLight(0xffffff, 5, 0);
     scene.add(pointLight);
 
     // Controls
@@ -139,8 +139,42 @@ function AccurateOrrery() {
     scene.add(sun);
 
     // Add Sun Light to illuminate planets
-    const sunLight = new THREE.PointLight(0xffffff, 1.5, 0);
+    const sunLight = new THREE.PointLight(0xffffff, 5000, 0);
     sun.add(sunLight);
+
+    // Create a larger, transparent sphere around the sun for the glow effect
+    const glowGeometry = new THREE.SphereGeometry(sunRadius * 15, 64, 64);
+    const glowMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        c: { type: "f", value: 0.5 },
+        p: { type: "f", value: 5.5 },
+        glowColor: { type: "c", value: new THREE.Color(0xffff00) },
+        viewVector: { type: "v3", value: camera.position }
+      },
+      vertexShader: `
+        uniform vec3 viewVector;
+        varying float intensity;
+        void main() {
+          gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+          vec3 actual_normal = vec3(modelMatrix * vec4(normal, 0.0));
+          intensity = pow( dot(normalize(viewVector), actual_normal), 6.0 );
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 glowColor;
+        varying float intensity;
+        void main() {
+          vec3 glow = glowColor * intensity;
+          gl_FragColor = vec4( glow, 1.0 );
+        }
+      `,
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending,
+      transparent: true
+    });
+
+    const sunGlow = new THREE.Mesh(glowGeometry, glowMaterial);
+    scene.add(sunGlow);
 
     // Create Planets and Orbits
     const planets = planetData.map((planet) => {
@@ -207,6 +241,7 @@ function AccurateOrrery() {
         // Rotate the planet on its axis (simplified)
         planets[index].mesh.rotation.y += 0.01 / planet.orbitalPeriod;
       });
+      sunGlow.material.uniforms.viewVector.value = new THREE.Vector3().subVectors(camera.position, sunGlow.position);
 
       controls.update();
       renderer.render(scene, camera);
@@ -253,7 +288,7 @@ function AccurateOrrery() {
   return (
     <div>
       <div ref={mountRef}></div>
-      <div style={{position: 'absolute', top: 10, left: 10, color: 'white'}}>
+      <div style={{position: 'absolute', top: 100, left: 10, color: 'white'}}>
         Press 1-8 to focus on planets (1: Mercury, 2: Venus, ..., 8: Neptune)
       </div>
     </div>
