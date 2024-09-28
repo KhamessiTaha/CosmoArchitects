@@ -4,7 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { TextureLoader } from 'three';
 import { gsap } from 'gsap';
 import './Orrery.css';
-
+import StatsJS from 'stats.js';
 import { Maximize2, Minimize2 } from 'lucide-react';
 
 
@@ -49,6 +49,7 @@ function Orrery({ isInitializing,  }) {
   const [isPaused, setIsPaused] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const orreryContainerRef = useRef(null);
+  const statsRef = useRef(null);
 
   const animationRef = useRef({
     showOrbits: true,
@@ -138,6 +139,9 @@ function Orrery({ isInitializing,  }) {
 
     // Lighting
     const sunRadius = 3;
+
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.2); // Soft white light
+    scene.add(ambientLight);
 
     const pointLight = new THREE.PointLight(0xffffff, 250, 0);  // Brightness and range of light
     pointLight.position.set(0, 0); // Sun's position
@@ -629,8 +633,14 @@ function Orrery({ isInitializing,  }) {
       });
       
 
-
-    
+    // Set up stats.js
+    const stats = new StatsJS();
+    stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+    stats.dom.style.position = 'absolute';
+    stats.dom.style.top = '10px';
+    stats.dom.style.left = '10px';
+    mountRef.current.appendChild(stats.dom);
+    statsRef.current = stats;
 
 
     
@@ -639,8 +649,11 @@ function Orrery({ isInitializing,  }) {
     const animate = (currentTime) => {
       requestAnimationFrame(animate);
       if (!isInitializing && !animationRef.current.isPaused) {
+        
 
       const { showOrbits, timeSpeed, lastTime, elapsedTime } = animationRef.current;
+
+      stats.begin();
       // Calculate delta time and update elapsed time
       const deltaTime = currentTime - lastTime;
       animationRef.current.lastTime = currentTime;
@@ -732,6 +745,7 @@ function Orrery({ isInitializing,  }) {
       controlsRef.current.update();
       renderer.render(scene, camera);
       }
+      stats.end();
     };
     
     animate(0);
@@ -752,9 +766,11 @@ function Orrery({ isInitializing,  }) {
     // Clean up on component unmount
     return () => {
       mountRef.current.removeChild(renderer.domElement);
+      mountRef.current.removeChild(stats.dom);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('dblclick', handleDoubleClick);
       window.removeEventListener('keypress', handleKeyPress);
+
     };
   }, [isInitializing]);
   // Toggle the menu visibility

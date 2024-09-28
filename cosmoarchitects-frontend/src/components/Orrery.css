@@ -270,5 +270,12 @@ canvas {
   height: 100%;
 }
 
+#stats {
+  position: fixed !important;
+  top: 10px !important;
+  left: 10px !important;
+  z-index: 10000 !important;
+}
+
 /* Add this if you haven't already included Font Awesome */
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css');
