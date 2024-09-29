@@ -18,7 +18,7 @@ import neptuneTexture from './textures/Neptune/neptune.jpg';
 function AccurateOrrery() {
   const mountRef = useRef(null);
   const [focusedPlanet, setFocusedPlanet] = useState(null);
-
+  const [showLabels, setShowLabels] = useState(false);
   useEffect(() => {
     // Scene setup
     const scene = new THREE.Scene();
@@ -178,7 +178,7 @@ function AccurateOrrery() {
     const sunGlow = new THREE.Mesh(glowGeometry, glowMaterial);
     scene.add(sunGlow);
 
-    // Create Planets and Orbits
+    // Create Planets, Orbits, and Labels
     const planets = planetData.map((planet) => {
       const planetGroup = new THREE.Group();
       scene.add(planetGroup);
@@ -215,12 +215,36 @@ function AccurateOrrery() {
       const orbit = new THREE.Line(orbitGeometry, orbitMaterial);
       planetGroup.add(orbit);
 
+      // Create label
+      const labelCanvas = document.createElement('canvas');
+      const context = labelCanvas.getContext('2d');
+      labelCanvas.width = 512;
+      labelCanvas.height = 256;
+      context.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      context.fillRect(0, 0, labelCanvas.width, labelCanvas.height);
+      context.font = 'Bold 48px Arial';
+      context.fillStyle = 'white';
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillText(planet.name, 256, 128);
+
+      const labelTexture = new THREE.CanvasTexture(labelCanvas);
+      const labelMaterial = new THREE.SpriteMaterial({
+        map: labelTexture,
+        transparent: true,
+      });
+      const label = new THREE.Sprite(labelMaterial);
+      label.scale.set(planet.radius * 20, planet.radius * 10, 1);
+      label.position.y = planet.radius * 2;
+      label.visible = showLabels;
+      planetGroup.add(label);
+
       // Apply inclination to the entire group
       planetGroup.rotation.x = (planet.inclination * Math.PI) / 180;
 
-      return { mesh, group: planetGroup, name: planet.name };
+      return { mesh, group: planetGroup, name: planet.name, label };
     });
-
+    let focusedPlanetObject = null;
     // Animation loop
     const animate = () => {
       requestAnimationFrame(animate);
@@ -242,7 +266,26 @@ function AccurateOrrery() {
 
         // Rotate the planet on its axis (simplified)
         planets[index].mesh.rotation.y += 0.01 / planet.orbitalPeriod;
+
+        // Update label position and rotation
+        planets[index].label.position.set(x, planet.radius * 2, z);
+        planets[index].label.lookAt(camera.position);
+
+        // Make labels always visible regardless of distance
+        const distanceToCamera = camera.position.distanceTo(planets[index].mesh.position);
+        const scale = distanceToCamera * 0.01;
+        planets[index].label.scale.set(scale, scale * 0.5, 1);
       });
+
+      // Update camera position if focusing on a planet
+      if (focusedPlanetObject) {
+        const planetPosition = new THREE.Vector3();
+        focusedPlanetObject.mesh.getWorldPosition(planetPosition);
+        const cameraOffset = new THREE.Vector3(0, focusedPlanetObject.mesh.geometry.parameters.radius * 5, focusedPlanetObject.mesh.geometry.parameters.radius * 10);
+        cameraOffset.applyQuaternion(camera.quaternion);
+        camera.position.copy(planetPosition).add(cameraOffset);
+        controls.target.copy(planetPosition);
+      }
       sunGlow.material.uniforms.viewVector.value = new THREE.Vector3().subVectors(camera.position, sunGlow.position);
 
       controls.update();
@@ -261,23 +304,41 @@ function AccurateOrrery() {
 
     // Focus on a specific planet
     const focusOnPlanet = (planetName) => {
-      const planet = planets.find(p => p.name === planetName);
-      if (planet) {
-        const position = new THREE.Vector3();
-        planet.mesh.getWorldPosition(position);
-        controls.target.copy(position);
-        camera.position.set(position.x, position.y + planet.mesh.geometry.parameters.radius * 10, position.z + planet.mesh.geometry.parameters.radius * 10);
-        controls.update();
+      focusedPlanetObject = planets.find(p => p.name === planetName);
+      if (focusedPlanetObject) {
+        setFocusedPlanet(planetName);
       }
+    
     };
 
-    // Add event listener for planet focus
-    window.addEventListener('keydown', (event) => {
+    // Reset camera to initial position
+    const resetCamera = () => {
+      focusedPlanetObject = null;
+      setFocusedPlanet(null);
+      camera.position.set(0, 1e9, 2e9);
+      controls.target.set(0, 0, 0);
+    };
+
+     // Toggle labels visibility
+    const toggleLabels = () => {
+      setShowLabels(prev => !prev);
+      planets.forEach(planet => {
+        planet.label.visible = !planet.label.visible;
+      });
+    };
+
+    // Add event listeners for planet focus, label toggle, and camera reset
+    const handleKeyDown = (event) => {
       const planetIndex = parseInt(event.key) - 1;
       if (planetIndex >= 0 && planetIndex < planets.length) {
         focusOnPlanet(planets[planetIndex].name);
+      } else if (event.key.toLowerCase() === 'l') {
+        toggleLabels();
+      } else if (event.key.toLowerCase() === 'r') {
+        resetCamera();
       }
-    });
+    };
+    window.addEventListener('keydown', handleKeyDown);
 
     // Clean up on unmount
     return () => {
@@ -288,10 +349,15 @@ function AccurateOrrery() {
   }, []);
 
   return (
-    <div>
+    <div className="orrery-container">
       <div ref={mountRef}></div>
-      <div style={{position: 'absolute', top: 100, left: 10, color: 'white'}}>
-        Press 1-8 to focus on planets (1: Mercury, 2: Venus, ..., 8: Neptune)
+      <div className="controls-info">
+        <p>Press 1-8 to focus on planets (1: Mercury, 2: Venus, ..., 8: Neptune)</p>
+        <p>Press 'L' to toggle planet labels</p>
+        <p>Press 'R' to reset camera</p>
+      </div>
+      <div className="focused-planet-info">
+        {focusedPlanet ? `Focused on: ${focusedPlanet}` : 'Viewing entire solar system'}
       </div>
     </div>
   );
