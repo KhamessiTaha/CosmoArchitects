@@ -263,7 +263,10 @@ canvas {
 
 .orrery-container.fullscreen .menu-toggle,
 .orrery-container.fullscreen .menu {
-  display: none;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 20px;
 }
 
 /* Ensure the Orrery container takes up the full height of its parent */
