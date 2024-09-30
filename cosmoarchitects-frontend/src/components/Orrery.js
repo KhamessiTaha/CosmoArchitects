@@ -6,6 +6,7 @@ import { gsap } from 'gsap';
 import './Orrery.css';
 import StatsJS from 'stats.js';
 import { Maximize2, Minimize2 } from 'lucide-react';
+import ObjectCard from './ObjectCard';
 
 
 
@@ -34,6 +35,143 @@ import y2 from './textures/skybox/bottom.png' ;
 import z1 from './textures/skybox/front.png'  ;
 import z2 from './textures/skybox/back.png'  ;
 
+const celestialData = {
+  sun: {
+    name: 'Sun',
+    radius: 696340, 
+    distanceFromSun: 0, 
+    atmosphere: 'No',
+    type: 'Star',
+    starType: 'G-type Main Sequence (G2V)', 
+    composition: 'Hydrogen, Helium',
+    age: '4.6 billion years', 
+    temperature: '5500°C (surface), 15 million°C (core)',
+    discoveredBy: 'Ancient civilizations',
+  },
+  mercury: {
+    name: 'Mercury',
+    radius: 2439.7,
+    distanceFromSun: 57.91, 
+    atmosphere: 'No',
+    type: 'Planet',
+    planetType: 'Terrestrial',
+    orbitalPeriod: '88 days',
+    temperature: '-173°C to 427°C',
+    moonsCount: 0,
+    discoveredBy: 'Ancient civilizations',
+    age: '4.5 billion years', 
+  },
+  venus: {
+    name: 'Venus',
+    radius: 6051.8,
+    distanceFromSun: 108.2,
+    atmosphere: 'Yes (Carbon Dioxide, Nitrogen)',
+    type: 'Planet',
+    planetType: 'Terrestrial',
+    orbitalPeriod: '225 days',
+    temperature: '462°C',
+    moonsCount: 0,
+    discoveredBy: 'Ancient civilizations',
+    age: '4.5 billion years',
+  },
+  earth: {
+    name: 'Earth',
+    radius: 6371,
+    distanceFromSun: 149.6,
+    atmosphere: 'Yes (Nitrogen, Oxygen)',
+    type: 'Planet',
+    planetType: 'Terrestrial',
+    orbitalPeriod: '365.25 days',
+    temperature: 'Average 15°C',
+    moonsCount: 1,
+    hasLife: 'Yes',
+    discoveredBy: 'Not applicable',
+    age: '4.54 billion years',
+  },
+  mars: {
+    name: 'Mars',
+    radius: 3389.5,
+    distanceFromSun: 227.9,
+    atmosphere: 'Yes (Carbon Dioxide, Argon, Nitrogen)',
+    type: 'Planet',
+    planetType: 'Terrestrial',
+    orbitalPeriod: '687 days',
+    temperature: '-60°C (average)',
+    moonsCount: 2,
+    discoveredBy: 'Ancient civilizations',
+    age: '4.6 billion years', 
+  },
+  jupiter: {
+    name: 'Jupiter',
+    radius: 69911,
+    distanceFromSun: 778.5,
+    atmosphere: 'Yes (Hydrogen, Helium)',
+    type: 'Planet',
+    planetType: 'Gas Giant',
+    orbitalPeriod: '11.86 years',
+    temperature: '-145°C',
+    moonsCount: 79,
+    hasRings: 'Yes',
+    discoveredBy: 'Galileo Galilei (1610)',
+    age: '4.6 billion years',
+  },
+  saturn: {
+    name: 'Saturn',
+    radius: 58232,
+    distanceFromSun: 1434,
+    atmosphere: 'Yes (Hydrogen, Helium)',
+    type: 'Planet',
+    planetType: 'Gas Giant',
+    orbitalPeriod: '29.45 years',
+    temperature: '-178°C',
+    moonsCount: 83,
+    hasRings: 'Yes',
+    discoveredBy: 'Galileo Galilei (1610)',
+    age: '4.6 billion years',
+  },
+  uranus: {
+    name: 'Uranus',
+    radius: 25362,
+    distanceFromSun: 2871,
+    atmosphere: 'Yes (Hydrogen, Helium, Methane)',
+    type: 'Planet',
+    planetType: 'Ice Giant',
+    orbitalPeriod: '84 years',
+    temperature: '-224°C',
+    moonsCount: 27,
+    hasRings: 'Yes',
+    discoveredBy: 'William Herschel (1781)',
+    age: '4.5 billion years', 
+  },
+  neptune: {
+    name: 'Neptune',
+    radius: 24622,
+    distanceFromSun: 4495,
+    atmosphere: 'Yes (Hydrogen, Helium, Methane)',
+    type: 'Planet',
+    planetType: 'Ice Giant',
+    orbitalPeriod: '164.8 years',
+    temperature: '-214°C',
+    moonsCount: 14,
+    hasRings: 'Yes',
+    discoveredBy: 'Johann Galle (1846)',
+    age: '4.5 billion years',
+  },
+  moon: {
+    name: 'Moon',
+    radius: 1737.1,
+    distanceFromSun: 0.384, // distance from Earth in million km
+    atmosphere: 'No',
+    type: 'Moon',
+    planetType: 'Natural Satellite',
+    orbitalPeriod: '27.3 days',
+    discoveredBy: 'Not applicable',
+    age: '4.5 billion years', // Added age
+  },
+  // You can add more objects (moons, asteroids, etc.) here later
+};
+
+
 
 
 
@@ -48,6 +186,7 @@ function Orrery({ isInitializing,  }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [selectedObjectData, setSelectedObjectData] = useState(null);
   const orreryContainerRef = useRef(null);
   const statsRef = useRef(null);
 
@@ -58,6 +197,11 @@ function Orrery({ isInitializing,  }) {
     elapsedTime: 0,
     isPaused: false,
   });
+
+  // Function to close the object card
+  const handleCloseCard = () => {
+    setSelectedObjectData(null); // Close the card by clearing the data
+  };
 
   const toggleFullScreen = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -501,7 +645,8 @@ function Orrery({ isInitializing,  }) {
       saturnWithAtmosphere,
       uranusWithAtmosphere,
       neptuneWithAtmosphere,
-      moon
+      moon,
+      sun
     ];
     let selectedObject = null;  // Store the selected planet
     let isTracking = false; 
@@ -511,33 +656,33 @@ function Orrery({ isInitializing,  }) {
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
 
-    // Update the handleDoubleClick function
+    // HandleDoubleClick function
     const handleDoubleClick = (event) => {
       event.preventDefault();
-
+    
       pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
       pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
+    
       raycaster.setFromCamera(pointer, camera);
       const intersects = raycaster.intersectObjects(selectableObjects, true);
-
+    
       if (intersects.length > 0) {
         let targetObject = intersects[0].object;
-
+    
         // Find the top-level parent (either the planet mesh or the atmosphere group)
         while (targetObject.parent && !selectableObjects.includes(targetObject)) {
           targetObject = targetObject.parent;
         }
-
+    
         selectedObject = targetObject;
         isTracking = true;
-
+    
         controls.target.copy(selectedObject.position);
-        
+    
         const objectRadius = getObjectRadius(targetObject);
         const offsetDistance = objectRadius * 3;
-
-        // gsap zoom-in effect
+    
+        // gsap zoom-in effect to focus the camera on the selected object
         gsap.to(camera.position, {
           duration: 2,
           x: targetObject.position.x + offsetDistance,
@@ -548,12 +693,44 @@ function Orrery({ isInitializing,  }) {
             controls.update();
           }
         });
-        
+    
+        // Map the selected object to its celestial data
+        let objectKey = '';
+    
+        if (targetObject === mercury) objectKey = 'mercury';
+        else if (targetObject === venusWithAtmosphere) objectKey = 'venus';
+        else if (targetObject === earthWithAtmosphere) objectKey = 'earth';
+        else if (targetObject === marsWithAtmosphere) objectKey = 'mars';
+        else if (targetObject === jupiterWithAtmosphere) objectKey = 'jupiter';
+        else if (targetObject === saturnWithAtmosphere) objectKey = 'saturn';
+        else if (targetObject === uranusWithAtmosphere) objectKey = 'uranus';
+        else if (targetObject === neptuneWithAtmosphere) objectKey = 'neptune';
+        else if (targetObject === moon) objectKey = 'moon';
+        else if (targetObject === sun) objectKey = 'sun'; // Handle the Sun selection
+    
+        // Retrieve object data from celestialData
+        const objectData = celestialData[objectKey] || {
+          name: 'Unknown Object',
+          type: targetObject.type || 'Unknown',
+          radius: 'Unknown',
+          distanceFromSun: 'Unknown',
+          atmosphere: 'Unknown',
+          planetType: 'Unknown',
+          hasRings: 'Unknown',
+        };
+    
+        // Update the card with the selected object data
+        setSelectedObjectData(objectData);
       } else {
         selectedObject = null;
         isTracking = false;
+        setSelectedObjectData(null); // Clear the data when no object is selected
       }
     };
+    
+    
+    
+    
 
     window.addEventListener('dblclick', handleDoubleClick);
 
@@ -583,7 +760,8 @@ function Orrery({ isInitializing,  }) {
           }
         });
 
-        selectedObject = null;  // Clear the selected planet
+        selectedObject = sun;
+        setSelectedObjectData(null);  // Clear the selected planet
         isTracking = false;     // Disable tracking
       }
     };
@@ -798,7 +976,7 @@ function Orrery({ isInitializing,  }) {
   const handleTimeControl = (adjustment) => {
     setTimeSpeed(prevSpeed => {
       const newSpeed = prevSpeed * adjustment;
-      // Limit the speed between 0.01 and 10
+      
       return Math.max(0.01, Math.min(newSpeed, 10));
     });
   
@@ -809,7 +987,9 @@ function Orrery({ isInitializing,  }) {
   return (
     <div className={`orrery-container ${isFullScreen ? 'fullscreen' : ''}`} ref={orreryContainerRef}>
       <div style={{ width: '100%', height: '100%' }} ref={mountRef}></div>
-      
+      {selectedObjectData && (
+        <ObjectCard objectData={selectedObjectData} onClose={handleCloseCard} />
+      )}
       {!isFullScreen && (
         <>
           <div className={`menu-toggle ${isMenuOpen ? 'open' : ''}`} onClick={toggleMenu}>

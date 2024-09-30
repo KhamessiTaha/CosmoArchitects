@@ -258,6 +258,7 @@ canvas {
   transform: scale(0.95);
 }
 
+
 /* ... (rest of the styles for fullscreen-button remain the same) */
 
 .orrery-container.fullscreen .menu-toggle,
