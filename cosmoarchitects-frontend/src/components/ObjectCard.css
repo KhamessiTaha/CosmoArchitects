@@ -1,0 +1,65 @@
+.object-card {
+    position: absolute;
+    top: 90px;
+    left: 20px;
+    background: rgba(30, 30, 30, 0.95);
+    color: white;
+    border-radius: 10px;
+    padding: 15px;
+    max-width: 230px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    font-family: 'Arial', sans-serif;
+    z-index: 1000;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .object-card h2 {
+    margin-top: 0;
+    font-size: 1.2em;
+    color: #f39c12;
+    text-align: center;
+  }
+  
+  .object-info p {
+    margin: 8px 0;
+    font-size: 1em;
+    line-height: 1.5;
+  }
+  
+  .object-info p strong {
+    color: #f39c12;
+  }
+  
+  .close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5em;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+  
+  .close-button:hover {
+    color: #e74c3c;
+  }
+  
+  .object-card:hover {
+    transform: scale(1.05); /* Slight hover effect */
+  }
+  
+  @media screen and (max-width: 768px) {
+    .object-card {
+      left: 10px;
+      top: 100px;
+      padding: 10px;
+      max-width: 85%;
+    }
+    
+    .object-card h2 {
+      font-size: 1.3em;
+    }
+  }
+  
