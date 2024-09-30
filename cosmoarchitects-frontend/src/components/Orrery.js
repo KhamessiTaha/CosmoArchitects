@@ -835,7 +835,7 @@ function Orrery({ isInitializing,  }) {
       // Calculate delta time and update elapsed time
       const deltaTime = currentTime - lastTime;
       animationRef.current.lastTime = currentTime;
-      animationRef.current.elapsedTime += deltaTime * 0.001 * timeSpeed; // Convert to seconds and apply time speed
+      animationRef.current.elapsedTime += deltaTime * 0.0009 * timeSpeed; // Convert to seconds and apply time speed
       
       scene.children.filter(child => child.isOrbit).forEach(orbit => {
         orbit.visible = showOrbits;
@@ -990,48 +990,44 @@ function Orrery({ isInitializing,  }) {
       {selectedObjectData && (
         <ObjectCard objectData={selectedObjectData} onClose={handleCloseCard} />
       )}
-      {!isFullScreen && (
-        <>
-          <div className={`menu-toggle ${isMenuOpen ? 'open' : ''}`} onClick={toggleMenu}>
-            <div className="bar"></div>
-            <div className="bar"></div>
-            <div className="bar"></div>
-          </div>
+      <div className={`menu-toggle ${isMenuOpen ? 'open' : ''}`} onClick={toggleMenu}>
+        <div className="bar"></div>
+        <div className="bar"></div>
+        <div className="bar"></div>
+      </div>
 
-          {isMenuOpen && (
-            <div className="menu space-theme">
-              <label className="orbit-toggle">
-                <input
-                  type="checkbox"
-                  checked={showOrbits}
-                  onChange={() => setShowOrbits(!showOrbits)}
-                />
-                <span className="slider"></span>
-                <span className="label-text">Show Orbits</span>
-              </label>
-              <div className="time-control">
-                <h3>Time Control</h3>
-                <div className="button-group">
-                  <button onClick={() => handleTimeControl(0.5)} className="time-button slow">
-                    <i className="fas fa-backward"></i> Slower
-                  </button>
-                  <button onClick={() => setTimeSpeed(1)} className="time-button normal">
-                    <i className="fas fa-sync"></i> Normal
-                  </button>
-                  <button onClick={() => handleTimeControl(2)} className="time-button fast">
-                    <i className="fas fa-forward"></i> Faster
-                  </button>
-                  <button onClick={togglePause} className={`time-button ${isPaused ? 'play' : 'pause'}`}>
-                    <i className={`fas fa-${isPaused ? 'play' : 'pause'}`}></i> {isPaused ? 'Play' : 'Pause'}
-                  </button>
-                </div>
-                <div className="speed-display">
-                  Current Speed: {timeSpeed.toFixed(2)}x
-                </div>
-              </div>
+      {isMenuOpen && (
+        <div className="menu space-theme">
+          <label className="orbit-toggle">
+            <input
+              type="checkbox"
+              checked={showOrbits}
+              onChange={() => setShowOrbits(!showOrbits)}
+            />
+            <span className="slider"></span>
+            <span className="label-text">Show Orbits</span>
+          </label>
+          <div className="time-control">
+            <h3>Time Control</h3>
+            <div className="button-group">
+              <button onClick={() => handleTimeControl(0.5)} className="time-button slow">
+                <i className="fas fa-backward"></i> Slower
+              </button>
+              <button onClick={() => setTimeSpeed(1)} className="time-button normal">
+                <i className="fas fa-sync"></i> Normal
+              </button>
+              <button onClick={() => handleTimeControl(2)} className="time-button fast">
+                <i className="fas fa-forward"></i> Faster
+              </button>
+              <button onClick={togglePause} className={`time-button ${isPaused ? 'play' : 'pause'}`}>
+                <i className={`fas fa-${isPaused ? 'play' : 'pause'}`}></i> {isPaused ? 'Play' : 'Pause'}
+              </button>
             </div>
-          )}
-        </>
+            <div className="speed-display">
+              Current Speed: {timeSpeed.toFixed(2)}x
+            </div>
+          </div>
+        </div>
       )}
       
       <button 
@@ -1044,6 +1040,5 @@ function Orrery({ isInitializing,  }) {
     </div>
   );
 }
-
 
 export default Orrery;
