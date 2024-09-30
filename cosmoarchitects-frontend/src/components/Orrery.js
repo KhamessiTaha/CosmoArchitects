@@ -192,7 +192,7 @@ function Orrery({ isInitializing,  }) {
 
   const animationRef = useRef({
     showOrbits: true,
-    timeSpeed: 0.5,
+    timeSpeed: 1,
     lastTime: 0,
     elapsedTime: 0,
     isPaused: false,
@@ -835,7 +835,7 @@ function Orrery({ isInitializing,  }) {
       // Calculate delta time and update elapsed time
       const deltaTime = currentTime - lastTime;
       animationRef.current.lastTime = currentTime;
-      animationRef.current.elapsedTime += deltaTime * 0.001 * timeSpeed; // Convert to seconds and apply time speed
+      animationRef.current.elapsedTime += deltaTime * 0.0009 * timeSpeed; // Convert to seconds and apply time speed
       
       scene.children.filter(child => child.isOrbit).forEach(orbit => {
         orbit.visible = showOrbits;
