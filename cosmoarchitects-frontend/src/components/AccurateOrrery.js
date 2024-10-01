@@ -20,6 +20,22 @@ function AccurateOrrery() {
   const [focusedPlanet, setFocusedPlanet] = useState(null);
   const [showLabels, setShowLabels] = useState(false);
 
+  // Function to calculate Julian date
+  function getJulianDate() {
+    const now = new Date();
+    const time = now.getTime();
+    const JD = (time / 86400000.0) + 2440587.5; // Unix epoch to Julian date
+    return JD;
+  }
+
+  // Update the Mean Anomaly (M) based on the current Julian date
+  function calculateMeanAnomaly(planet) {
+    const julianDate = getJulianDate();
+    const daysSinceEpoch = julianDate - planet.epoch;
+    const M = planet.meanAnomalyAtEpoch + planet.meanMotion * daysSinceEpoch;
+    return THREE.MathUtils.degToRad(M % 360);  // Convert to radians
+  }
+
   // Function to solve Kepler's Equation using Newton's method
   function solveKepler(M, e, tolerance = 1e-6) {
     let E = M; // Initial guess: E ≈ M for small eccentricities
@@ -76,77 +92,111 @@ function AccurateOrrery() {
     const planetData = [
       {
         name: 'Mercury',
-        semiMajorAxis: 57.9e6,
-        radius: 2439.7,
-        inclination: 7.0,
+        semiMajorAxis: 57.9e6,  // km
+        radius: 2439.7,  // km
+        inclination: 7.0,  // degrees
         eccentricity: 0.205630,
-        orbitalPeriod: 87.97,
+        orbitalPeriod: 87.97,  // days
+        meanAnomalyAtEpoch: 174.796,  // degrees
+        meanMotion: 4.09233445,  // degrees/day
+        epoch: 2451545.0, // Julian date
         texture: mercuryTexture,
+        rotationPeriod: 1407.6, // hours
       },
       {
         name: 'Venus',
-        semiMajorAxis: 108.2e6,
-        radius: 6051.8,
-        inclination: 3.4,
+        semiMajorAxis: 108.2e6,  // km
+        radius: 6051.8,  // km
+        inclination: 3.4,  // degrees
         eccentricity: 0.006772,
-        orbitalPeriod: 224.70,
+        orbitalPeriod: 224.70,  // days
+        meanAnomalyAtEpoch: 50.115,  // degrees
+        meanMotion: 1.60213034,  // degrees/day
+        epoch: 2451545.0, // Julian date
         texture: venusTexture,
+        rotationPeriod: 5832.5, // hours (retrograde)
       },
       {
         name: 'Earth',
-        semiMajorAxis: 149.6e6,
-        radius: 6371,
-        inclination: 0.0,
+        semiMajorAxis: 149.6e6,  // km
+        radius: 6371,  // km
+        inclination: 0.0,  // degrees
         eccentricity: 0.0167086,
-        orbitalPeriod: 365.26,
+        orbitalPeriod: 365.26,  // days
+        meanAnomalyAtEpoch: 357.51716,  // degrees
+        meanMotion: 0.9856,  // degrees/day
+        epoch: 2451545.0, // Julian date
         texture: earthTexture,
+        rotationPeriod: 23.934, // hours
       },
       {
         name: 'Mars',
-        semiMajorAxis: 227.9e6,
-        radius: 3389.5,
-        inclination: 1.9,
+        semiMajorAxis: 227.9e6,  // km
+        radius: 3389.5,  // km
+        inclination: 1.9,  // degrees
         eccentricity: 0.0934,
-        orbitalPeriod: 686.98,
+        orbitalPeriod: 686.98,  // days
+        meanAnomalyAtEpoch: 19.412,  // degrees
+        meanMotion: 0.524071,  // degrees/day
+        epoch: 2451545.0, // Julian date
         texture: marsTexture,
+        rotationPeriod: 24.6229, // hours
       },
       {
         name: 'Jupiter',
-        semiMajorAxis: 778.5e6,
-        radius: 69911,
-        inclination: 1.3,
+        semiMajorAxis: 778.5e6,  // km
+        radius: 69911,  // km
+        inclination: 1.3,  // degrees
         eccentricity: 0.0489,
-        orbitalPeriod: 4332.59,
+        orbitalPeriod: 4332.59,  // days
+        meanAnomalyAtEpoch: 20.020,  // degrees
+        meanMotion: 0.0831293,  // degrees/day
+        epoch: 2451545.0, // Julian date
         texture: jupiterTexture,
+        rotationPeriod: 9.925, // hours
       },
       {
         name: 'Saturn',
-        semiMajorAxis: 1434.0e6,
-        radius: 58232,
-        inclination: 2.5,
+        semiMajorAxis: 1434.0e6,  // km
+        radius: 58232,  // km
+        inclination: 2.5,  // degrees
         eccentricity: 0.0565,
-        orbitalPeriod: 10759.22,
+        orbitalPeriod: 10759.22,  // days
+        meanAnomalyAtEpoch: 317.020,  // degrees
+        meanMotion: 0.0334979,  // degrees/day
+        epoch: 2451545.0, // Julian date
         texture: saturnTexture,
+        rotationPeriod: 10.656, // hours
       },
       {
         name: 'Uranus',
-        semiMajorAxis: 2871.0e6,
-        radius: 25362,
-        inclination: 0.8,
+        semiMajorAxis: 2871.0e6,  // km
+        radius: 25362,  // km
+        inclination: 0.8,  // degrees
         eccentricity: 0.0457,
-        orbitalPeriod: 30688.5,
+        orbitalPeriod: 30688.5,  // days
+        meanAnomalyAtEpoch: 142.2386,  // degrees
+        meanMotion: 0.0117081,  // degrees/day
+        epoch: 2451545.0, // Julian date
         texture: uranusTexture,
+        rotationPeriod: 17.24, // hours
       },
       {
         name: 'Neptune',
-        semiMajorAxis: 4495.0e6,
-        radius: 24622,
-        inclination: 1.8,
+        semiMajorAxis: 4495.0e6,  // km
+        radius: 24622,  // km
+        inclination: 1.8,  // degrees
         eccentricity: 0.0113,
-        orbitalPeriod: 60182,
+        orbitalPeriod: 60182,  // days
+        meanAnomalyAtEpoch: 256.228,  // degrees
+        meanMotion: 0.005981,  // degrees/day
+        epoch: 2451545.0, // Julian date
         texture: neptuneTexture,
-      },
+        rotationPeriod: 16.11, // hours
+      }
     ];
+    
+    
 
     // Texture loader
     const textureLoaderInstance = new TextureLoader();
@@ -255,7 +305,7 @@ function AccurateOrrery() {
         opacity: 0.3,
       });
       const orbitPoints = [];
-      const segments = 256;
+      const segments = 3000;
 
       for (let i = 0; i <= segments; i++) {
         const theta = (i / segments) * Math.PI * 2;
@@ -299,7 +349,7 @@ function AccurateOrrery() {
         
 
         // Calculate Mean Anomaly (M)
-        const M = (2 * Math.PI / planet.orbitalPeriod) * elapsed;
+        const M = calculateMeanAnomaly(planet);
 
         // Solve for Eccentric Anomaly (E)
         const E = solveKepler(M, e);
@@ -315,8 +365,9 @@ function AccurateOrrery() {
         // Update planet position
         planets[index].mesh.position.set(x, 0, z);
 
-        // Rotate the planet on its axis (simplified)
-        planets[index].mesh.rotation.y += 0.01 / planet.orbitalPeriod;
+        // Rotate the planet on its axis based on the rotation period
+        const rotationSpeed = (2 * Math.PI) / (planet.rotationPeriod * 3600); // radians per second
+        planets[index].mesh.rotation.y += rotationSpeed;
 
         // Update label position and rotation
         planets[index].label.position.set(x, planet.radius * 2, z);
@@ -324,7 +375,7 @@ function AccurateOrrery() {
 
         // Adjust label size to maintain consistent screen size
         const distance = camera.position.distanceTo(planets[index].label.position);
-        const scale = distance * 0.1; // Adjust this multiplier to change the label size
+        const scale = distance * 0.12; // Adjust this multiplier to change the label size
         planets[index].label.scale.set(scale, scale * 0.5, 1);
 
         // Hide labels when a planet is focused
@@ -335,10 +386,9 @@ function AccurateOrrery() {
       if (focusedPlanetObject) {
         const planetPosition = new THREE.Vector3();
         focusedPlanetObject.mesh.getWorldPosition(planetPosition);
-        const cameraOffset = new THREE.Vector3(0, focusedPlanetObject.mesh.geometry.parameters.radius * 5, focusedPlanetObject.mesh.geometry.parameters.radius * 10);
-        cameraOffset.applyQuaternion(camera.quaternion);
-        camera.position.copy(planetPosition).add(cameraOffset);
+        // Keep controls focused on the planet position
         controls.target.copy(planetPosition);
+        controls.update();
       }
       sunGlow.material.uniforms.viewVector.value = new THREE.Vector3().subVectors(camera.position, sunGlow.position);
 
@@ -356,14 +406,26 @@ function AccurateOrrery() {
     };
     window.addEventListener('resize', handleResize);
 
-    // Focus on a specific planet
-    const focusOnPlanet = (planetName) => {
-      focusedPlanetObject = planets.find(p => p.name === planetName);
-      if (focusedPlanetObject) {
-        setFocusedPlanet(planetName);
-      }
-    
-    };
+    // Focus on a specific planet and set OrbitControls to orbit around the planet
+const focusOnPlanet = (planetName) => {
+  const planetObject = planets.find(p => p.name === planetName);
+  
+  if (planetObject) {
+    focusedPlanetObject = planetObject;
+    setFocusedPlanet(planetName);
+
+    // Get planet position
+    const planetPosition = new THREE.Vector3();
+    planetObject.mesh.getWorldPosition(planetPosition);
+
+    // Set OrbitControls to target the planet's position
+    controls.target.copy(planetPosition);
+
+    // Adjust camera position relative to the planet (set distance and angle)
+    const cameraOffset = new THREE.Vector3(0, planetObject.mesh.geometry.parameters.radius * 5, planetObject.mesh.geometry.parameters.radius * 10);
+    camera.position.copy(planetPosition).add(cameraOffset);
+  }
+};
 
     // Reset camera to initial position
     const resetCamera = () => {
