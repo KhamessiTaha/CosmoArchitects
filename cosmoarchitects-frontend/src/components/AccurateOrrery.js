@@ -19,6 +19,28 @@ function AccurateOrrery() {
   const mountRef = useRef(null);
   const [focusedPlanet, setFocusedPlanet] = useState(null);
   const [showLabels, setShowLabels] = useState(false);
+
+  // Function to solve Kepler's Equation using Newton's method
+  function solveKepler(M, e, tolerance = 1e-6) {
+    let E = M; // Initial guess: E ≈ M for small eccentricities
+    let delta = 1;
+    while (Math.abs(delta) > tolerance) {
+      delta = E - e * Math.sin(E) - M;
+      E = E - delta / (1 - e * Math.cos(E));
+    }
+    return E;
+  }
+
+
+  // Function to calculate true anomaly from eccentric anomaly
+  function calculateTrueAnomaly(E, e) {
+    return 2 * Math.atan2(
+      Math.sqrt(1 + e) * Math.sin(E / 2),
+      Math.sqrt(1 - e) * Math.cos(E / 2)
+    );
+  }
+
+
   useEffect(() => {
     // Scene setup
     const scene = new THREE.Scene();
@@ -245,7 +267,10 @@ function AccurateOrrery() {
       return { mesh, group: planetGroup, name: planet.name, label };
     });
     let focusedPlanetObject = null;
-    // Animation loop
+    
+    
+    
+    // Animation loop !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     const animate = () => {
       requestAnimationFrame(animate);
 
@@ -254,12 +279,21 @@ function AccurateOrrery() {
       planetData.forEach((planet, index) => {
         const a = planet.semiMajorAxis;
         const e = planet.eccentricity;
-        const angle = (elapsed / planet.orbitalPeriod) * 2 * Math.PI;
+        
+
+        // Calculate Mean Anomaly (M)
+        const M = (2 * Math.PI / planet.orbitalPeriod) * elapsed;
+
+        // Solve for Eccentric Anomaly (E)
+        const E = solveKepler(M, e);
+
+        // Calculate True Anomaly (ν)
+        const nu = calculateTrueAnomaly(E, e);
 
         // Calculate position in elliptical orbit
-        const r = (a * (1 - e * e)) / (1 + e * Math.cos(angle));
-        const x = r * Math.cos(angle);
-        const z = r * Math.sin(angle);
+        const r = (a * (1 - e * e)) / (1 + e * Math.cos(nu));
+        const x = r * Math.cos(nu);
+        const z = r * Math.sin(nu);
 
         // Update planet position
         planets[index].mesh.position.set(x, 0, z);
