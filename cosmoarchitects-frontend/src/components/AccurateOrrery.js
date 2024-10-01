@@ -200,6 +200,40 @@ function AccurateOrrery() {
     const sunGlow = new THREE.Mesh(glowGeometry, glowMaterial);
     scene.add(sunGlow);
 
+    // Function to create enhanced label
+    function createEnhancedLabel(name) {
+      const labelCanvas = document.createElement('canvas');
+      const context = labelCanvas.getContext('2d');
+      labelCanvas.width = 512;
+      labelCanvas.height = 256;
+      
+      // Background
+      context.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      context.beginPath();
+      context.roundRect(0, 0, labelCanvas.width, labelCanvas.height, 20);
+      context.fill();
+      
+      // Text
+      context.font = 'Bold 72px Arial';
+      context.fillStyle = 'white';
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillText(name, 256, 128);
+      
+      // Border
+      context.strokeStyle = 'white';
+      context.lineWidth = 4;
+      context.beginPath();
+      context.roundRect(2, 2, labelCanvas.width - 4, labelCanvas.height - 4, 18);
+      context.stroke();
+
+      const texture = new THREE.CanvasTexture(labelCanvas);
+      const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+      const sprite = new THREE.Sprite(material);
+      
+      return sprite;
+    }
+
     // Create Planets, Orbits, and Labels
     const planets = planetData.map((planet) => {
       const planetGroup = new THREE.Group();
@@ -237,28 +271,10 @@ function AccurateOrrery() {
       const orbit = new THREE.Line(orbitGeometry, orbitMaterial);
       planetGroup.add(orbit);
 
-      // Create label
-      const labelCanvas = document.createElement('canvas');
-      const context = labelCanvas.getContext('2d');
-      labelCanvas.width = 512;
-      labelCanvas.height = 256;
-      context.fillStyle = 'rgba(0, 0, 0, 0.7)';
-      context.fillRect(0, 0, labelCanvas.width, labelCanvas.height);
-      context.font = 'Bold 48px Arial';
-      context.fillStyle = 'white';
-      context.textAlign = 'center';
-      context.textBaseline = 'middle';
-      context.fillText(planet.name, 256, 128);
-
-      const labelTexture = new THREE.CanvasTexture(labelCanvas);
-      const labelMaterial = new THREE.SpriteMaterial({
-        map: labelTexture,
-        transparent: true,
-      });
-      const label = new THREE.Sprite(labelMaterial);
+      // Create enhanced label
+      const label = createEnhancedLabel(planet.name);
       label.scale.set(planet.radius * 20, planet.radius * 10, 1);
       label.position.y = planet.radius * 2;
-      label.visible = showLabels;
       planetGroup.add(label);
 
       // Apply inclination to the entire group
@@ -266,6 +282,7 @@ function AccurateOrrery() {
 
       return { mesh, group: planetGroup, name: planet.name, label };
     });
+
     let focusedPlanetObject = null;
     
     
@@ -305,10 +322,13 @@ function AccurateOrrery() {
         planets[index].label.position.set(x, planet.radius * 2, z);
         planets[index].label.lookAt(camera.position);
 
-        // Make labels always visible regardless of distance
-        const distanceToCamera = camera.position.distanceTo(planets[index].mesh.position);
-        const scale = distanceToCamera * 0.01;
+        // Adjust label size to maintain consistent screen size
+        const distance = camera.position.distanceTo(planets[index].label.position);
+        const scale = distance * 0.1; // Adjust this multiplier to change the label size
         planets[index].label.scale.set(scale, scale * 0.5, 1);
+
+        // Hide labels when a planet is focused
+        planets[index].label.visible = !focusedPlanetObject;
       });
 
       // Update camera position if focusing on a planet
