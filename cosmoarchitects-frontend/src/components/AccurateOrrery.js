@@ -15,10 +15,15 @@ import saturnTexture from './textures/Saturn/saturn.jpg';
 import uranusTexture from './textures/Uranus/uranus.jpg';
 import neptuneTexture from './textures/Neptune/neptune.jpg';
 
+// NASA API key
+const apiKey = 'lf9ca3nAatRf8yfpG7V0Vn8fH8OYjMGYqGMV63fF';
+
 function AccurateOrrery() {
   const mountRef = useRef(null);
   const [focusedPlanet, setFocusedPlanet] = useState(null);
   const [showLabels, setShowLabels] = useState(false);
+  const NEOData = []; // Store NEO data for updates
+  
 
   // Function to calculate Julian date
   function getJulianDate() {
@@ -55,6 +60,14 @@ function AccurateOrrery() {
       Math.sqrt(1 - e) * Math.cos(E / 2)
     );
   }
+
+  // Fetch NEO data from NASA's API
+  const fetchNEOData = async () => {
+    const url = `https://api.nasa.gov/neo/rest/v1/neo/browse?api_key=${apiKey}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data.near_earth_objects;
+  };
 
 
   useEffect(() => {
@@ -297,6 +310,8 @@ function AccurateOrrery() {
       const mesh = new THREE.Mesh(geometry, material);
       planetGroup.add(mesh);
 
+      
+
       // Create orbit
       const orbitGeometry = new THREE.BufferGeometry();
       const orbitMaterial = new THREE.LineBasicMaterial({
@@ -334,6 +349,82 @@ function AccurateOrrery() {
     });
 
     let focusedPlanetObject = null;
+
+    function createOrbit(neo) {
+      const segments = 1000;  // Number of segments for the orbit
+      const points = [];
+    
+      // Semi-major axis and eccentricity
+      const a = neo.semiMajorAxis;  // in kilometers
+      const e = neo.eccentricity;
+    
+      // Generate points for the orbit
+      for (let i = 0; i <= segments; i++) {
+        const theta = (i / segments) * Math.PI * 2;  // Angle in radians
+        const r = (a * (1 - e * e)) / (1 + e * Math.cos(theta));  // Orbital radius (polar equation)
+        const x = r * Math.cos(theta);  // X position in the orbit
+        const z = r * Math.sin(theta);  // Z position in the orbit
+        points.push(new THREE.Vector3(x, 0, z));  // Add the point
+      }
+    
+      // Create the orbit geometry and material
+      const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points);
+      const orbitMaterial = new THREE.LineBasicMaterial({
+        color: 0x00fff0,  // Orbit color (green)
+        opacity: 0.3,  // Lower opacity
+        transparent: true,
+        linewidth: 1,  // Thin orbit line
+      });
+      const orbit = new THREE.Line(orbitGeometry, orbitMaterial);
+    
+      // Apply inclination (tilt) to the orbit
+      orbit.rotation.x = THREE.MathUtils.degToRad(neo.inclination);
+    
+      return orbit;
+    }
+
+    // Fetch and add NEOs to the scene
+    const fetchNEOs = async () => {
+      const neos = await fetchNEOData();
+    
+      Object.values(neos).forEach((neo) => {
+        const orbitalData = neo.orbital_data;
+    
+        if (orbitalData && orbitalData.semi_major_axis && orbitalData.eccentricity) {
+          const geometry = new THREE.SphereGeometry(50, 32, 32);  // NEO size
+          const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });  // NEO color
+          const neoMesh = new THREE.Mesh(geometry, material);
+    
+          const a = parseFloat(orbitalData.semi_major_axis) * 1e8;  // Convert AU to km
+          neoMesh.position.set(a, 0, 0);
+          scene.add(neoMesh);
+    
+          // Store NEO data
+          NEOData.push({
+            mesh: neoMesh,
+            eccentricity: parseFloat(orbitalData.eccentricity),
+            semiMajorAxis: a,
+            inclination: parseFloat(orbitalData.inclination),
+            orbitalPeriod: parseFloat(orbitalData.orbital_period),
+            meanAnomalyAtEpoch: parseFloat(orbitalData.mean_anomaly),
+            epoch: 2451545.0,  // Example epoch
+          });
+    
+          // Create the orbit for the NEO and add it to the scene
+          const orbit = createOrbit({
+            semiMajorAxis: a,
+            eccentricity: parseFloat(orbitalData.eccentricity),
+            inclination: parseFloat(orbitalData.inclination),
+          });
+          scene.add(orbit);  // Add the orbit to the scene
+        } else {
+          console.warn(`Skipping NEO due to missing orbital data: ${neo.name}`);
+        }
+      });
+    };
+    
+
+    fetchNEOs();
     
     
     
@@ -364,6 +455,21 @@ function AccurateOrrery() {
 
         // Update planet position
         planets[index].mesh.position.set(x, 0, z);
+
+
+        // Update NEOs
+      NEOData.forEach((neo) => {
+        const M = calculateMeanAnomaly(neo);
+        const E = solveKepler(M, neo.eccentricity);
+        const nu = calculateTrueAnomaly(E, neo.eccentricity);
+
+        const r = (neo.semiMajorAxis * (1 - neo.eccentricity * neo.eccentricity)) / (1 + neo.eccentricity * Math.cos(nu));
+        const x = r * Math.cos(nu);
+        const z = r * Math.sin(nu);
+
+        // Update NEO position
+        neo.mesh.position.set(x, 0, z);
+      });
 
         // Rotate the planet on its axis based on the rotation period
         const rotationSpeed = (2 * Math.PI) / (planet.rotationPeriod * 3600); // radians per second
@@ -469,7 +575,6 @@ const focusOnPlanet = (planetName) => {
       <div ref={mountRef}></div>
       <div className="controls-info">
         <p>Press 1-8 to focus on planets (1: Mercury, 2: Venus, ..., 8: Neptune)</p>
-        <p>Press 'L' to toggle planet labels</p>
         <p>Press 'R' to reset camera</p>
       </div>
       <div className="focused-planet-info">
