@@ -1,4 +1,4 @@
-const asteroids = {
+export const asteroids = {
   "2062 Aten (1976 AA)": {
     "name": "2062 Aten (1976 AA)",
     "epoch_mjd": 60600.0,
