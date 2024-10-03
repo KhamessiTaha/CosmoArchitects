@@ -27,6 +27,7 @@ import earthcloud from "./textures/Earth/earthcloud.jpg" ;
 import earthcloudtrans from "./textures/Earth/earthcloudtrans.jpg" ;
 import earthlights from "./textures/Earth/earthlights.jpg" ;
 import earthspec from "./textures/Earth/earthspec.jpg" ;
+import plutoTexture from "./textures/Pluto/plutomap.jpg";
 
 import x1 from './textures/skybox/right.png' ;
 import x2 from './textures/skybox/left.png' ;
@@ -160,7 +161,7 @@ const celestialData = {
   moon: {
     name: 'Moon',
     radius: 1737.1,
-    distanceFromSun: 0.384, // distance from Earth in million km
+    distanceFromSun: '0.384 (from Earth)', // distance from Earth in million km
     atmosphere: 'No',
     type: 'Moon',
     planetType: 'Natural Satellite',
@@ -168,7 +169,19 @@ const celestialData = {
     discoveredBy: 'Not applicable',
     age: '4.5 billion years', // Added age
   },
-  // You can add more objects (moons, asteroids, etc.) here later
+  pluto: {
+    name: 'Pluto',
+    radius: 1188.3, // in km
+    distanceFromSun: 5906.4, // in million km
+    atmosphere: 'Yes (Nitrogen, Methane, Carbon Monoxide)',
+    type: 'Dwarf Planet',
+    planetType: 'Ice Dwarf',
+    orbitalPeriod: '248 years',
+    temperature: '-229°C',
+    moonsCount: 5,
+    discoveredBy: 'Clyde Tombaugh (1930)',
+    age: '4.5 billion years',
+  },
 };
 
 
@@ -249,10 +262,11 @@ function Orrery({ isInitializing,  }) {
     const cloudTexture = textureLoader.load(earthcloud);
     const cloudTransparency = textureLoader.load(earthcloudtrans);
     const nightLights = textureLoader.load(earthlights);
+    const plutoTextureMap = textureLoader.load(plutoTexture);
 
     // Create starfield
     const createStars = (scene, numStars, minDistance, maxDistance) => {
-      const starGeometry = new THREE.SphereGeometry(0.2, 24, 24);
+      const starGeometry = new THREE.SphereGeometry(0.4, 24, 24);
       const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
     
       for (let i = 0; i < numStars; i++) {
@@ -273,7 +287,7 @@ function Orrery({ isInitializing,  }) {
       }
     };
 
-    createStars(scene, 500, 100, 300); 
+    createStars(scene, 500, 200, 500); 
 
 
    
@@ -361,7 +375,8 @@ function Orrery({ isInitializing,  }) {
       jupiter: { radius: 2, atmosphereRadius: 2.05, color: 0xFFFF00, intensity: 0.4, opacity: 0.2, positionX: 30 },
       saturn: { radius: 1.8, atmosphereRadius: 1.85, color: 0xFFFACD, intensity: 0.3, opacity: 0.2, positionX: 40 },
       uranus: { radius: 1.4, atmosphereRadius: 1.47, color: 0x00FFFF, intensity: 0.3, opacity: 0.2, positionX: 50 },
-      neptune: { radius: 1.3, atmosphereRadius: 1.33, color: 0x0000FF, intensity: 0.4, opacity: 0.25, positionX: 60 }
+      neptune: { radius: 1.3, atmosphereRadius: 1.33, color: 0x0000FF, intensity: 0.4, opacity: 0.25, positionX: 60 },
+      pluto: { radius: 0.3, atmosphereRadius: 0.31, color: 0x87CEEB, intensity: 0.4, opacity: 0.15, positionX: 70 }
     };
 
 
@@ -556,6 +571,17 @@ function Orrery({ isInitializing,  }) {
     neptuneWithAtmosphere.position.x = planets.neptune.positionX;
     scene.add(neptuneWithAtmosphere);
 
+    // Pluto
+    const plutoGeometry = new THREE.SphereGeometry(planets.pluto.radius, 64, 64);
+    const plutoMaterial = new THREE.MeshStandardMaterial({ map: plutoTextureMap, 
+      roughness: 1,
+      metalness: 0,  });
+    const pluto = new THREE.Mesh(plutoGeometry, plutoMaterial);
+
+    const plutoWithAtmosphere = createPlanetWithAtmosphere(pluto, planets.pluto.radius , planets.pluto.atmosphereRadius, planets.pluto.color, planets.pluto.intensity, planets.pluto.opacity);
+    plutoWithAtmosphere.position.x = planets.pluto.positionX;
+    scene.add(plutoWithAtmosphere);
+
     // Sun
     sun.castShadow = false; // The Sun doesn't cast shadows on itself
     sun.receiveShadow = false;
@@ -597,6 +623,10 @@ function Orrery({ isInitializing,  }) {
     // Neptune
     neptune.castShadow = true;
     neptune.receiveShadow = true;
+
+    // Pluto
+    pluto.castShadow = true;
+    pluto.receiveShadow = true;
 
     renderer.shadowMap.enabled = true;  // Enable shadows globally
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;  // Soft shadows for smooth transitions
@@ -645,6 +675,7 @@ function Orrery({ isInitializing,  }) {
       saturnWithAtmosphere,
       uranusWithAtmosphere,
       neptuneWithAtmosphere,
+      plutoWithAtmosphere,
       moon,
       sun
     ];
@@ -705,6 +736,7 @@ function Orrery({ isInitializing,  }) {
         else if (targetObject === saturnWithAtmosphere) objectKey = 'saturn';
         else if (targetObject === uranusWithAtmosphere) objectKey = 'uranus';
         else if (targetObject === neptuneWithAtmosphere) objectKey = 'neptune';
+        else if (targetObject === plutoWithAtmosphere) objectKey = 'pluto';
         else if (targetObject === moon) objectKey = 'moon';
         else if (targetObject === sun) objectKey = 'sun'; // Handle the Sun selection
     
@@ -792,6 +824,7 @@ function Orrery({ isInitializing,  }) {
       const saturnOrbit = createOrbit(40, 0xffa500);  // Orange for Saturn
       const uranusOrbit = createOrbit(50, 0x00ffff);  // Cyan for Uranus
       const neptuneOrbit = createOrbit(60, 0x0000ff); // Blue for Neptune
+      const plutoOrbit = createOrbit(70, 0x87CEEB); 
 
       const orbits = [
         createOrbit(8, 0xaaaaaa),
@@ -801,7 +834,8 @@ function Orrery({ isInitializing,  }) {
         createOrbit(30, 0xffff00),
         createOrbit(40, 0xffa500),
         createOrbit(50, 0x00ffff),
-        createOrbit(60, 0x0000ff)
+        createOrbit(60, 0x0000ff),
+        createOrbit(70, 0x87CEEB)
       ];
   
       // Add all orbits to the scene
@@ -852,6 +886,7 @@ function Orrery({ isInitializing,  }) {
         saturnWithAtmosphere.rotation.y += rotationSpeed * 1.8;
         uranusWithAtmosphere.rotation.y += rotationSpeed * 1.5;
         neptuneWithAtmosphere.rotation.y += rotationSpeed * 1.2;
+        plutoWithAtmosphere.rotation.y += rotationSpeed * 1.2;
       // Mercury Orbit and Rotation
       
       mercury.position.x = Math.cos(time * 1.6) * 8;
@@ -905,6 +940,10 @@ function Orrery({ isInitializing,  }) {
       neptuneWithAtmosphere.position.x = Math.cos(time * 0.25) * 60; // Neptune orbit x position
       neptuneWithAtmosphere.position.z = Math.sin(time * 0.25) * 60; // Neptune orbit z position
       
+      // Pluto rotation and orbit
+      
+      plutoWithAtmosphere.position.x = Math.cos(time * 0.20) * 70; // Pluto orbit x position
+      plutoWithAtmosphere.position.z = Math.sin(time * 0.20) * 70; // Pluto orbit z position
 
       const sunPosition = new THREE.Vector3(0, 0, 0);
       updatePlanetLighting(earthWithAtmosphere, sunPosition);
@@ -914,6 +953,7 @@ function Orrery({ isInitializing,  }) {
       updatePlanetLighting(saturnWithAtmosphere, sunPosition);
       updatePlanetLighting(uranusWithAtmosphere, sunPosition);
       updatePlanetLighting(neptuneWithAtmosphere, sunPosition);
+      updatePlanetLighting(plutoWithAtmosphere, sunPosition);
 
 
       // If a planet is selected, keep the camera focused and tracking its movement
