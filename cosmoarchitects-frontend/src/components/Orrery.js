@@ -889,13 +889,13 @@ function Orrery({ isInitializing,  }) {
         plutoWithAtmosphere.rotation.y += rotationSpeed * 1.2;
       // Mercury Orbit and Rotation
       
-      mercury.position.x = Math.cos(time * 1.6) * 8;
-      mercury.position.z = Math.sin(time * 1.6) * 8;
+      mercury.position.x = Math.cos(time * 2) * 8;
+      mercury.position.z = Math.sin(time * 2) * 8;
 
       // Venus Orbit and Rotation
       
-      venusWithAtmosphere.position.x = Math.cos(time * 1.2) * 12; // Venus orbit x position
-      venusWithAtmosphere.position.z = Math.sin(time * 1.2) * 12; // Venus orbit z position
+      venusWithAtmosphere.position.x = Math.cos(time * 1.5) * 12; // Venus orbit x position
+      venusWithAtmosphere.position.z = Math.sin(time * 1.5) * 12; // Venus orbit z position
 
       // Earth Orbit and Rotation
       
