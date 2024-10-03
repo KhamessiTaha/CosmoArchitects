@@ -12,7 +12,7 @@ function Navbar() {
   return (
     <nav className="navbar">
       <div className="logo">
-        <h1>Orrery Explore</h1>
+        <h1>CosmicVue</h1>
       </div>
       <div className="hamburger" onClick={toggleMenu}>
         {isOpen ? <FaTimes /> : <FaBars />}
