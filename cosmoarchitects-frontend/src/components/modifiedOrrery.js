@@ -28,7 +28,6 @@ import earthcloudtrans from "./textures/Earth/earthcloudtrans.jpg" ;
 import earthlights from "./textures/Earth/earthlights.jpg" ;
 import earthspec from "./textures/Earth/earthspec.jpg" ;
 import plutoTexture from "./textures/Pluto/plutomap.jpg";
-import asteroidTexture from './textures/Asteroid/asteroid.avif';
 
 import x1 from './textures/skybox/right.png' ;
 import x2 from './textures/skybox/left.png' ;
@@ -185,48 +184,7 @@ const celestialData = {
   },
 };
 
-const neoData = [
-  {
-    name: 'Bennu',
-    type: 'Near-Earth Asteroid',
-    radius: 0.262,
-    a: 1.126, // semi-major axis (AU)
-    e: 0.204, // eccentricity
-    i: 6.035, // inclination (degrees)
-    omega: 2.061, // longitude of ascending node (degrees)
-    w: 66.223, // argument of perihelion (degrees)
-    M: 101.704, // mean anomaly (degrees)
-    epoch: 2459000.5, // Julian date of orbital elements
-    texture: asteroidTexture
-  },
-  {
-    name: '99942 Apophis',
-    type: 'Potentially Hazardous Asteroid',
-    radius: 0.170,
-    a: 0.922,
-    e: 0.191,
-    i: 3.331,
-    omega: 204.058,
-    w: 126.404,
-    M: 180.977,
-    epoch: 2459000.5,
-    texture: asteroidTexture
-  },
-  {
-    name: 'Comet NEOWISE',
-    type: 'Near-Earth Comet',
-    radius: 0.5,
-    a: 3.045,
-    e: 0.678,
-    i: 128.937,
-    omega: 317.291,
-    w: 198.815,
-    M: 0, // Assuming it's at perihelion at epoch
-    epoch: 2459000.5,
-    texture: asteroidTexture
-  },
-  // Add more NEOs as needed
-];
+
 
 
 
@@ -244,9 +202,6 @@ function Orrery({ isInitializing,  }) {
   const [selectedObjectData, setSelectedObjectData] = useState(null);
   const orreryContainerRef = useRef(null);
   const statsRef = useRef(null);
-  const [showNEOs, setShowNEOs] = useState(true);
-  const neosRef = useRef([]);
-  const neoOrbitRefs = useRef([]);
 
   const animationRef = useRef({
     showOrbits: true,
@@ -336,105 +291,8 @@ function Orrery({ isInitializing,  }) {
 
 
    
-    // Function to create a NEO
-    const createNEO = (data) => {
-      const geometry = new THREE.SphereGeometry(data.radius, 32, 32);
-      const material = new THREE.MeshStandardMaterial({
-        map: textureLoader.load(data.texture),
-        roughness: 1,
-        metalness: 0,
-      });
-      const neo = new THREE.Mesh(geometry, material);
-      neo.userData = data;
-      return neo;
-    };
+    
 
-    // Create NEOs
-    neoData.forEach(data => {
-      const neo = createNEO(data);
-      neosRef.current.push(neo);
-      scene.add(neo);
-    });
-
-    // Function to calculate NEO position using Kepler's equations
-    const calculateNEOPosition = (neo, time) => {
-      const { a, e, i, omega, w, M, epoch } = neo.userData;
-      
-      // Convert angles to radians
-      const iRad = i * Math.PI / 180;
-      const omegaRad = omega * Math.PI / 180;
-      const wRad = w * Math.PI / 180;
-
-      // Calculate mean anomaly at current time
-      const n = Math.sqrt(1 / (a * a * a)); // mean motion
-      const daysElapsed = (time - epoch) / 86400; // convert seconds to days
-      const M0 = M * Math.PI / 180; // initial mean anomaly in radians
-      const Mt = M0 + n * daysElapsed;
-
-      // Solve Kepler's equation iteratively
-      let E = Mt;
-      for (let j = 0; j < 10; j++) {
-        E = Mt + e * Math.sin(E);
-      }
-
-      // Calculate true anomaly
-      const nu = 2 * Math.atan(Math.sqrt((1 + e) / (1 - e)) * Math.tan(E / 2));
-
-      // Calculate distance from Sun
-      const r = a * (1 - e * Math.cos(E));
-
-      // Calculate position in orbital plane
-      const x = r * (Math.cos(nu));
-      const y = r * (Math.sin(nu));
-
-      // Rotate to correct orbital orientation
-      const xEcliptic = (Math.cos(wRad) * Math.cos(omegaRad) - Math.sin(wRad) * Math.sin(omegaRad) * Math.cos(iRad)) * x
-                      + (-Math.sin(wRad) * Math.cos(omegaRad) - Math.cos(wRad) * Math.sin(omegaRad) * Math.cos(iRad)) * y;
-      const yEcliptic = (Math.cos(wRad) * Math.sin(omegaRad) + Math.sin(wRad) * Math.cos(omegaRad) * Math.cos(iRad)) * x
-                      + (-Math.sin(wRad) * Math.sin(omegaRad) + Math.cos(wRad) * Math.cos(omegaRad) * Math.cos(iRad)) * y;
-      const zEcliptic = Math.sin(wRad) * Math.sin(iRad) * x + Math.cos(wRad) * Math.sin(iRad) * y;
-
-      // Convert AU to your scene units (assuming 1 AU = 10 units in your scene)
-      const sceneScale = 10;
-      return new THREE.Vector3(xEcliptic * sceneScale, zEcliptic * sceneScale, -yEcliptic * sceneScale);
-    };
-
-    // Function to update NEO positions
-    const updateNEOs = (time) => {
-      neosRef.current.forEach(neo => {
-        const position = calculateNEOPosition(neo, time);
-        neo.position.copy(position);
-        neo.rotation.y += 0.01;
-      });
-    };
-
-    // Function to create an NEO orbit
-    const createNEOOrbit = (neoData) => {
-      const { a, e } = neoData;
-      const segments = 128;
-      const points = [];
-
-      for (let i = 0; i <= segments; i++) {
-        const theta = (i / segments) * Math.PI * 2;
-        const r = a * (1 - e * e) / (1 + e * Math.cos(theta));
-        const x = r * Math.cos(theta);
-        const z = r * Math.sin(theta);
-        points.push(new THREE.Vector3(x * 10, 0, z * 10)); // Scale up the orbit for visibility
-      }
-
-      const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points);
-      const orbitMaterial = new THREE.LineBasicMaterial({ color: 0xffff00, opacity: 0.5, transparent: true });
-      const orbit = new THREE.Line(orbitGeometry, orbitMaterial);
-      orbit.rotation.x = Math.PI / 2; // Make the orbit horizontal
-      return orbit;
-    };
-
-    // Create NEO orbits
-    neoData.forEach((data, index) => {
-      const neoOrbit = createNEOOrbit(data);
-      neoOrbitRefs.current[index] = neoOrbit;
-      scene.add(neoOrbit);
-    });
    
 
     // Lighting
@@ -1098,24 +956,6 @@ function Orrery({ isInitializing,  }) {
       updatePlanetLighting(plutoWithAtmosphere, sunPosition);
 
 
-      // Update NEO positions and orbit visibility
-      neosRef.current.forEach((neo, index) => {
-        const position = calculateNEOPosition(neo, animationRef.current.elapsedTime + 2459000.5 * 86400);
-        neo.position.copy(position);
-        neo.rotation.y += 0.01;
-        
-        // Update orbit visibility
-        if (neoOrbitRefs.current[index]) {
-          neoOrbitRefs.current[index].visible = showNEOs;
-        }
-      });
-
-      // Update NEO visibility
-      neosRef.current.forEach(neo => {
-        neo.visible = showNEOs;
-      });
-
-
       // If a planet is selected, keep the camera focused and tracking its movement
       if (selectedObject && isTracking) {
         controls.target.copy(selectedObject.position);
@@ -1148,8 +988,6 @@ function Orrery({ isInitializing,  }) {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('dblclick', handleDoubleClick);
       window.removeEventListener('keypress', handleKeyPress);
-      neosRef.current.forEach(neo => scene.remove(neo));
-      neoOrbitRefs.current.forEach(orbit => scene.remove(orbit));
 
     };
   }, [isInitializing]);
@@ -1208,15 +1046,6 @@ function Orrery({ isInitializing,  }) {
             />
             <span className="slider"></span>
             <span className="label-text">Show Orbits</span>
-          </label>
-          <label className="neo-toggle">
-            <input
-              type="checkbox"
-              checked={showNEOs}
-              onChange={() => setShowNEOs(!showNEOs)}
-            />
-            <span className="slider"></span>
-            <span className="label-text">Show NEOs and Orbits</span>
           </label>
           <div className="time-control">
             <h3>Time Control</h3>
