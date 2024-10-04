@@ -386,7 +386,7 @@ function createCometsOrbit(comet) {
       }
     };
 
-    createStars(scene, 500, 200, 500); 
+    createStars(scene, 500, 500, 1000); 
 
 
     
@@ -1249,7 +1249,7 @@ function createCometsOrbit(comet) {
               onChange={() => setShowComets(!showComets)}
             />
             <span className="slider"></span>
-            <span className="label-text">Show NEO's</span>
+            <span className="label-text">Show NEOs</span> 
           </label>
           <div className="time-control">
             <h3>Time Control</h3>
