@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
+import NavbarAccSim from '../components/NavbarAccSim';
 import AccurateOrrery from '../components/AccurateOrrery';
 import LoadingScreen from '../components/LoadingScreen';
 
@@ -16,7 +16,7 @@ function AccurateSimulation() {
 
   return (
     <div>
-      <Navbar />
+      <NavbarAccSim />
       <LoadingScreen isVisible={isLoading} />
       {!isLoading && (
         <div>

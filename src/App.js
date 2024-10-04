@@ -11,6 +11,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/simulation" element={<Simulation />} />
         <Route path="/accuratesimulation" element={<AccurateSimulation />} />
+        <Route path="*" element={<Home />} />
       </Routes>
     </Router>
   );

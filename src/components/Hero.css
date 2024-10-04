@@ -1,9 +1,21 @@
+/* Reset default margins and padding */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
 /* Ensure the canvas is below the hero content */
 .background-canvas {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   z-index: 0; /* Ensure the canvas is behind other content */
   pointer-events: none;
@@ -16,13 +28,17 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
+  width: 100%;
   text-align: center;
   color: white;
 }
 
 .hero-content {
   z-index: 2;
+  width: 100%;
+  max-width: 100vw;
+  padding: 0 20px;
 }
 
 /* Start Exploring Button */
@@ -45,6 +61,7 @@
 /* Cards container */
 .cards-container {
   display: flex;
+  flex-wrap: wrap;
   gap: 40px;
   justify-content: center;
   margin-top: 3rem;
@@ -56,6 +73,8 @@
   border-radius: 15px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   animation: fadeInCard 1s ease-in-out;
+  width: 100%;
+  max-width: 400px;
 }
 
 .choice-btn {
@@ -96,30 +115,6 @@
   }
 }
 
-/* Canvas styling for the particle background */
-.background-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 0;
-  pointer-events: none; /* Make sure it doesn't interfere with clicking */
-}
-
-/* Adjust hero section to be above canvas */
-.hero-section {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  text-align: center;
-  color: white;
-}
-
-
 /* Animations */
 @keyframes fadeIn {
   from {
@@ -149,5 +144,17 @@
   100% {
     transform: scale(1);
     opacity: 1;
+  }
+}
+
+/* Media query for smaller screens */
+@media (max-width: 768px) {
+  .cards-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .card {
+    width: 90%;
   }
 }

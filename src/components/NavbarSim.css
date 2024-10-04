@@ -1,0 +1,145 @@
+/* Navbar styling */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    transition: background-color 0.3s ease-in-out;
+  }
+  
+  /* Navigation Links */
+  .nav-links {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .nav-links li {
+    white-space: nowrap;
+  }
+  
+  .nav-links a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 1.1rem;
+    position: relative;
+    padding: 5px 0;
+    transition: color 0.3s ease-in-out, transform 0.3s ease-in-out;
+  }
+  
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    background: #ff9000;
+    left: 0;
+    bottom: 0;
+    transition: width 0.3s ease-in-out;
+  }
+  
+  /* Hover effect for links */
+  .nav-links a:hover {
+    color: #ff9000;
+    transform: translateY(-2px);
+  }
+  
+  .nav-links a:hover::after {
+    width: 100%;
+  }
+  
+  /* Logo Styling */
+  .logo {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  
+  .logo img {
+    height: 50px;
+    width: auto;
+    margin-right: 10px;
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .logo:hover img {
+    transform: scale(1.1);
+  }
+  
+  .logo h1 {
+    font-size: 2rem;
+    color: #ff9000;
+    font-family: 'Orbitron', sans-serif;
+    margin: 0;
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .logo:hover h1 {
+    transform: scale(1.1);
+  }
+  
+  /* Mobile menu icon */
+  .hamburger {
+    display: none;
+    font-size: 2rem;
+    cursor: pointer;
+    color: #fff;
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .hamburger:hover {
+    transform: rotate(90deg);
+  }
+  
+  /* Mobile menu open state */
+  .nav-links.active {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 70px;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.95);
+    width: 250px;
+    padding: 2rem;
+    gap: 1rem;
+    animation: slideIn 0.5s ease-in-out forwards;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
+  }
+  
+  /* Slide in animation for mobile menu */
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  /* Mobile styling */
+  @media (max-width: 768px) {
+    .nav-links {
+      display: none;
+    }
+  
+    .hamburger {
+      display: block;
+    }
+  
+    .nav-links a {
+      font-size: 1.2rem;
+      text-align: center;
+      padding: 10px;
+    }
+  }

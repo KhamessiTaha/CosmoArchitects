@@ -98,10 +98,10 @@ const Hero = ({ handleNavigateRelative, handleNavigateAccurate }) => {
           <div className="cards-container">
             <div className="card">
               <button className="choice-btn relative-btn" onClick={handleNavigateRelative}>
-                Relative Orrery
+                Visual Orrery
               </button>
               <p className="choice-description">
-                A dynamic orrery of the solar system showcasing beautiful animations of the planets with their atmospheres, using scaled-down distances for easier navigation and control.
+              A scaled-down, dynamic orrery that showcases a visually captivating simulation of planets with their atmospheres, along with asteroids depicted in red orbits and comets in grey orbits. The orrery features time control, options to show or hide orbits, and the ability to display or hide Near-Earth Objects (NEOs). Scaled-down distances enhance navigation and control, making exploration intuitive and engaging.
               </p>
             </div>
             <div className="card">
@@ -109,7 +109,7 @@ const Hero = ({ handleNavigateRelative, handleNavigateAccurate }) => {
                 Accurate Orrery
               </button>
               <p className="choice-description">
-                A scene with accurate sizes, distances, and orbits created using real Keplerian data for a scientific representation of the solar system.
+              A dynamic orrery that accurately represents the solar system with precise sizes and distances. It features planetary orbits calculated using Keplerian parameters and highlights Near-Earth Objects (NEOs) from the NASA Horizons API, focusing on those in the Apollo orbit class for an insightful exploration of our cosmic neighborhood.
               </p>
             </div>
           </div>

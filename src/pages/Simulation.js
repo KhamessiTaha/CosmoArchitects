@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
+import NavbarSim from '../components/NavbarSim';
 import Orrery from '../components/Orrery';
 import LoadingScreen from '../components/LoadingScreen';
 
@@ -19,7 +19,7 @@ function Simulation() {
 
   return (
     <div>
-      <Navbar />
+      <NavbarSim />
       <LoadingScreen isVisible={isLoading} />
       {!isLoading && (
         <div>

@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
 import Features from '../components/Features';
 import Footer from '../components/Footer';
-import BackToTop from '../components/BackToTop';
+import About from '../components/About';
 
 function Home() {
   const navigate = useNavigate();
@@ -26,8 +26,8 @@ function Home() {
         handleNavigateAccurate={handleNavigateAccurate} 
       />
       <Features />
+      <About />
       <Footer />
-      <BackToTop />
     </div>
   );
 }
