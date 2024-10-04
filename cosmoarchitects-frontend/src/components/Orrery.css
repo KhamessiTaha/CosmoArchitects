@@ -156,6 +156,51 @@ canvas {
   font-size: 16px;
 }
 
+.asteroid-toggle {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.asteroid-toggle input {
+  display: none;
+}
+
+.asteroid-toggle .slider {
+  position: relative;
+  width: 60px;
+  height: 30px;
+  background-color: #2c3e50;
+  border-radius: 15px;
+  margin-right: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.asteroid-toggle .slider:before {
+  content: '';
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  left: 2px;
+  bottom: 2px;
+  background-color: #fff;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.asteroid-toggle input:checked + .slider {
+  background-color: #3498db;
+}
+
+.asteroid-toggle input:checked + .slider:before {
+  transform: translateX(30px);
+}
+
+.asteroid-toggle .label-text {
+  font-size: 16px;
+}
+
 .time-control {
   text-align: center;
 }
