@@ -78,16 +78,7 @@ The main objectives for this project are:
 
 ---
 
-## **Objectives**
 
-The main objectives for this project are:
-
-- **Interactive Education**: Provide a visual and interactive platform for users to learn about the solar system and its celestial bodies.
-- **Real-time Orbit Visualization**: Accurately represent the position of celestial objects at any given time.
-- **User Engagement**: Enable users to explore and manipulate the visualization by controlling time, speed, and the point of view in the orrery.
-- **AI in Astronomy**: Demonstrate the use of AI in developing tools for space exploration and astronomy education.
-
----
 
 ## **How to Use the Web App**
 
