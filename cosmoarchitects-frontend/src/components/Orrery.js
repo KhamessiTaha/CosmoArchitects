@@ -358,22 +358,24 @@ function Orrery({ isInitializing,  }) {
     
     function addAsteroids(scene) {
       Object.values(asteroids).forEach(asteroid => {
-        // Create asteroid
         const asteroidGeometry = new THREE.SphereGeometry(0.2, 32, 32);
         const asteroidMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
         const asteroidMesh = new THREE.Mesh(asteroidGeometry, asteroidMaterial);
 
-        // Get the current position of the asteroid using its keplerian elements
-        const initialPosition = keplerianToCartesian(asteroid.a * 100, asteroid.e, asteroid.i, asteroid.om, asteroid.w, asteroid.ma);
-        asteroidMesh.position.copy(initialPosition);
-
-        // Create and add orbit
         const orbit = createAsteroidOrbit(asteroid);
 
-        // Store references to both the asteroid mesh and its orbit
-        asteroidsRef.current.push({ mesh: asteroidMesh, orbit: orbit });
+        // Store references to both the asteroid mesh and its orbit, along with its orbital elements
+        asteroidsRef.current.push({ 
+          mesh: asteroidMesh, 
+          orbit: orbit,
+          a: asteroid.a * 100, // Scale the semi-major axis
+          e: asteroid.e,
+          i: asteroid.i,
+          om: asteroid.om,
+          w: asteroid.w,
+          ma: asteroid.ma
+        });
 
-        // Add asteroid and orbit to scene
         scene.add(asteroidMesh);
         scene.add(orbit);
       });
@@ -969,6 +971,20 @@ function Orrery({ isInitializing,  }) {
       asteroidsRef.current.forEach(({ mesh, orbit }) => {
         mesh.visible = animationRef.current.showAsteroids;
         orbit.visible = animationRef.current.showAsteroids && animationRef.current.showOrbits;
+      });
+
+
+      // Animate asteroids
+      asteroidsRef.current.forEach((asteroidObj) => {
+        const { mesh, a, e, i, om, w, ma } = asteroidObj;
+        
+        // Calculate the asteroid's position based on its orbital elements and the current time
+        const meanAnomaly = (ma + animationRef.current.elapsedTime * 0.1) % 360;
+        const position = keplerianToCartesian(a, e, i, om, w, meanAnomaly);
+        
+        mesh.position.copy(position);
+        mesh.visible = animationRef.current.showAsteroids;
+        asteroidObj.orbit.visible = animationRef.current.showAsteroids && animationRef.current.showOrbits;
       });
 
       const time = animationRef.current.elapsedTime*0.1;
