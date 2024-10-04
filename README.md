@@ -1,4 +1,4 @@
-# CosmoArchitects 🌌                      
+# CosmoArchitects - CosmicVue🌌                      
 # **Interactive Orrery Web App**              
                                         
 ## **Overview**                 
