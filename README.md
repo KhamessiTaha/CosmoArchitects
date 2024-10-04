@@ -84,9 +84,8 @@ The main objectives for this project are:
 
 1. **Navigation**: Use mouse controls or touch gestures to pan, zoom, and rotate around the solar system.
 2. **Control Panel**: Utilize the control panel to switch between labels, toggle orbital paths, and control the simulation speed.
-3. **Time Travel**: Move the timeline slider to observe the celestial positions at any past or future date.
+3. **Time Travel**: Click the 'Faster' or 'Slower' buttons to observe the celestial movements at different speeds.
 4. **Explore Near-Earth Objects**: Use the object filter to focus on Near-Earth Objects (NEOs) such as asteroids or comets.
-5. **AI Features**: The orbit calculation in real-time is AI-generated, making predictions for future orbits based on current parameters.
 
 ---
 
