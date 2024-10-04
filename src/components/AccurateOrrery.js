@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { TextureLoader } from 'three';
@@ -26,23 +26,23 @@ function AccurateOrrery() {
   
 
   // Function to calculate Julian date
-  const getJulianDate = useCallback(() => {
+  function getJulianDate() {
     const now = new Date();
     const time = now.getTime();
     const JD = (time / 86400000.0) + 2440587.5; // Unix epoch to Julian date
     return JD;
-  }, []);
+  }
 
-  // Calculate Mean Anomaly
-  const calculateMeanAnomaly = useCallback((planet) => {
+  // Update the Mean Anomaly (M) based on the current Julian date
+  function calculateMeanAnomaly(planet) {
     const julianDate = getJulianDate();
     const daysSinceEpoch = julianDate - planet.epoch;
     const M = planet.meanAnomalyAtEpoch + planet.meanMotion * daysSinceEpoch;
     return THREE.MathUtils.degToRad(M % 360);  // Convert to radians
-  }, [getJulianDate]);
+  }
 
   // Function to solve Kepler's Equation using Newton's method
-  const solveKepler = useCallback((M, e, tolerance = 1e-6) => {
+  function solveKepler(M, e, tolerance = 1e-6) {
     let E = M; // Initial guess: E ≈ M for small eccentricities
     let delta = 1;
     while (Math.abs(delta) > tolerance) {
@@ -50,24 +50,24 @@ function AccurateOrrery() {
       E = E - delta / (1 - e * Math.cos(E));
     }
     return E;
-  }, []);
+  }
 
 
-   // Function to calculate true anomaly from eccentric anomaly
-   const calculateTrueAnomaly = useCallback((E, e) => {
+  // Function to calculate true anomaly from eccentric anomaly
+  function calculateTrueAnomaly(E, e) {
     return 2 * Math.atan2(
       Math.sqrt(1 + e) * Math.sin(E / 2),
       Math.sqrt(1 - e) * Math.cos(E / 2)
     );
-  }, []);
+  }
 
   // Fetch NEO data from NASA's API
-  const fetchNEOData = useCallback(async () => {
+  const fetchNEOData = async () => {
     const url = `https://api.nasa.gov/neo/rest/v1/neo/browse?api_key=${apiKey}`;
     const response = await fetch(url);
     const data = await response.json();
     return data.near_earth_objects;
-  }, []);
+  };
 
 
   useEffect(() => {
@@ -387,11 +387,9 @@ function AccurateOrrery() {
     // Fetch and add NEOs to the scene
     const fetchNEOs = async () => {
       const neos = await fetchNEOData();
-      const newNEOData = [];
     
       Object.values(neos).forEach((neo) => {
         const orbitalData = neo.orbital_data;
-        
     
         if (orbitalData && orbitalData.semi_major_axis && orbitalData.eccentricity) {
           const geometry = new THREE.SphereGeometry(50, 32, 32);  // NEO size
@@ -424,7 +422,6 @@ function AccurateOrrery() {
           console.warn(`Skipping NEO due to missing orbital data: ${neo.name}`);
         }
       });
-      setNEOData(newNEOData);
     };
     
 
@@ -569,7 +566,7 @@ const focusOnPlanet = (planetName) => {
       window.removeEventListener('keydown', focusOnPlanet);
       currentMountRef && currentMountRef.removeChild(renderer.domElement);
     };
-  }, [calculateMeanAnomaly, solveKepler, NEOData, calculateTrueAnomaly, fetchNEOData]);
+  }, [NEOData, setShowLabels]);
 
   return (
     <div className="orrery-container">
