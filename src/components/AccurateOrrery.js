@@ -21,8 +21,10 @@ const apiKey = 'lf9ca3nAatRf8yfpG7V0Vn8fH8OYjMGYqGMV63fF';
 function AccurateOrrery() {
   const mountRef = useRef(null);
   const [focusedPlanet, setFocusedPlanet] = useState(null);
-  const [showLabels, setShowLabels] = useState(false);
-  const NEOData = []; // Store NEO data for updates
+  // eslint-disable-next-line no-unused-vars
+  const NEOData = [];
+  // eslint-disable-next-line no-unused-vars
+  const setShowLabels = useState(false);
   
 
   // Function to calculate Julian date
@@ -33,7 +35,7 @@ function AccurateOrrery() {
     return JD;
   }
 
-  // Update the Mean Anomaly (M) based on the current Julian date
+  // eslint-disable-next-line no-unused-vars
   function calculateMeanAnomaly(planet) {
     const julianDate = getJulianDate();
     const daysSinceEpoch = julianDate - planet.epoch;
@@ -73,6 +75,7 @@ function AccurateOrrery() {
   useEffect(() => {
     // Scene setup
     const scene = new THREE.Scene();
+    const currentMountRef = mountRef.current;
 
     // Camera setup
     const camera = new THREE.PerspectiveCamera(
@@ -431,9 +434,6 @@ function AccurateOrrery() {
     // Animation loop !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     const animate = () => {
       requestAnimationFrame(animate);
-
-      const elapsed = Date.now() * 0.00001; // Adjust the multiplier for speed
-
       planetData.forEach((planet, index) => {
         const a = planet.semiMajorAxis;
         const e = planet.eccentricity;
@@ -566,9 +566,9 @@ const focusOnPlanet = (planetName) => {
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('keydown', focusOnPlanet);
-      mountRef.current.removeChild(renderer.domElement);
+      currentMountRef && currentMountRef.removeChild(renderer.domElement);
     };
-  }, []);
+  }, [NEOData, calculateMeanAnomaly, setShowLabels]);
 
   return (
     <div className="orrery-container">

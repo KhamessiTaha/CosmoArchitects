@@ -206,9 +206,6 @@ function keplerianToCartesian(a, e, i, om, w, ma) {
   // Distance (r)
   const r = a * (1 - e * e) / (1 + e * Math.cos(nu));
 
-  // Cartesian coordinates in the orbital plane
-  const x_orbit = r * Math.cos(nu);
-  const y_orbit = r * Math.sin(nu);
 
   // Convert to 3D space
   const x = (Math.cos(om) * Math.cos(w + nu) - Math.sin(om) * Math.sin(w + nu) * Math.cos(i)) * r;
@@ -231,7 +228,7 @@ function Orrery({ isInitializing,  }) {
   const [isPaused, setIsPaused] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [selectedObjectData, setSelectedObjectData] = useState(null);
-  const [showAsteroids, setShowAsteroids] = useState(false);
+  const [showAsteroids] = useState(false);
   const [showComets, setShowComets] = useState(false);
   const orreryContainerRef = useRef(null);
   const statsRef = useRef(null);
@@ -273,7 +270,6 @@ function Orrery({ isInitializing,  }) {
     const i = asteroid.i;  // Use the inclination directly from the data
     const om = asteroid.om;
     const w = asteroid.w;
-    const ma = asteroid.ma;
 
     for (let j = 0; j <= segments; j++) {
         const meanAnomaly = (j / segments) * 360;
@@ -303,7 +299,6 @@ function createCometsOrbit(comet) {
   const i = comet.i;  // Use the inclination directly from the data
   const om = comet.om;
   const w = comet.w;
-  const ma = comet.ma;
 
   for (let j = 0; j <= segments; j++) {
       const meanAnomaly = (j / segments) * 360;
@@ -334,6 +329,7 @@ function createCometsOrbit(comet) {
     camera.position.z = 30;
     cameraRef.current = camera;  // Store camera in ref
 
+    const currentMountRef = mountRef.current;
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
@@ -964,18 +960,7 @@ function createCometsOrbit(comet) {
       return orbit;
     };
 
-    
-      // Create orbits for all planets with distinct colors
-      const mercuryOrbit = createOrbit(8, 0xaaaaaa);  // Gray for Mercury
-      const venusOrbit = createOrbit(12, 0xffa500);    // Orange for Venus
-      const earthOrbit = createOrbit(16, 0x0000ff);    // Blue for Earth
-      const marsOrbit = createOrbit(22, 0xff0000);    // Red for Mars
-      const jupiterOrbit = createOrbit(30, 0xffff00); // Yellow for Jupiter
-      const saturnOrbit = createOrbit(40, 0xffa500);  // Orange for Saturn
-      const uranusOrbit = createOrbit(50, 0x00ffff);  // Cyan for Uranus
-      const neptuneOrbit = createOrbit(60, 0x0000ff); // Blue for Neptune
-      const plutoOrbit = createOrbit(70, 0x87CEEB); 
-
+  
       const orbits = [
         createOrbit(8, 0xaaaaaa),
         createOrbit(12, 0xffa500),
@@ -1013,7 +998,7 @@ function createCometsOrbit(comet) {
       if (!isInitializing && !animationRef.current.isPaused) {
         
 
-      const { showOrbits, timeSpeed, lastTime, elapsedTime } = animationRef.current;
+      const { showOrbits, timeSpeed, lastTime } = animationRef.current;
 
       stats.begin();
       // Calculate delta time and update elapsed time
@@ -1169,16 +1154,21 @@ function createCometsOrbit(comet) {
 
     
 
+    
+
 
     // Clean up on component unmount
     return () => {
-      mountRef.current.removeChild(renderer.domElement);
-      mountRef.current.removeChild(stats.dom);
+      if (currentMountRef && currentMountRef.contains(renderer.domElement)) {
+          currentMountRef.removeChild(renderer.domElement);
+          currentMountRef.removeChild(stats.dom);
+      }
+      
+      // Ensure you remove event listeners
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('dblclick', handleDoubleClick);
       window.removeEventListener('keypress', handleKeyPress);
-
-    };
+  };
   }, [isInitializing]);
   // Toggle the menu visibility
   const toggleMenu = () => {
@@ -1204,6 +1194,7 @@ function createCometsOrbit(comet) {
       setIsFullScreen(!!document.fullscreenElement);
     };
 
+    
     document.addEventListener('fullscreenchange', handleFullScreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullScreenChange);
   }, []);
