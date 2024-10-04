@@ -230,11 +230,14 @@ function Orrery({ isInitializing,  }) {
   const [isPaused, setIsPaused] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [selectedObjectData, setSelectedObjectData] = useState(null);
+  const [showAsteroids, setShowAsteroids] = useState(true);
   const orreryContainerRef = useRef(null);
   const statsRef = useRef(null);
+  const asteroidsRef = useRef([]);
 
   const animationRef = useRef({
     showOrbits: true,
+    showAsteroids: true,
     timeSpeed: 1,
     lastTime: 0,
     elapsedTime: 0,
@@ -355,24 +358,28 @@ function Orrery({ isInitializing,  }) {
     
     function addAsteroids(scene) {
       Object.values(asteroids).forEach(asteroid => {
-          // Create asteroid
-          const asteroidGeometry = new THREE.SphereGeometry(0.2, 32, 32); // Small size for asteroids
-          const asteroidMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff }); // Red
-          const asteroidMesh = new THREE.Mesh(asteroidGeometry, asteroidMaterial);
-  
-          // Get the current position of the asteroid using its keplerian elements
-          const initialPosition = keplerianToCartesian(asteroid.a * 100, asteroid.e, asteroid.i, asteroid.om, asteroid.w, asteroid.ma);
-          asteroidMesh.position.copy(initialPosition);
-  
-          // Add asteroid to scene
-          scene.add(asteroidMesh);
-  
-          // Create and add orbit
-          const orbit = createAsteroidOrbit(asteroid);
-          scene.add(orbit);
+        // Create asteroid
+        const asteroidGeometry = new THREE.SphereGeometry(0.2, 32, 32);
+        const asteroidMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const asteroidMesh = new THREE.Mesh(asteroidGeometry, asteroidMaterial);
+
+        // Get the current position of the asteroid using its keplerian elements
+        const initialPosition = keplerianToCartesian(asteroid.a * 100, asteroid.e, asteroid.i, asteroid.om, asteroid.w, asteroid.ma);
+        asteroidMesh.position.copy(initialPosition);
+
+        // Create and add orbit
+        const orbit = createAsteroidOrbit(asteroid);
+
+        // Store references to both the asteroid mesh and its orbit
+        asteroidsRef.current.push({ mesh: asteroidMesh, orbit: orbit });
+
+        // Add asteroid and orbit to scene
+        scene.add(asteroidMesh);
+        scene.add(orbit);
       });
-  }
-  addAsteroids(scene);  
+    }
+
+    addAsteroids(scene);  
     
 
    
@@ -957,6 +964,13 @@ function Orrery({ isInitializing,  }) {
         orbit.visible = showOrbits;
       });
 
+
+      // Update asteroid visibility
+      asteroidsRef.current.forEach(({ mesh, orbit }) => {
+        mesh.visible = animationRef.current.showAsteroids;
+        orbit.visible = animationRef.current.showAsteroids && animationRef.current.showOrbits;
+      });
+
       const time = animationRef.current.elapsedTime*0.1;
       const rotationSpeed = 0.01 * timeSpeed;
         mercury.rotation.y += rotationSpeed * 1;
@@ -1081,6 +1095,9 @@ function Orrery({ isInitializing,  }) {
     animationRef.current.showOrbits = showOrbits;
   }, [showOrbits]);
   useEffect(() => {
+    animationRef.current.showAsteroids = showAsteroids;
+  }, [showAsteroids]);
+  useEffect(() => {
     animationRef.current.timeSpeed = timeSpeed;
   }, [timeSpeed]);
   useEffect(() => {
@@ -1128,6 +1145,15 @@ function Orrery({ isInitializing,  }) {
             />
             <span className="slider"></span>
             <span className="label-text">Show Orbits</span>
+          </label>
+          <label className="asteroid-toggle">
+            <input
+              type="checkbox"
+              checked={showAsteroids}
+              onChange={() => setShowAsteroids(!showAsteroids)}
+            />
+            <span className="slider"></span>
+            <span className="label-text">Show Asteroids</span>
           </label>
           <div className="time-control">
             <h3>Time Control</h3>
