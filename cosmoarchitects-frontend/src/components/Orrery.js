@@ -8,6 +8,7 @@ import StatsJS from 'stats.js';
 import { Maximize2, Minimize2 } from 'lucide-react';
 import ObjectCard from './ObjectCard';
 import { asteroids } from './asteroids.js';
+import { comets } from './comets.js';
 
 
 
@@ -230,14 +231,17 @@ function Orrery({ isInitializing,  }) {
   const [isPaused, setIsPaused] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [selectedObjectData, setSelectedObjectData] = useState(null);
-  const [showAsteroids, setShowAsteroids] = useState(true);
+  const [showAsteroids, setShowAsteroids] = useState(false);
+  const [showComets, setShowComets] = useState(false);
   const orreryContainerRef = useRef(null);
   const statsRef = useRef(null);
   const asteroidsRef = useRef([]);
+  const cometsRef = useRef([]);
 
   const animationRef = useRef({
     showOrbits: true,
     showAsteroids: true,
+    showComets: true,
     timeSpeed: 1,
     lastTime: 0,
     elapsedTime: 0,
@@ -289,6 +293,36 @@ function Orrery({ isInitializing,  }) {
    
 
     return orbit;
+}
+
+function createCometsOrbit(comet) {
+  const segments = 1000; // Number of points in the orbit
+  const points = [];
+  const a = comet.a * 100;  // Scale the semi-major axis for visualization
+  const e = comet.e;
+  const i = comet.i;  // Use the inclination directly from the data
+  const om = comet.om;
+  const w = comet.w;
+  const ma = comet.ma;
+
+  for (let j = 0; j <= segments; j++) {
+      const meanAnomaly = (j / segments) * 360;
+      const position = keplerianToCartesian(a, e, i, om, w, meanAnomaly);
+      points.push(position);
+  }
+
+  const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points);
+  const orbitMaterial = new THREE.LineBasicMaterial({
+      color: 0xa9a9a9,  // Grey for comets
+      opacity: 0.7,
+      transparent: true,
+  });
+
+  const orbit = new THREE.Line(orbitGeometry, orbitMaterial);
+
+ 
+
+  return orbit;
 }
 
 
@@ -380,8 +414,33 @@ function Orrery({ isInitializing,  }) {
         scene.add(orbit);
       });
     }
+    function addComets(scene) {
+      Object.values(comets).forEach(comet => {
+        const cometGeometry = new THREE.SphereGeometry(0.2, 32, 32);
+        const cometMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const cometMesh = new THREE.Mesh(cometGeometry, cometMaterial);
+
+        const orbit = createCometsOrbit(comet);
+
+        // Store references to both the comet mesh and its orbit, along with its orbital elements
+        cometsRef.current.push({ 
+          mesh: cometMesh, 
+          orbit: orbit,
+          a: comet.a * 100, // Scale the semi-major axis
+          e: comet.e,
+          i: comet.i,
+          om: comet.om,
+          w: comet.w,
+          ma: comet.ma
+        });
+
+        scene.add(cometMesh);
+        scene.add(orbit);
+      });
+    }
 
     addAsteroids(scene);  
+    addComets(scene);  
     
 
    
@@ -973,6 +1032,11 @@ function Orrery({ isInitializing,  }) {
         orbit.visible = animationRef.current.showAsteroids && animationRef.current.showOrbits;
       });
 
+      // Update comet visibility
+      cometsRef.current.forEach(({ mesh, orbit }) => {
+        mesh.visible = animationRef.current.showComets;
+        orbit.visible = animationRef.current.showComets && animationRef.current.showOrbits;
+      });
 
       // Animate asteroids
       asteroidsRef.current.forEach((asteroidObj) => {
@@ -985,6 +1049,19 @@ function Orrery({ isInitializing,  }) {
         mesh.position.copy(position);
         mesh.visible = animationRef.current.showAsteroids;
         asteroidObj.orbit.visible = animationRef.current.showAsteroids && animationRef.current.showOrbits;
+      });
+
+      // Animate comets
+      asteroidsRef.current.forEach((cometObj) => {
+        const { mesh, a, e, i, om, w, ma } = cometObj;
+        
+        // Calculate the comet's position based on its orbital elements and the current time
+        const meanAnomaly = (ma + animationRef.current.elapsedTime * 0.1) % 360;
+        const position = keplerianToCartesian(a, e, i, om, w, meanAnomaly);
+        
+        mesh.position.copy(position);
+        mesh.visible = animationRef.current.showComets;
+        cometObj.orbit.visible = animationRef.current.showComets && animationRef.current.showOrbits;
       });
 
       const time = animationRef.current.elapsedTime*0.1;
@@ -1114,6 +1191,9 @@ function Orrery({ isInitializing,  }) {
     animationRef.current.showAsteroids = showAsteroids;
   }, [showAsteroids]);
   useEffect(() => {
+    animationRef.current.showComets = showComets;
+  }, [showComets]);
+  useEffect(() => {
     animationRef.current.timeSpeed = timeSpeed;
   }, [timeSpeed]);
   useEffect(() => {
@@ -1162,14 +1242,14 @@ function Orrery({ isInitializing,  }) {
             <span className="slider"></span>
             <span className="label-text">Show Orbits</span>
           </label>
-          <label className="asteroid-toggle">
+          <label className="comet-toggle">
             <input
               type="checkbox"
-              checked={showAsteroids}
-              onChange={() => setShowAsteroids(!showAsteroids)}
+              checked={showComets}
+              onChange={() => setShowComets(!showComets)}
             />
             <span className="slider"></span>
-            <span className="label-text">Show Asteroids</span>
+            <span className="label-text">Show NEO's</span>
           </label>
           <div className="time-control">
             <h3>Time Control</h3>
