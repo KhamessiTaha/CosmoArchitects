@@ -1,22 +1,30 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
 import Features from '../components/Features';
 import Footer from '../components/Footer';
 import BackToTop from '../components/BackToTop';
-import { useNavigate } from 'react-router-dom';
 
 function Home() {
   const navigate = useNavigate();
 
-  const handleStartExploring = () => {
+  // Handlers for navigation
+  const handleNavigateRelative = () => {
     navigate('/simulation');
+  };
+
+  const handleNavigateAccurate = () => {
+    navigate('/accuratesimulation');
   };
 
   return (
     <div>
       <Navbar />
-      <Hero handleStartExploring={handleStartExploring} />
+      <Hero 
+        handleNavigateRelative={handleNavigateRelative} 
+        handleNavigateAccurate={handleNavigateAccurate} 
+      />
       <Features />
       <Footer />
       <BackToTop />

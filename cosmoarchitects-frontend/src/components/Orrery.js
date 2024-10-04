@@ -7,6 +7,7 @@ import './Orrery.css';
 import StatsJS from 'stats.js';
 import { Maximize2, Minimize2 } from 'lucide-react';
 import ObjectCard from './ObjectCard';
+import { asteroids } from './asteroids.js';
 
 
 
@@ -185,7 +186,36 @@ const celestialData = {
 };
 
 
+function keplerianToCartesian(a, e, i, om, w, ma) {
+  // Convert angles from degrees to radians
+  i = THREE.MathUtils.degToRad(i)
+  om = THREE.MathUtils.degToRad(om);
+  w = THREE.MathUtils.degToRad(w);
+  ma = THREE.MathUtils.degToRad(ma);
 
+  // Solve Kepler's Equation for eccentric anomaly (E)
+  let E = ma;
+  for (let j = 0; j < 10; j++) {
+      E = ma + e * Math.sin(E);
+  }
+
+  // True anomaly (ν)
+  const nu = 2 * Math.atan2(Math.sqrt(1 + e) * Math.sin(E / 2), Math.sqrt(1 - e) * Math.cos(E / 2));
+
+  // Distance (r)
+  const r = a * (1 - e * e) / (1 + e * Math.cos(nu));
+
+  // Cartesian coordinates in the orbital plane
+  const x_orbit = r * Math.cos(nu);
+  const y_orbit = r * Math.sin(nu);
+
+  // Convert to 3D space
+  const x = (Math.cos(om) * Math.cos(w + nu) - Math.sin(om) * Math.sin(w + nu) * Math.cos(i)) * r;
+  const y = (Math.sin(om) * Math.cos(w + nu) + Math.cos(om) * Math.sin(w + nu) * Math.cos(i)) * r;
+  const z = Math.sin(w + nu) * Math.sin(i) * r;
+
+  return new THREE.Vector3(x, y, z);
+}
 
 
 
@@ -227,6 +257,39 @@ function Orrery({ isInitializing,  }) {
       }
     }
   }, []);
+
+  function createAsteroidOrbit(asteroid) {
+    const segments = 360; // Number of points in the orbit
+    const points = [];
+    const a = asteroid.a * 100;  // Scale the semi-major axis for visualization
+    const e = asteroid.e;
+    const i = asteroid.i;  // Use the inclination directly from the data
+    const om = asteroid.om;
+    const w = asteroid.w;
+    const ma = asteroid.ma;
+
+    for (let j = 0; j <= segments; j++) {
+        const meanAnomaly = (j / segments) * 360;
+        const position = keplerianToCartesian(a, e, i, om, w, meanAnomaly);
+        points.push(position);
+    }
+
+    const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points);
+    const orbitMaterial = new THREE.LineBasicMaterial({
+        color: 0xff0000,  // Red for asteroids
+        opacity: 0.7,
+        transparent: true,
+    });
+
+    const orbit = new THREE.Line(orbitGeometry, orbitMaterial);
+
+    // Apply a 90-degree rotation to match Earth's plane
+    orbit.rotation.x = Math.PI / 2;
+
+    return orbit;
+}
+
+
 
   useEffect(() => {
     // Set up scene, camera, and renderer
@@ -290,7 +353,27 @@ function Orrery({ isInitializing,  }) {
     createStars(scene, 500, 200, 500); 
 
 
-   
+    
+    function addAsteroids(scene) {
+      Object.values(asteroids).forEach(asteroid => {
+          // Create asteroid
+          const asteroidGeometry = new THREE.SphereGeometry(0.2, 32, 32); // Small size for asteroids
+          const asteroidMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red
+          const asteroidMesh = new THREE.Mesh(asteroidGeometry, asteroidMaterial);
+  
+          // Get the current position of the asteroid using its keplerian elements
+          const initialPosition = keplerianToCartesian(asteroid.a * 100, asteroid.e, asteroid.i, asteroid.om, asteroid.w, asteroid.ma);
+          asteroidMesh.position.copy(initialPosition);
+  
+          // Add asteroid to scene
+          scene.add(asteroidMesh);
+  
+          // Create and add orbit
+          const orbit = createAsteroidOrbit(asteroid);
+          scene.add(orbit);
+      });
+  }
+  addAsteroids(scene);  
     
 
    
