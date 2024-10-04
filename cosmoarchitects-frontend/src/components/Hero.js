@@ -24,8 +24,8 @@ const Hero = ({ handleNavigateRelative, handleNavigateAccurate }) => {
     resizeCanvas();
 
     const createParticles = () => {
-      for (let i = 0; i < 150; i++) {
-        const size = Math.random() * 2 + 1;
+      for (let i = 0; i < 1000; i++) {
+        const size = Math.random() * 0.1 + 1;
         const x = Math.random() * canvas.width;
         const y = Math.random() * canvas.height;
         const dx = (Math.random() - 0.5) * 2;
@@ -87,6 +87,7 @@ const Hero = ({ handleNavigateRelative, handleNavigateAccurate }) => {
       <canvas ref={canvasRef} className="background-canvas"></canvas>
       <div className="hero-content">
         <h1 className="hero-title">Welcome to the Orrery Simulation</h1>
+        <h1 className="hero-title">CosmicVue</h1>
         <p className="hero-description">Explore the wonders of the solar system!</p>
 
         {!isExploring ? (
