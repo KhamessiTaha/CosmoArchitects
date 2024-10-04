@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import './Navbar.css';
+import logo from '../assets/logo.png'; // Adjust the path as necessary
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,6 +13,7 @@ function Navbar() {
   return (
     <nav className="navbar">
       <div className="logo">
+        <img src={logo} alt="CosmicVue Logo" className="logo-img" />
         <h1>CosmicVue</h1>
       </div>
       <div className="hamburger" onClick={toggleMenu}>

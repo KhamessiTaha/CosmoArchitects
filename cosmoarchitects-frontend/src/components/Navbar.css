@@ -1,29 +1,32 @@
+/* Navbar styling */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background-color: rgba(51, 51, 51, 0.7); /* Slight transparency */
+  background-color: rgba(0, 0, 0, 0.8); /* Darker background */
   color: #fff;
   position: fixed;
   top: 0;
-  width: 100vw; /* Full-width */
+  width: 100vw;
   z-index: 100;
-  box-sizing: border-box; /* Ensure padding doesn't overflow */
+  transition: background-color 0.3s ease-in-out;
 }
 
+/* Navigation Links */
 .nav-links {
   list-style: none;
   display: flex;
-  gap: 2rem; /* Added more space between menu items */
+  gap: 1.5rem;
 }
 
 .nav-links a {
   color: #fff;
   text-decoration: none;
+  font-size: 1.1rem;
   position: relative;
-  padding-bottom: 5px;
-  font-size: 1rem; /* Adjusted for better readability */
+  padding: 5px 0; /* Reduced padding to fit better */
+  transition: color 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
 
 .nav-links a::after {
@@ -36,35 +39,94 @@
   bottom: 0;
   transition: width 0.3s ease-in-out;
 }
+/* Hover effect for links */
+.nav-links a:hover {
+  color: #ff9000;
+  transform: translateY(-2px); /* Lift effect */
+}
+.nav-links a:hover::after {
+  width: 100%;
+}
+
+/* Logo Styling */
+.logo {
+  display: flex;
+  align-items: center; /* Center the logo and text vertically */
+}
+
+.logo img {
+  height: 50px; /* Adjust size as needed */
+  width: auto;
+  margin-right: 10px; /* Space between logo and text */
+  transition: transform 0.3s ease-in-out;
+}
+
+.logo:hover img {
+  transform: scale(1.1);
+}
+
+.logo h1 {
+  font-size: 2rem;
+  color: #ff9000;
+  font-family: 'Orbitron', sans-serif; /* Modern font */
+  margin: 0;
+  transition: transform 0.3s ease-in-out;
+}
+
+.logo:hover h1 {
+  transform: scale(1.1);
+}
+/* Hover effect for links */
+.nav-links a:hover {
+  color: #ff9000;
+  transform: translateY(-2px); /* Lift effect */
+}
 
 .nav-links a:hover::after {
   width: 100%;
 }
 
-.logo h1 {
-  font-size: 1.8rem; /* Slightly increased for prominence */
-  margin: 0;
-}
-
+/* Mobile menu icon */
 .hamburger {
   display: none;
   font-size: 2rem;
   cursor: pointer;
   color: #fff;
+  transition: transform 0.3s ease-in-out;
 }
 
+.hamburger:hover {
+  transform: rotate(90deg);
+}
+
+/* Mobile menu open state */
 .nav-links.active {
   display: flex;
   flex-direction: column;
   position: absolute;
   top: 70px;
   right: 0;
-  background-color: rgba(51, 51, 51, 0.9);
+  background-color: rgba(0, 0, 0, 0.95);
   width: 250px;
   padding: 2rem;
   gap: 1rem;
+  animation: slideIn 0.5s ease-in-out forwards;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
 }
 
+/* Slide in animation for mobile menu */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Mobile styling */
 @media (max-width: 768px) {
   .nav-links {
     display: none;
@@ -76,5 +138,7 @@
 
   .nav-links a {
     font-size: 1.2rem;
+    text-align: center;
+    padding: 10px; /* Add padding for touch targets */
   }
 }

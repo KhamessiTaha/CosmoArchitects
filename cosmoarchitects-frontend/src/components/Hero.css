@@ -1,63 +1,153 @@
-.hero {
-  height: calc(100vh - 70px); /* Adjusting for the navbar height */
+/* Ensure the canvas is below the hero content */
+.background-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0; /* Ensure the canvas is behind other content */
+  pointer-events: none;
+}
+
+/* Ensure hero section content is layered above the canvas */
+.hero-section {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #fff;
+  height: 100vh;
   text-align: center;
+  color: white;
 }
 
-.cta-button {
+.hero-content {
+  z-index: 2;
+}
+
+/* Start Exploring Button */
+.start-btn {
+  padding: 1rem 3rem;
+  font-size: 1.5rem;
   background-color: #ff9000;
-  padding: 1rem 2rem;
+  color: white;
   border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: transform 0.3s ease-in-out, background-color 0.3s ease-in-out;
+}
+
+.start-btn:hover {
+  background-color: #9b6d0a;
+  transform: scale(1.1);
+}
+
+/* Cards container */
+.cards-container {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  margin-top: 3rem;
+}
+
+.card {
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  animation: fadeInCard 1s ease-in-out;
+}
+
+.choice-btn {
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 25px;
   cursor: pointer;
   color: white;
-  font-size: 1.2rem;
+}
+
+.relative-btn {
+  background-color: #4caf50;
+}
+
+.accurate-btn {
+  background-color: #f44336;
+}
+
+.choice-description {
   margin-top: 1rem;
+  font-size: 1rem;
+  color: white;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 1rem;
+  border-radius: 10px;
 }
 
-.cta-button:hover {
-  background-color: #e57c00;
-}
-.hero-content h1 {
-  font-size: 3rem;
-  opacity: 0;
-  transform: translateY(-30px);
-  animation: fadeInUp 1s ease-in-out forwards;
-}
-
-.hero-content p {
-  font-size: 1.2rem;
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeInUp 1.5s ease-in-out forwards;
-}
-
-.cta-button {
-  margin-top: 1.5rem;
-  opacity: 0;
-  transform: scale(0.9);
-  animation: fadeInUp 2s ease-in-out forwards;
-}
-
-@keyframes fadeInUp {
+/* Animation keyframes */
+@keyframes fadeInCard {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
-@media (max-width: 768px) {
-  .hero-content h1 {
-    font-size: 2rem;
-  }
 
-  .hero-content p {
-    font-size: 1rem;
-  }
+/* Canvas styling for the particle background */
+.background-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none; /* Make sure it doesn't interfere with clicking */
+}
 
-  .cta-button {
-    padding: 0.8rem 1.5rem;
-    font-size: 1rem;
+/* Adjust hero section to be above canvas */
+.hero-section {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+  color: white;
+}
+
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
   }
 }

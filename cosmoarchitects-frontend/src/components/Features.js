@@ -17,6 +17,10 @@ function Features() {
         <div className="card">
           <h3>Control Time and Speed</h3>
           <p>Adjust the timeline and speed to view celestial movements.</p>
+        </div> 
+        <div className="card">
+          <h3>Control Time and Speed</h3>
+          <p>Adjust the timeline and speed to view celestial movements.</p>
         </div>
       </div>
     </section>

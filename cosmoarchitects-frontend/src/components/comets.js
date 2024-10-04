@@ -1,4 +1,4 @@
-export const comets = {
+export const asteroids = {
   "1P/Halley": {
     "name": "1P/Halley",
     "epoch_mjd": 39907.0,
