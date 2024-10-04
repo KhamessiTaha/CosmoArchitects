@@ -188,7 +188,7 @@ const celestialData = {
 
 function keplerianToCartesian(a, e, i, om, w, ma) {
   // Convert angles from degrees to radians
-  i = THREE.MathUtils.degToRad(i)
+  i = THREE.MathUtils.degToRad(i);
   om = THREE.MathUtils.degToRad(om);
   w = THREE.MathUtils.degToRad(w);
   ma = THREE.MathUtils.degToRad(ma);
@@ -214,7 +214,7 @@ function keplerianToCartesian(a, e, i, om, w, ma) {
   const y = (Math.sin(om) * Math.cos(w + nu) + Math.cos(om) * Math.sin(w + nu) * Math.cos(i)) * r;
   const z = Math.sin(w + nu) * Math.sin(i) * r;
 
-  return new THREE.Vector3(x, y, z);
+  return new THREE.Vector3(x, z, -y);
 }
 
 
@@ -259,7 +259,7 @@ function Orrery({ isInitializing,  }) {
   }, []);
 
   function createAsteroidOrbit(asteroid) {
-    const segments = 360; // Number of points in the orbit
+    const segments = 1000; // Number of points in the orbit
     const points = [];
     const a = asteroid.a * 100;  // Scale the semi-major axis for visualization
     const e = asteroid.e;
@@ -283,8 +283,7 @@ function Orrery({ isInitializing,  }) {
 
     const orbit = new THREE.Line(orbitGeometry, orbitMaterial);
 
-    // Apply a 90-degree rotation to match Earth's plane
-    orbit.rotation.x = Math.PI / 2;
+   
 
     return orbit;
 }
@@ -358,7 +357,7 @@ function Orrery({ isInitializing,  }) {
       Object.values(asteroids).forEach(asteroid => {
           // Create asteroid
           const asteroidGeometry = new THREE.SphereGeometry(0.2, 32, 32); // Small size for asteroids
-          const asteroidMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red
+          const asteroidMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff }); // Red
           const asteroidMesh = new THREE.Mesh(asteroidGeometry, asteroidMaterial);
   
           // Get the current position of the asteroid using its keplerian elements
