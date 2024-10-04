@@ -41,7 +41,6 @@ To run the project locally:
    ```bash
    git clone https://github.com/KhamessiTaha/CosmoArchitects.git
    cd CosmoArchitects
-   cd cosmoarchitects-frontend
    ```
 2. Install the required dependencies:
    ```bash
