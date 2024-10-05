@@ -1,13 +1,13 @@
 # CosmoArchitects - CosmicVue🌌                      
 # **Interactive Orrery Web App**     
 
-Demo is Live on [Demo](https://cosmicvue.netlify.app/) .
+Demo is Live on Netlify [Demo](https://cosmicvue.netlify.app/) .
 
                                         
 ## **Overview**                 
-This project is our submission for the **2024 NASA Space Apps Challenge**. Our aim is to create an interactive orrery web app that visualizes celestial bodies such as planets, Near-Earth Asteroids (NEAs), Near-Earth Comets (NECs), and Potentially Hazardous Asteroids (PHAs) in our solar system. The orrery offers both a static view and a dynamic, animated model that showcases the orbital paths and positions of these celestial bodies over time.    
-      
-The web app is designed to educate users about celestial objects, with features that allow real-time exploration of planetary and asteroid data, supported by NASA’s publicly available datasets.
+This project is our submission for the **2024 NASA Space Apps Challenge**. It showcases an interactive orrery web app designed to visualize celestial bodies such as planets, Near-Earth Asteroids (NEAs) including Potentially Hazardous Asteroids (PHAs), Near-Earth Comets (NECs),  within our solar system.
+
+The app features a dynamic, animated model that traces the orbital paths and positions of these celestial bodies over time, utilizing real-time data. Our goal is to educate users about these objects through an intuitive, 3D visualization tool supported by NASA's public datasets.
 
 ### **Event**: 2024 NASA Space Apps Challenge  
 ### **Categories**: Astrophysics, Space Exploration, Software, Games, Planets & Moons  
