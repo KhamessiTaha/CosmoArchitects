@@ -1,5 +1,5 @@
 # CosmoArchitects - CosmicVue🌌                      
-# **Interactive Orrery Web App**     
+# **Interactive Orrery Web App**      
 
 Demo is Live on Netlify [Demo](https://cosmicvue.netlify.app/) .
 
