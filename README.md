@@ -9,7 +9,7 @@ Demo is Live on Netlify [Demo](https://cosmicvue.netlify.app/) .
 
                                         
 ## **Overview**                 
-This project is our submission for the **2024 NASA Space Apps Challenge**. It showcases an interactive orrery web app designed to visualize celestial bodies such as planets, Near-Earth Asteroids (NEAs) including Potentially Hazardous Asteroids (PHAs), Near-Earth Comets (NECs),  within our solar system.
+This project is our submission for the **2024 NASA International Space Apps Challenge**. It showcases an interactive orrery web app designed to visualize celestial bodies such as planets, Near-Earth Asteroids (NEAs) including Potentially Hazardous Asteroids (PHAs), Near-Earth Comets (NECs),  within our solar system.
 
 The app features a dynamic, animated model that traces the orbital paths and positions of these celestial bodies over time, utilizing real-time data. Our goal is to educate users about these objects through an intuitive, 3D visualization tool supported by NASA's public datasets.
 
