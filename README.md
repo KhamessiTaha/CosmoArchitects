@@ -1,6 +1,6 @@
 # CosmoArchitects - CosmicVue🌌              
 
-![logo](https://github.com/user-attachments/assets/47147f24-2862-4caf-9f2e-d3a7575fb169 =250x)
+![logo](https://github.com/user-attachments/assets/47147f24-2862-4caf-9f2e-d3a7575fb169.png)
 
 
 # **Interactive Orrery Web App**      
