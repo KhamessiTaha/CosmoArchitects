@@ -232,7 +232,7 @@ function Orrery({ isInitializing,  }) {
   const [isPaused, setIsPaused] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [selectedObjectData, setSelectedObjectData] = useState(null);
-  const [showAsteroids] = useState(false);
+  const [showAsteroids, setShowAsteroids] = useState(false);
   const [showComets, setShowComets] = useState(false);
   const orreryContainerRef = useRef(null);
   const statsRef = useRef(null);
@@ -414,32 +414,82 @@ function createCometsOrbit(comet) {
     createStars(scene, 500, 500, 1000); 
 
     
-
-
     
     function addAsteroids(scene) {
       Object.values(asteroids).forEach(asteroid => {
+        // Create asteroid mesh
         const asteroidGeometry = new THREE.SphereGeometry(0.2, 32, 32);
         const asteroidMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
         const asteroidMesh = new THREE.Mesh(asteroidGeometry, asteroidMaterial);
-
+    
+        // Create orbit
         const orbit = createAsteroidOrbit(asteroid);
-
-        asteroidsRef.current.push({ 
-          mesh: asteroidMesh, 
+    
+        // Calculate initial position of the asteroid
+        const position = keplerianToCartesian(asteroid.a * 100, asteroid.e, asteroid.i, asteroid.om, asteroid.w, asteroid.ma);
+        asteroidMesh.position.copy(position); // Set asteroid position
+    
+        // Create asteroid name label using THREE.Sprite
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+    
+        // Adjust canvas size dynamically based on text
+        const text = asteroid.name;
+        const fontSize = 60; // Adjust font size if needed
+        context.font = `${fontSize}px Arial`;
+        const textWidth = context.measureText(text).width;
+    
+        // Calculate canvas dimensions for the rectangle
+        const padding = 20; // Padding inside the rectangle
+        const rectWidth = textWidth + padding * 5; // Add padding on both sides
+        const rectHeight = fontSize + padding; // Add padding above and below text
+    
+        // Set canvas size to fit the text and background rectangle
+        canvas.width = rectWidth ;
+        canvas.height = rectHeight * 5;
+    
+        // Draw rectangular background
+        context.fillStyle = 'rgba(0, 0, 0, 0.7)'; // Semi-transparent black background
+        context.fillRect(0, 0, rectWidth, rectHeight);
+    
+        // Draw the text on top of the rectangle
+        context.font = `${fontSize}px Arial`;
+        context.fillStyle = 'white'; // White text color
+        context.textAlign = 'center';
+        context.textBaseline = 'middle'; // Vertically center the text
+        context.fillText(text, rectWidth / 2, rectHeight / 2); // Draw text in the center of the rectangle
+    
+        // Create a texture from the canvas and make it a sprite
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+    
+        const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+        const label = new THREE.Sprite(spriteMaterial);
+    
+        // Set label's initial position slightly above the asteroid
+        label.position.copy(position);
+        label.position.y += 0.5;
+    
+        // Add mesh, orbit, and label to the scene
+        scene.add(asteroidMesh);
+        scene.add(orbit);
+        scene.add(label);
+    
+        // Store asteroid and label references
+        asteroidsRef.current.push({
+          mesh: asteroidMesh,
           orbit: orbit,
           a: asteroid.a * 100, // Scale the semi-major axis
           e: asteroid.e,
           i: asteroid.i,
           om: asteroid.om,
           w: asteroid.w,
-          ma: asteroid.ma
+          ma: asteroid.ma,
+          label: label // Store the label
         });
-
-        scene.add(asteroidMesh);
-        scene.add(orbit);
       });
     }
+    
     function addComets(scene) {
       Object.values(comets).forEach(comet => {
         const cometGeometry = new THREE.SphereGeometry(0.2, 32, 32);
@@ -1048,14 +1098,23 @@ function createCometsOrbit(comet) {
 
       // Animate asteroids
       asteroidsRef.current.forEach((asteroidObj) => {
-        const { mesh, a, e, i, om, w, ma } = asteroidObj;
-        
+        const { mesh, a, e, i, om, w, ma, label } = asteroidObj;
+      
         const meanAnomaly = (ma + animationRef.current.elapsedTime * 0.1) % 360;
         const position = keplerianToCartesian(a, e, i, om, w, meanAnomaly);
-        
+      
+        // Update the asteroid's position
         mesh.position.copy(position);
-        mesh.visible = animationRef.current.showAsteroids;
-        asteroidObj.orbit.visible = animationRef.current.showAsteroids && animationRef.current.showOrbits;
+      
+        // Update the label's position to stay above the asteroid
+        label.position.copy(position);
+        label.position.y += 0.5;
+      
+        // Update visibility based on "Show NEOs" toggle
+        const showAsteroids = animationRef.current.showAsteroids;
+        mesh.visible = showAsteroids;
+        label.visible = showAsteroids; // Label is shown when the asteroid is visible
+        asteroidObj.orbit.visible = showAsteroids && animationRef.current.showOrbits;
       });
 
       // Animate comets
@@ -1285,6 +1344,15 @@ function createCometsOrbit(comet) {
             />
             <span className="slider"></span>
             <span className="label-text">Show NEOs</span> 
+          </label>
+          <label className="asteroid-toggle">
+            <input
+            type="checkbox"
+            checked={showAsteroids}
+            onChange={() => setShowAsteroids(!showAsteroids)}
+            />
+            <span className="slider"></span>
+            <span className="label-text">Show NEO Names</span>
           </label>
           <div className="time-control">
             <h3>Time Control</h3>
