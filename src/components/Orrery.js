@@ -260,13 +260,7 @@ function Orrery({ isInitializing,  }) {
     }
   };
 
-  const playAudio = () => {
-    if (audioRef.current && !isMuted) {
-        audioRef.current.play().catch((error) => {
-            console.error("Audio playback failed:", error);
-        });
-    }
-};
+  
 
 
 
@@ -1212,8 +1206,15 @@ function createCometsOrbit(comet) {
     if (audioRef.current) {
         audioRef.current.muted = isMuted;
     }
+    const playAudio = () => {
+      if (audioRef.current && !isMuted) {
+          audioRef.current.play().catch((error) => {
+              console.error("Audio playback failed:", error);
+          });
+      }
+  };
     playAudio();
-}, [isMuted, playAudio]);
+}, [isMuted]);
   useEffect(() => {
     animationRef.current.showAsteroids = showAsteroids;
   }, [showAsteroids]);
