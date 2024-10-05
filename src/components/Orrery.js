@@ -30,6 +30,7 @@ import earthcloudtrans from "./textures/Earth/earthcloudtrans.jpg" ;
 import earthlights from "./textures/Earth/earthlights.jpg" ;
 import earthspec from "./textures/Earth/earthspec.jpg" ;
 import plutoTexture from "./textures/Pluto/plutomap.jpg";
+import asteroidTexture from "./textures/Asteroid/asteroid3.jpg";
 
 import music1 from "./Stars in Our Eyes.mp3";
 import music2 from "./Some Sand.mp3";
@@ -387,6 +388,7 @@ function createCometsOrbit(comet) {
     const cloudTransparency = textureLoader.load(earthcloudtrans);
     const nightLights = textureLoader.load(earthlights);
     const plutoTextureMap = textureLoader.load(plutoTexture);
+    const asteroidTextureMap = textureLoader.load(asteroidTexture);
 
     // Create starfield
     const createStars = (scene, numStars, minDistance, maxDistance) => {
@@ -419,7 +421,8 @@ function createCometsOrbit(comet) {
       Object.values(asteroids).forEach(asteroid => {
         // Create asteroid mesh
         const asteroidGeometry = new THREE.SphereGeometry(0.2, 32, 32);
-        const asteroidMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const asteroidMaterial = new THREE.MeshBasicMaterial({ map: asteroidTextureMap,
+          color: 0xffffff });
         const asteroidMesh = new THREE.Mesh(asteroidGeometry, asteroidMaterial);
     
         // Create orbit
