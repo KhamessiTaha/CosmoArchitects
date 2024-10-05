@@ -11,8 +11,8 @@ function Features() {
           <p>View the solar system interactively with the ability to zoom, pan, and rotate.</p>
         </div>
         <div className="card">
-          <h3>Real-time Celestial Body Data</h3>
-          <p>Visualize the positions of planets, Near-Earth Comets (NECs), Near-Earth Asteroids (NEAs) including Potentially Hazardous Asteroids (PHAs) using NASA's Keplerian parameters.</p>
+          <h3>NASA's Celestial Body Data</h3>
+          <p>Visualize the positions of planets, Near-Earth Comets (NECs), Near-Earth Asteroids (NEAs) including Potentially Hazardous Asteroids (PHAs) using NASA's Keplerian parameters and Data.</p>
         </div>
         <div className="card">
           <h3>Orbital Trajectories</h3>
