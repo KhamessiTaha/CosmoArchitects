@@ -1,9 +1,9 @@
 import React from 'react';
-import './ObjectCard.css'; // Your updated CSS styling
+import './ObjectCard.css'; 
 
 const ObjectCard = ({ objectData, onClose }) => {
   if (!objectData) {
-    return null; // Don't render anything if there's no data
+    return null; 
   }
 
   return (

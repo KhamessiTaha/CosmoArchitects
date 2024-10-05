@@ -9,7 +9,7 @@ function AccurateSimulation() {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setIsLoading(false);
-    }, 3000); // Shorter loading time for testing, adjust as needed
+    }, 3000); 
 
     return () => clearTimeout(timeoutId);
   }, []);

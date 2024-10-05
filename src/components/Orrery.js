@@ -31,6 +31,10 @@ import earthlights from "./textures/Earth/earthlights.jpg" ;
 import earthspec from "./textures/Earth/earthspec.jpg" ;
 import plutoTexture from "./textures/Pluto/plutomap.jpg";
 
+import music1 from "./Stars in Our Eyes.mp3";
+import music2 from "./Some Sand.mp3";
+import music3 from "./Whispers of the Stars.mp3";
+
 import x1 from './textures/skybox/right.png' ;
 import x2 from './textures/skybox/left.png' ;
 import y1 from './textures/skybox/top.png' ;
@@ -169,12 +173,12 @@ const celestialData = {
     planetType: 'Natural Satellite',
     orbitalPeriod: '27.3 days',
     discoveredBy: 'Not applicable',
-    age: '4.5 billion years', // Added age
+    age: '4.5 billion years', 
   },
   pluto: {
     name: 'Pluto',
-    radius: 1188.3, // in km
-    distanceFromSun: 5906.4, // in million km
+    radius: 1188.3, 
+    distanceFromSun: 5906.4, 
     atmosphere: 'Yes (Nitrogen, Methane, Carbon Monoxide)',
     type: 'Dwarf Planet',
     planetType: 'Ice Dwarf',
@@ -188,22 +192,22 @@ const celestialData = {
 
 
 function keplerianToCartesian(a, e, i, om, w, ma) {
-  // Convert angles from degrees to radians
+ 
   i = THREE.MathUtils.degToRad(i);
   om = THREE.MathUtils.degToRad(om);
   w = THREE.MathUtils.degToRad(w);
   ma = THREE.MathUtils.degToRad(ma);
 
-  // Solve Kepler's Equation for eccentric anomaly (E)
+  // Solve Kepler's Equation for eccentric anomaly E
   let E = ma;
   for (let j = 0; j < 10; j++) {
       E = ma + e * Math.sin(E);
   }
 
-  // True anomaly (ν)
+  // True anomaly v
   const nu = 2 * Math.atan2(Math.sqrt(1 + e) * Math.sin(E / 2), Math.sqrt(1 - e) * Math.cos(E / 2));
 
-  // Distance (r)
+  // Distance r
   const r = a * (1 - e * e) / (1 + e * Math.cos(nu));
 
 
@@ -219,8 +223,8 @@ function keplerianToCartesian(a, e, i, om, w, ma) {
 
 function Orrery({ isInitializing,  }) {
   const mountRef = useRef(null);
-  const cameraRef = useRef(null);     // Camera ref
-  const controlsRef = useRef(null);   // Controls ref
+  const cameraRef = useRef(null);     
+  const controlsRef = useRef(null);  
   const sceneRef = useRef(null);
   const [showOrbits, setShowOrbits] = useState(true);
   const [timeSpeed, setTimeSpeed] = useState(1);
@@ -234,6 +238,37 @@ function Orrery({ isInitializing,  }) {
   const statsRef = useRef(null);
   const asteroidsRef = useRef([]);
   const cometsRef = useRef([]);
+  const [isMuted, setIsMuted] = useState(false);
+  const audioRef = useRef(null);
+
+
+  const playlist = [
+    music2,
+    music1,
+    music3
+  ];
+
+  // Function to toggle mute
+  const toggleMute = () => {
+    if (audioRef.current) {
+        audioRef.current.muted = !isMuted;
+        setIsMuted((prev) => !prev);
+        
+        if (!isMuted) {
+            audioRef.current.play(); 
+        }
+    }
+  };
+
+  const playAudio = () => {
+    if (audioRef.current && !isMuted) {
+        audioRef.current.play().catch((error) => {
+            console.error("Audio playback failed:", error);
+        });
+    }
+};
+
+
 
   const animationRef = useRef({
     showOrbits: true,
@@ -245,9 +280,9 @@ function Orrery({ isInitializing,  }) {
     isPaused: false,
   });
 
-  // Function to close the object card
+
   const handleCloseCard = () => {
-    setSelectedObjectData(null); // Close the card by clearing the data
+    setSelectedObjectData(null); 
   };
 
   const toggleFullScreen = useCallback(() => {
@@ -263,11 +298,11 @@ function Orrery({ isInitializing,  }) {
   }, []);
 
   function createAsteroidOrbit(asteroid) {
-    const segments = 1000; // Number of points in the orbit
+    const segments = 1000;
     const points = [];
     const a = asteroid.a * 100;  // Scale the semi-major axis for visualization
     const e = asteroid.e;
-    const i = asteroid.i;  // Use the inclination directly from the data
+    const i = asteroid.i;  
     const om = asteroid.om;
     const w = asteroid.w;
 
@@ -279,7 +314,7 @@ function Orrery({ isInitializing,  }) {
 
     const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points);
     const orbitMaterial = new THREE.LineBasicMaterial({
-        color: 0xff0000,  // Red for asteroids
+        color: 0xff0000,  
         opacity: 0.7,
         transparent: true,
     });
@@ -292,11 +327,11 @@ function Orrery({ isInitializing,  }) {
 }
 
 function createCometsOrbit(comet) {
-  const segments = 1000; // Number of points in the orbit
+  const segments = 1000; 
   const points = [];
-  const a = comet.a * 100;  // Scale the semi-major axis for visualization
+  const a = comet.a * 100;  
   const e = comet.e;
-  const i = comet.i;  // Use the inclination directly from the data
+  const i = comet.i; 
   const om = comet.om;
   const w = comet.w;
 
@@ -308,7 +343,7 @@ function createCometsOrbit(comet) {
 
   const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points);
   const orbitMaterial = new THREE.LineBasicMaterial({
-      color: 0xa9a9a9,  // Grey for comets
+      color: 0xa9a9a9, 
       opacity: 0.7,
       transparent: true,
   });
@@ -337,8 +372,8 @@ function createCometsOrbit(comet) {
 
     // Set up OrbitControls for camera movement
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true; // Enable inertia for smooth camera movement
-    controlsRef.current = controls;  // Store controls in ref
+    controls.enableDamping = true; 
+    controlsRef.current = controls; 
 
     // Load textures
     const textureLoader = new TextureLoader();
@@ -371,7 +406,7 @@ function createCometsOrbit(comet) {
         const theta = Math.random() * Math.PI * 2;  
         const phi = Math.random() * Math.PI;  
         
-        // Ensure stars are placed beyond a minimum distance
+        
         const distance = Math.random() * (maxDistance - minDistance) + minDistance;
     
         star.position.x = distance * Math.sin(phi) * Math.cos(theta);
@@ -384,6 +419,8 @@ function createCometsOrbit(comet) {
 
     createStars(scene, 500, 500, 1000); 
 
+    
+
 
     
     function addAsteroids(scene) {
@@ -394,7 +431,6 @@ function createCometsOrbit(comet) {
 
         const orbit = createAsteroidOrbit(asteroid);
 
-        // Store references to both the asteroid mesh and its orbit, along with its orbital elements
         asteroidsRef.current.push({ 
           mesh: asteroidMesh, 
           orbit: orbit,
@@ -418,7 +454,6 @@ function createCometsOrbit(comet) {
 
         const orbit = createCometsOrbit(comet);
 
-        // Store references to both the comet mesh and its orbit, along with its orbital elements
         cometsRef.current.push({ 
           mesh: cometMesh, 
           orbit: orbit,
@@ -444,16 +479,16 @@ function createCometsOrbit(comet) {
     // Lighting
     const sunRadius = 3;
 
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.2); // Soft white light
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.2); 
     scene.add(ambientLight);
 
-    const pointLight = new THREE.PointLight(0xffffff, 250, 0);  // Brightness and range of light
-    pointLight.position.set(0, 0); // Sun's position
-    pointLight.castShadow = true;  // Enable shadow casting
-    pointLight.shadow.mapSize.width = 4096; // Higher resolution shadows
+    const pointLight = new THREE.PointLight(0xffffff, 250, 0);  
+    pointLight.position.set(0, 0); 
+    pointLight.castShadow = true;  
+    pointLight.shadow.mapSize.width = 4096; 
     pointLight.shadow.mapSize.height = 4096;
     pointLight.shadow.camera.near = 1;
-    pointLight.shadow.camera.far = 5000;  // Distance of shadow rendering
+    pointLight.shadow.camera.far = 5000; 
 
     scene.add(pointLight);
 
@@ -463,7 +498,6 @@ function createCometsOrbit(comet) {
     
     // Function to create a planet with realistic lighting and atmosphere
     const createPlanetWithAtmosphere = (planet, radius, atmosphereRadius, color, intensity, opacity) => {
-      // Update planet material for better light interaction
       planet.material = new THREE.MeshPhongMaterial({
         map: planet.material.map,
         bumpMap: planet.material.bumpMap,
@@ -576,10 +610,10 @@ function createCometsOrbit(comet) {
     const mercuryMaterial = new THREE.MeshStandardMaterial({ map: mercuryTextureMap,
       roughness: 1,
       metalness: 0, 
-      emissive: new THREE.Color(0x111111),  // Add emissive property
+      emissive: new THREE.Color(0x111111),  
       emissiveIntensity: 0.5,   });
     const mercury = new THREE.Mesh(mercuryGeometry, mercuryMaterial);
-    mercury.position.x = 8;  // Adjust orbit radius
+    mercury.position.x = 8;  
     scene.add(mercury);
 
     // Venus
@@ -617,7 +651,7 @@ function createCometsOrbit(comet) {
     earthWithAtmosphere.position.x = planets.earth.positionX;
     scene.add(earthWithAtmosphere);
     // Add cloud layer
-    const cloudGeometry = new THREE.SphereGeometry(0.51, 64, 64); // Slightly larger than Earth
+    const cloudGeometry = new THREE.SphereGeometry(0.51, 64, 64);
     const cloudMaterial = new THREE.MeshPhongMaterial({
       map: cloudTexture,
       alphaMap: cloudTransparency,
@@ -681,7 +715,7 @@ function createCometsOrbit(comet) {
     const ringVec = new THREE.Vector3();
     for (let i = 0; i < ringPos.count; i++) {
       ringVec.fromBufferAttribute(ringPos, i);
-      ringGeometry.attributes.uv.setXY(i, ringVec.length() < 2.7 ? 0 : 1, 1); // UVs for texture mapping
+      ringGeometry.attributes.uv.setXY(i, ringVec.length() < 2.7 ? 0 : 1, 1);
     }
     const ringMaterial = new THREE.MeshBasicMaterial({
       map: textureLoader.load(saturnRingTexture),
@@ -691,8 +725,8 @@ function createCometsOrbit(comet) {
       metalness: 0,
     });
     const rings = new THREE.Mesh(ringGeometry, ringMaterial);
-    rings.rotation.x = Math.PI / 2;  // Make the ring horizontal
-    rings.position.x = 40;  // Align with Saturn's position
+    rings.rotation.x = Math.PI / 2; 
+    rings.position.x = 40;  
     scene.add(rings);
 
     // Uranus
@@ -727,9 +761,11 @@ function createCometsOrbit(comet) {
     const plutoWithAtmosphere = createPlanetWithAtmosphere(pluto, planets.pluto.radius , planets.pluto.atmosphereRadius, planets.pluto.color, planets.pluto.intensity, planets.pluto.opacity);
     plutoWithAtmosphere.position.x = planets.pluto.positionX;
     scene.add(plutoWithAtmosphere);
+    
 
+    // Shadow Casting
     // Sun
-    sun.castShadow = false; // The Sun doesn't cast shadows on itself
+    sun.castShadow = false; 
     sun.receiveShadow = false;
 
     // Mercury
@@ -759,7 +795,7 @@ function createCometsOrbit(comet) {
     // Saturn and Rings
     saturn.castShadow = true;
     saturn.receiveShadow = true;
-    rings.castShadow = true; // Enable shadows on Saturn's rings
+    rings.castShadow = true; 
     rings.receiveShadow = true;
 
     // Uranus 
@@ -774,11 +810,11 @@ function createCometsOrbit(comet) {
     pluto.castShadow = true;
     pluto.receiveShadow = true;
 
-    renderer.shadowMap.enabled = true;  // Enable shadows globally
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;  // Soft shadows for smooth transitions
+    renderer.shadowMap.enabled = true;  
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
     
     const updatePlanetLighting = (planet, lightPosition) => {
-      if (planet.material && planet.material.emissive) {  // Check if emissive property exists
+      if (planet.material && planet.material.emissive) { 
         const planetPosition = planet.position.clone();
         const lightDirection = lightPosition.clone().sub(planetPosition).normalize();
         // Calculate how much light the planet gets on the sun-facing side
@@ -798,20 +834,19 @@ function createCometsOrbit(comet) {
       z2, // -Z face
     ]);
 
-    scene.background = reflectionMap;  // Use this as the scene's skybox background for realism
+    scene.background = reflectionMap;  
 
 
     const getObjectRadius = (object) => {
       if (object.geometry && object.geometry.boundingSphere) {
         return object.geometry.boundingSphere.radius;
       } else if (object.children && object.children.length > 0) {
-        // For groups (planets with atmospheres), get the radius of the first child
         return object.children[0].geometry.boundingSphere.radius;
       }
-      return 1; // Default radius if we can't determine it
+      return 1; 
     };
     
-    // Planets with and without atmospheres (only planet meshes are selectable)
+    // SelectableObjects
     const selectableObjects = [
       mercury, 
       venusWithAtmosphere,
@@ -825,7 +860,7 @@ function createCometsOrbit(comet) {
       moon,
       sun
     ];
-    let selectedObject = null;  // Store the selected planet
+    let selectedObject = null;  
     let isTracking = false; 
 
 
@@ -846,7 +881,6 @@ function createCometsOrbit(comet) {
       if (intersects.length > 0) {
         let targetObject = intersects[0].object;
     
-        // Find the top-level parent (either the planet mesh or the atmosphere group)
         while (targetObject.parent && !selectableObjects.includes(targetObject)) {
           targetObject = targetObject.parent;
         }
@@ -859,7 +893,6 @@ function createCometsOrbit(comet) {
         const objectRadius = getObjectRadius(targetObject);
         const offsetDistance = objectRadius * 3;
     
-        // gsap zoom-in effect to focus the camera on the selected object
         gsap.to(camera.position, {
           duration: 2,
           x: targetObject.position.x + offsetDistance,
@@ -871,7 +904,6 @@ function createCometsOrbit(comet) {
           }
         });
     
-        // Map the selected object to its celestial data
         let objectKey = '';
     
         if (targetObject === mercury) objectKey = 'mercury';
@@ -884,9 +916,8 @@ function createCometsOrbit(comet) {
         else if (targetObject === neptuneWithAtmosphere) objectKey = 'neptune';
         else if (targetObject === plutoWithAtmosphere) objectKey = 'pluto';
         else if (targetObject === moon) objectKey = 'moon';
-        else if (targetObject === sun) objectKey = 'sun'; // Handle the Sun selection
+        else if (targetObject === sun) objectKey = 'sun'; 
     
-        // Retrieve object data from celestialData
         const objectData = celestialData[objectKey] || {
           name: 'Unknown Object',
           type: targetObject.type || 'Unknown',
@@ -902,7 +933,7 @@ function createCometsOrbit(comet) {
       } else {
         selectedObject = null;
         isTracking = false;
-        setSelectedObjectData(null); // Clear the data when no object is selected
+        setSelectedObjectData(null); 
       }
     };
     
@@ -912,18 +943,17 @@ function createCometsOrbit(comet) {
 
     window.addEventListener('dblclick', handleDoubleClick);
 
-    // Handle reset camera on "R" key press
+    // Reset camera on "R" key press
     const handleKeyPress = (event) => {
       if (event.key === 'r' || event.key === 'R') {
-        // Reset the camera to its default position
         gsap.to(camera.position, {
           duration: 2,
-          x: 10,  // Default camera position
+          x: 10,  
           y: 5,
           z: 30,
           ease: 'power2.inOut',
           onUpdate: () => {
-            camera.lookAt(0, 0, 0);  // Focus back to the center (default)
+            camera.lookAt(0, 0, 0); 
             controls.update();
           }
         });
@@ -939,7 +969,7 @@ function createCometsOrbit(comet) {
         });
 
         selectedObject = sun;
-        setSelectedObjectData(null);  // Clear the selected planet
+        setSelectedObjectData(null);  
         isTracking = false;     // Disable tracking
       }
     };
@@ -955,7 +985,7 @@ function createCometsOrbit(comet) {
       const orbitGeometry = new THREE.RingGeometry(radius, radius + 0.05, 256);
       const orbitMaterial = new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide });
       const orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
-      orbit.rotation.x = Math.PI / 2; // Make the ring horizontal
+      orbit.rotation.x = Math.PI / 2; 
       orbit.isOrbit = true;
       return orbit;
     };
@@ -973,7 +1003,7 @@ function createCometsOrbit(comet) {
         createOrbit(70, 0x87CEEB)
       ];
   
-      // Add all orbits to the scene
+      
       orbits.forEach(orbit => {
         orbit.visible = animationRef.current.showOrbits;
         scene.add(orbit);
@@ -992,7 +1022,7 @@ function createCometsOrbit(comet) {
 
     
 
-    // Animation loop!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // Animation loop!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     const animate = (currentTime) => {
       requestAnimationFrame(animate);
       if (!isInitializing && !animationRef.current.isPaused) {
@@ -1001,10 +1031,9 @@ function createCometsOrbit(comet) {
       const { showOrbits, timeSpeed, lastTime } = animationRef.current;
 
       stats.begin();
-      // Calculate delta time and update elapsed time
       const deltaTime = currentTime - lastTime;
       animationRef.current.lastTime = currentTime;
-      animationRef.current.elapsedTime += deltaTime * 0.0009 * timeSpeed; // Convert to seconds and apply time speed
+      animationRef.current.elapsedTime += deltaTime * 0.0009 * timeSpeed;
       
       scene.children.filter(child => child.isOrbit).forEach(orbit => {
         orbit.visible = showOrbits;
@@ -1027,7 +1056,6 @@ function createCometsOrbit(comet) {
       asteroidsRef.current.forEach((asteroidObj) => {
         const { mesh, a, e, i, om, w, ma } = asteroidObj;
         
-        // Calculate the asteroid's position based on its orbital elements and the current time
         const meanAnomaly = (ma + animationRef.current.elapsedTime * 0.1) % 360;
         const position = keplerianToCartesian(a, e, i, om, w, meanAnomaly);
         
@@ -1040,7 +1068,6 @@ function createCometsOrbit(comet) {
       asteroidsRef.current.forEach((cometObj) => {
         const { mesh, a, e, i, om, w, ma } = cometObj;
         
-        // Calculate the comet's position based on its orbital elements and the current time
         const meanAnomaly = (ma + animationRef.current.elapsedTime * 0.1) % 360;
         const position = keplerianToCartesian(a, e, i, om, w, meanAnomaly);
         
@@ -1061,63 +1088,65 @@ function createCometsOrbit(comet) {
         uranusWithAtmosphere.rotation.y += rotationSpeed * 1.5;
         neptuneWithAtmosphere.rotation.y += rotationSpeed * 1.2;
         plutoWithAtmosphere.rotation.y += rotationSpeed * 1.2;
-      // Mercury Orbit and Rotation
+      
+        //Planets Orbits and Rotations (Scaled Down for better Visibility/Control)
+        // Mercury Orbit and Rotation
       
       mercury.position.x = Math.cos(time * 2) * 8;
       mercury.position.z = Math.sin(time * 2) * 8;
 
       // Venus Orbit and Rotation
       
-      venusWithAtmosphere.position.x = Math.cos(time * 1.5) * 12; // Venus orbit x position
-      venusWithAtmosphere.position.z = Math.sin(time * 1.5) * 12; // Venus orbit z position
+      venusWithAtmosphere.position.x = Math.cos(time * 1.5) * 12; 
+      venusWithAtmosphere.position.z = Math.sin(time * 1.5) * 12; 
 
       // Earth Orbit and Rotation
       
-      earthWithAtmosphere.position.x = Math.cos(time) * 16; // Earth's orbit x position
-      earthWithAtmosphere.position.z = Math.sin(time) * 16; // Earth's orbit z position 
+      earthWithAtmosphere.position.x = Math.cos(time) * 16; 
+      earthWithAtmosphere.position.z = Math.sin(time) * 16;  
       cloudMesh.rotation.y += 0.008;
       cloudMesh.position.x = earthWithAtmosphere.position.x;
       cloudMesh.position.z = earthWithAtmosphere.position.z;
 
 
       // Moon's Orbit and Rotation (relative to Earth)
-      moon.position.x = earthWithAtmosphere.position.x + Math.cos(time * 10) * 1.5; // Moon orbit x position
-      moon.position.z = earthWithAtmosphere.position.z + Math.sin(time * 10) * 1.5; // Moon orbit z position
+      moon.position.x = earthWithAtmosphere.position.x + Math.cos(time * 10) * 1.5; 
+      moon.position.z = earthWithAtmosphere.position.z + Math.sin(time * 10) * 1.5;
       moon.rotation.y += 0; // Moon rotation
 
       // Mars rotation and orbit
       
-      marsWithAtmosphere.position.x = Math.cos(time * 0.8) * 22; // Mars orbit x position
-      marsWithAtmosphere.position.z = Math.sin(time * 0.8) * 22; // Mars orbit z position
+      marsWithAtmosphere.position.x = Math.cos(time * 0.8) * 22; 
+      marsWithAtmosphere.position.z = Math.sin(time * 0.8) * 22; 
 
 
       // Jupiter rotation and orbit
       
-      jupiterWithAtmosphere.position.x = Math.cos(time * 0.6) * 30; // Jupiter orbit x position
-      jupiterWithAtmosphere.position.z = Math.sin(time * 0.6) * 30; // Jupiter orbit z position
+      jupiterWithAtmosphere.position.x = Math.cos(time * 0.6) * 30; 
+      jupiterWithAtmosphere.position.z = Math.sin(time * 0.6) * 30; 
 
       // Saturn rotation and orbit
       
-      saturnWithAtmosphere.position.x = Math.cos(time * 0.5) * 40; // Saturn orbit x position
-      saturnWithAtmosphere.position.z = Math.sin(time * 0.5) * 40; // Saturn orbit z position
+      saturnWithAtmosphere.position.x = Math.cos(time * 0.5) * 40; 
+      saturnWithAtmosphere.position.z = Math.sin(time * 0.5) * 40; 
       rings.position.x = saturnWithAtmosphere.position.x;
       rings.position.z = saturnWithAtmosphere.position.z;
 
       // Uranus rotation and orbit
       
-      uranusWithAtmosphere.position.x = Math.cos(time * 0.3) * 50; // Uranus orbit x position
-      uranusWithAtmosphere.position.z = Math.sin(time * 0.3) * 50; // Uranus orbit z position
+      uranusWithAtmosphere.position.x = Math.cos(time * 0.3) * 50; 
+      uranusWithAtmosphere.position.z = Math.sin(time * 0.3) * 50; 
 
 
       // Neptune rotation and orbit
       
-      neptuneWithAtmosphere.position.x = Math.cos(time * 0.25) * 60; // Neptune orbit x position
-      neptuneWithAtmosphere.position.z = Math.sin(time * 0.25) * 60; // Neptune orbit z position
+      neptuneWithAtmosphere.position.x = Math.cos(time * 0.25) * 60; 
+      neptuneWithAtmosphere.position.z = Math.sin(time * 0.25) * 60; 
       
       // Pluto rotation and orbit
       
-      plutoWithAtmosphere.position.x = Math.cos(time * 0.20) * 70; // Pluto orbit x position
-      plutoWithAtmosphere.position.z = Math.sin(time * 0.20) * 70; // Pluto orbit z position
+      plutoWithAtmosphere.position.x = Math.cos(time * 0.20) * 70; 
+      plutoWithAtmosphere.position.z = Math.sin(time * 0.20) * 70; 
 
       const sunPosition = new THREE.Vector3(0, 0, 0);
       updatePlanetLighting(earthWithAtmosphere, sunPosition);
@@ -1130,7 +1159,7 @@ function createCometsOrbit(comet) {
       updatePlanetLighting(plutoWithAtmosphere, sunPosition);
 
 
-      // If a planet is selected, keep the camera focused and tracking its movement
+      // If a planet is selected we have to keep the camera focused and tracking its movement!!
       if (selectedObject && isTracking) {
         controls.target.copy(selectedObject.position);
       }
@@ -1152,7 +1181,7 @@ function createCometsOrbit(comet) {
 
     
 
-    
+
 
     
 
@@ -1164,19 +1193,27 @@ function createCometsOrbit(comet) {
           currentMountRef.removeChild(stats.dom);
       }
       
-      // Ensure you remove event listeners
+      // remove event listeners
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('dblclick', handleDoubleClick);
       window.removeEventListener('keypress', handleKeyPress);
   };
   }, [isInitializing]);
-  // Toggle the menu visibility
+  
+  
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
   useEffect(() => {
     animationRef.current.showOrbits = showOrbits;
   }, [showOrbits]);
+  useEffect(() => {
+    // If music is started, set muted state
+    if (audioRef.current) {
+        audioRef.current.muted = isMuted;
+    }
+    playAudio();
+}, [isMuted, playAudio]);
   useEffect(() => {
     animationRef.current.showAsteroids = showAsteroids;
   }, [showAsteroids]);
@@ -1213,6 +1250,12 @@ function createCometsOrbit(comet) {
   return (
     <div className={`orrery-container ${isFullScreen ? 'fullscreen' : ''}`} ref={orreryContainerRef}>
       <div style={{ width: '100%', height: '100%' }} ref={mountRef}></div>
+      <audio ref={audioRef} loop>
+        {playlist.map((track, index) => (
+          <source key={index} src={track} type="audio/mpeg" />
+          ))}
+          Your browser does not support the audio element.
+      </audio>
       {selectedObjectData && (
         <ObjectCard objectData={selectedObjectData} onClose={handleCloseCard} />
       )}
@@ -1272,6 +1315,14 @@ function createCometsOrbit(comet) {
       >
         {isFullScreen ? <Minimize2 size={24} /> : <Maximize2 size={24} />}
       </button>
+      <div className="controls-text" style={{ position: 'absolute', bottom: '10px', left: '10px', color: 'white', fontSize: '14px' }}>
+        <p>Press 'R' to reset the camera. </p>
+        <p>Double click on a celestial object to select/track it and view details.</p> 
+        <p>Control Menu is on Top Right.</p>   
+        <button className="mute-button" onClick={toggleMute}>
+          {isMuted ? 'Unmute' : 'Mute'}
+        </button>
+      </div>
     </div>
   );
 }

@@ -319,7 +319,41 @@ canvas {
   transition: all 0.3s ease;
 }
 
+.controls-text {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  color: #ffffff;
+  font-size: 14px;
+  background-color: rgba(0, 0, 0, 0.6); 
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-family: 'Arial', sans-serif;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); 
+  z-index: 10; /* Make sure it stays on top */
+}
 
+.controls-text p {
+  margin: 0;
+}
+
+.mute-button {
+  background-color: #333;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  margin-top: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: 'Arial', sans-serif;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.mute-button:hover {
+  background-color: #555;
+}
 
 .fullscreen-button {
   position: fixed;
@@ -350,7 +384,6 @@ canvas {
 }
 
 
-/* ... (rest of the styles for fullscreen-button remain the same) */
 
 .orrery-container.fullscreen .menu-toggle,
 .orrery-container.fullscreen .menu {
@@ -360,7 +393,7 @@ canvas {
   padding: 20px;
 }
 
-/* Ensure the Orrery container takes up the full height of its parent */
+
 #root, body, html {
   height: 100%;
 }
@@ -372,5 +405,5 @@ canvas {
   z-index: 10000 !important;
 }
 
-/* Add this if you haven't already included Font Awesome */
+
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css');

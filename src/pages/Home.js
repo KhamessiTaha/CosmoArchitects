@@ -9,7 +9,7 @@ import About from '../components/About';
 function Home() {
   const navigate = useNavigate();
 
-  // Handlers for navigation
+  
   const handleNavigateRelative = () => {
     navigate('/simulation');
   };

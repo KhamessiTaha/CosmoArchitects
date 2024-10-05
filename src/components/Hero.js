@@ -15,7 +15,7 @@ const Hero = ({ handleNavigateRelative, handleNavigateAccurate }) => {
     const particles = [];
     const mouse = { x: null, y: null, radius: 150 };
 
-    // Resize canvas to fill window
+   
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;

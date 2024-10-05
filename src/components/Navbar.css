@@ -1,4 +1,4 @@
-/* Navbar styling */
+
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -14,7 +14,7 @@
   transition: background-color 0.3s ease-in-out;
 }
 
-/* Navigation Links */
+
 .nav-links {
   list-style: none;
   display: flex;
@@ -47,7 +47,7 @@
   transition: width 0.3s ease-in-out;
 }
 
-/* Hover effect for links */
+
 .nav-links a:hover {
   color: #ff9000;
   transform: translateY(-2px);
@@ -57,7 +57,7 @@
   width: 100%;
 }
 
-/* Logo Styling */
+
 .logo {
   display: flex;
   align-items: center;
@@ -87,7 +87,7 @@
   transform: scale(1.1);
 }
 
-/* Mobile menu icon */
+
 .hamburger {
   display: none;
   font-size: 2rem;
@@ -100,7 +100,7 @@
   transform: rotate(90deg);
 }
 
-/* Mobile menu open state */
+
 .nav-links.active {
   display: flex;
   flex-direction: column;
@@ -115,7 +115,7 @@
   box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
 }
 
-/* Slide in animation for mobile menu */
+
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -127,7 +127,7 @@
   }
 }
 
-/* Mobile styling */
+
 @media (max-width: 768px) {
   .nav-links {
     display: none;

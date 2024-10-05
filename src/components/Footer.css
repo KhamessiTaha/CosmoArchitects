@@ -2,11 +2,11 @@
   background-color: rgba(51, 51, 51, 0.9);
   color: #fff;
   text-align: center;
-  padding: 2rem 0; /* Increased padding for more space */
+  padding: 2rem 0; 
   position: relative;
   bottom: 0;
   width: 100%;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5); /* Add subtle shadow */
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .footer-content {
@@ -17,32 +17,32 @@
 
 .footer-content p {
   margin: 0;
-  font-size: 1.1rem; /* Slightly larger text */
+  font-size: 1.1rem; 
 }
 
 .social-links {
   display: flex;
-  justify-content: center; /* Center align social links */
-  gap: 1.5rem; /* Add space between social links */
+  justify-content: center;
+  gap: 1.5rem; 
 }
 
 .social-links a {
   color: #ff9000;
   text-decoration: none;
-  display: flex; /* Center the icon and text vertically */
+  display: flex;
   align-items: center;
-  transition: color 0.3s ease; /* Transition for color change */
+  transition: color 0.3s ease; 
 }
 
 .social-links a:hover {
-  color: #fff; /* Change color on hover */
+  color: #fff; 
 }
 
 .social-icon {
-  margin-right: 0.5rem; /* Space between icon and text */
-  transition: transform 0.3s ease; /* Transition for scaling */
+  margin-right: 0.5rem; 
+  transition: transform 0.3s ease; 
 }
 
 .social-links a:hover .social-icon {
-  transform: scale(1.2); /* Scale icon on hover */
+  transform: scale(1.2);
 }

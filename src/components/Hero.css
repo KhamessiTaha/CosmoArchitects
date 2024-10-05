@@ -1,4 +1,4 @@
-/* Reset default margins and padding */
+
 * {
   margin: 0;
   padding: 0;
@@ -10,18 +10,18 @@ html, body {
   overflow-x: hidden;
 }
 
-/* Ensure the canvas is below the hero content */
+
 .background-canvas {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100vh;
-  z-index: 0; /* Ensure the canvas is behind other content */
+  z-index: 0; 
   pointer-events: none;
 }
 
-/* Ensure hero section content is layered above the canvas */
+
 .hero-section {
   position: relative;
   z-index: 1;
@@ -41,7 +41,7 @@ html, body {
   padding: 0 20px;
 }
 
-/* Start Exploring Button */
+
 .start-btn {
   padding: 1rem 3rem;
   font-size: 1.5rem;
@@ -58,7 +58,7 @@ html, body {
   transform: scale(1.1);
 }
 
-/* Cards container */
+
 .cards-container {
   display: flex;
   flex-wrap: wrap;
@@ -103,7 +103,7 @@ html, body {
   border-radius: 10px;
 }
 
-/* Animation keyframes */
+
 @keyframes fadeInCard {
   from {
     opacity: 0;
@@ -115,7 +115,7 @@ html, body {
   }
 }
 
-/* Animations */
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -147,7 +147,7 @@ html, body {
   }
 }
 
-/* Media query for smaller screens */
+
 @media (max-width: 768px) {
   .cards-container {
     flex-direction: column;
