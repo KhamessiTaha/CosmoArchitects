@@ -1,4 +1,8 @@
-# CosmoArchitects - CosmicVue🌌                      
+# CosmoArchitects - CosmicVue🌌              
+
+![logo](https://github.com/user-attachments/assets/47147f24-2862-4caf-9f2e-d3a7575fb169)
+
+
 # **Interactive Orrery Web App**      
 
 Demo is Live on Netlify [Demo](https://cosmicvue.netlify.app/) .
