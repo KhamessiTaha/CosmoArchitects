@@ -1,4 +1,5 @@
 [![Netlify Status](https://api.netlify.com/api/v1/badges/2aa0ba68-42ad-42db-8ce6-a799fbd44d10/deploy-status)](https://app.netlify.com/sites/cosmicvue/deploys)
+https://cosmicvue.netlify.app/
 # CosmoArchitects - CosmicVue🌌                      
 # **Interactive Orrery Web App**              
                                         
