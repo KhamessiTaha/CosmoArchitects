@@ -3,7 +3,7 @@
 ![logo](https://github.com/user-attachments/assets/789b7dfb-af06-4093-a636-fb66e06c6ad9)        
        
      
-# **Interactive Orrery Web App**      
+# **Interactive Orrery Web App**       
  
 Demo is Live on Netlify [Demo](https://cosmicvue.netlify.app/) .
 
