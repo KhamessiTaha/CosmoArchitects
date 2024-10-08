@@ -6,7 +6,7 @@
 # **Interactive Orrery Web App**        
  
 Demo is Live on Netlify [Demo](https://cosmicvue.netlify.app/) .
-
+ 
                                         
 ## **Overview**                 
 This project is our submission for the **2024 NASA International Space Apps Challenge**. It showcases an interactive orrery web app designed to visualize celestial bodies such as planets, Near-Earth Asteroids (NEAs) including Potentially Hazardous Asteroids (PHAs), Near-Earth Comets (NECs),  within our solar system.
