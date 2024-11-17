@@ -176,7 +176,7 @@ Project Link: [https://github.com/KhamessiTaha/CosmoArchitects](https://github.c
 
 Demo: [https://cosmicvue.netlify.app/](https://cosmicvue.netlify.app/)
 
-Space Apps Project Page: [View our NASA Space Apps submission](https://www.spaceappschallenge.org/LINK-TO-YOUR-PROJECT)
+Space Apps Project Page: [View our NASA Space Apps submission](https://www.spaceappschallenge.org/nasa-space-apps-2024/find-a-team/cosmoarchitects/?tab=project)
 
 ## 🔗 Useful Links
 
