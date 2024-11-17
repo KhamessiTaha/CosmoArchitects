@@ -3,7 +3,7 @@
 ![GitHub License](https://img.shields.io/badge/license-LGPL--2.1-blue.svg)
 ![NASA Space Apps](https://img.shields.io/badge/NASA-Space%20Apps%202024-red)
 ![Status](https://img.shields.io/badge/status-live-brightgreen)
-[![Netlify Status](https://api.netlify.com/api/v1/badges/your-netlify-badge/deploy-status)](https://cosmicvue.netlify.app/)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/2aa0ba68-42ad-42db-8ce6-a799fbd44d10/deploy-status)](https://app.netlify.com/sites/cosmicvue/deploys)
 ![Award](https://img.shields.io/badge/NASA%20Space%20Apps-Global%20Nominee%202024-gold)
 
 <div align="center">
