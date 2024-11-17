@@ -1,4 +1,4 @@
-# 🌌 CosmoArchitects - CosmicVue
+# 🌌 CosmoArchitects - CosmicVue 🌌
 
 ![GitHub License](https://img.shields.io/badge/license-LGPL--2.1-blue.svg)
 ![NASA Space Apps](https://img.shields.io/badge/NASA-Space%20Apps%202024-red)
