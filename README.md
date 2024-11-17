@@ -162,9 +162,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 
 - **Global Nominee** - 2024 NASA International Space Apps Challenge
   - Selected as one of the global nominees from thousands of international submissions
-  - Recognized for innovative approach to space data visualization
-  - Highlighted for educational impact and technical excellence
-  - Commended for real-time data integration and user experience
 
 ## 📄 License
 
