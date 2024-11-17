@@ -1,4 +1,4 @@
-# 🌌 CosmoArchitects - CosmicVue 🌌
+# 🌌 CosmoArchitects - CosmicVue
 
 ![GitHub License](https://img.shields.io/badge/license-LGPL--2.1-blue.svg)
 ![NASA Space Apps](https://img.shields.io/badge/NASA-Space%20Apps%202024-red)
@@ -25,7 +25,150 @@ CosmicVue is our award-nominated submission for the **2024 NASA International Sp
 - **Difficulty**: Intermediate to Advanced
 - **Team**: CosmoArchitects
 
-[Rest of the README remains the same as before...]
+## ✨ Features
+
+### 🌍 Core Features
+- **3D Interactive Visualization**
+  - Real-time solar system rendering
+  - Smooth zoom, pan, and rotation controls
+  - Dynamic camera perspectives
+
+### 🛸 Advanced Capabilities
+- **NASA Data Integration**
+  - Live celestial body positioning
+  - Accurate Keplerian orbital parameters
+  - Real-time trajectory calculations
+
+### 🎮 User Controls
+- **Simulation Management**
+  - Adjustable time flow controls
+  - Orbital path toggles
+  - Customizable object labels
+  - Multiple viewing modes
+
+## 🛠️ Built With
+
+### Core Technologies
+- 📊 **Three.js** - 3D graphics engine
+- 🚀 **Vue.js** - Frontend framework
+- 📡 **NASA APIs** - Data sources
+
+### Data Sources
+- 🛰️ NASA's Small Body Database
+- 🌠 NASA's Horizon API
+- 🌍 NASA's Open API
+
+## 💻 Getting Started
+
+### Prerequisites
+- Node.js (v14 or higher)
+- npm (v6 or higher)
+- Modern web browser
+
+### Installation
+
+1. Clone the repository
+```bash
+git clone https://github.com/KhamessiTaha/CosmoArchitects.git
+cd CosmoArchitects
+```
+
+2. Install dependencies
+```bash
+npm install
+```
+
+3. Start development server
+```bash
+npm run start
+```
+
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## 🎮 User Guide
+
+### Basic Controls
+- **🖱️ Mouse Controls**
+  - Left Click + Drag: Rotate view
+  - Right Click + Drag: Pan view
+  - Scroll: Zoom in/out
+
+### Advanced Features
+- **⚙️ Control Panel**
+  - Speed adjustment
+  - Object filters
+  - Label toggles
+  - Orbital path visualization
+
+## 🔬 Technical Details
+
+### Orbital Mechanics
+- Implements Keplerian orbital parameters
+  - Eccentricity
+  - Semi-major axis
+  - Inclination
+  - Argument of periapsis
+  - True anomaly
+
+### Performance Optimizations
+- Dynamic level of detail
+- Efficient render cycles
+- Optimized data structures
+
+## 🎯 Objectives
+
+- **Interactive Education**: Create an engaging platform for solar system exploration
+- **Real-time Visualization**: Accurately represent celestial object positions
+- **Scientific Accuracy**: Implement precise orbital mechanics calculations
+- **User Engagement**: Provide intuitive controls for space exploration
+
+## 🚧 Roadmap
+
+- [ ] **AI Enhancement**
+  - Advanced orbit predictions
+  - Collision detection systems
+  - Machine learning for trajectory optimization
+  
+- [ ] **Feature Expansion**
+  - Extended celestial database
+  - Advanced visualization modes
+  - Time travel simulations
+  
+- [ ] **Mobile Optimization**
+  - Responsive design improvements
+  - Touch controls enhancement
+  - Progressive Web App implementation
+
+## 🤝 Contributing
+
+We welcome contributions! Please follow these steps:
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
+
+## 🌟 Acknowledgments
+
+- **NASA** - For providing invaluable data and APIs
+- **Space Apps Challenge** - For the opportunity and inspiration
+- **Three.js Community** - For excellent documentation and support
+- **AI Tools** - For assistance in debugging and optimization
+
+## 🏆 Awards & Recognition
+
+- **Global Nominee** - 2024 NASA International Space Apps Challenge
+  - Selected as one of the global nominees from thousands of international submissions
+  - Recognized for innovative approach to space data visualization
+  - Highlighted for educational impact and technical excellence
+  - Commended for real-time data integration and user experience
+
+## 📄 License
+
+Licensed under the LGPL-2.1 License - see [LICENSE](./LICENSE) for details.
 
 ## 📞 Contact
 
@@ -34,13 +177,6 @@ Project Link: [https://github.com/KhamessiTaha/CosmoArchitects](https://github.c
 Demo: [https://cosmicvue.netlify.app/](https://cosmicvue.netlify.app/)
 
 Space Apps Project Page: [View our NASA Space Apps submission](https://www.spaceappschallenge.org/LINK-TO-YOUR-PROJECT)
-
-## 🏆 Awards & Recognition
-
-- **Global Nominee** - 2024 NASA International Space Apps Challenge
-  - Selected as one of the global nominees from thousands of international submissions
-  - Recognized for innovative approach to space data visualization
-  - Highlighted for educational impact and technical excellence
 
 ## 🔗 Useful Links
 
