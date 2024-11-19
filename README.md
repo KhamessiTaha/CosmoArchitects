@@ -5,6 +5,7 @@
 ![Status](https://img.shields.io/badge/status-live-brightgreen)
 [![Netlify Status](https://api.netlify.com/api/v1/badges/2aa0ba68-42ad-42db-8ce6-a799fbd44d10/deploy-status)](https://app.netlify.com/sites/cosmicvue/deploys)
 ![Award](https://img.shields.io/badge/NASA%20Space%20Apps-Global%20Nominee%202024-gold)
+![Award](https://img.shields.io/badge/NASA%20Space%20Apps-Global%20Finalist%202024-gold)
 
 <div align="center">
   <img src="https://github.com/user-attachments/assets/789b7dfb-af06-4093-a636-fb66e06c6ad9" alt="CosmicVue Logo" width="200"/>
