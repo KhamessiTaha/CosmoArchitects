@@ -12,7 +12,7 @@
 
   [View Demo](https://cosmicvue.netlify.app/) · [Report Bug](https://github.com/KhamessiTaha/CosmoArchitects/issues) · [Request Feature](https://github.com/KhamessiTaha/CosmoArchitects/issues)
 
-  <h3>🏆 Global Nominee - 2024 NASA International Space Apps Challenge 🏆</h3>
+  <h3>🏆 Global Finalist - 2024 NASA International Space Apps Challenge 🏆</h3>
 </div>
 
 ## 🚀 About The Project
@@ -20,7 +20,7 @@
 CosmicVue is our award-nominated submission for the **2024 NASA International Space Apps Challenge** - an interactive orrery web application that brings the solar system to life. Experience real-time visualization of planets, Near-Earth Asteroids (NEAs), Potentially Hazardous Asteroids (PHAs), and Near-Earth Comets (NECs) in stunning 3D.
 
 ### 🏆 Recognition & Challenge Details
-- **Award**: Global Nominee - 2024 NASA International Space Apps Challenge
+- **Award**: Global Finalist - 2024 NASA International Space Apps Challenge
 - **Event**: 2024 NASA Space Apps Challenge
 - **Categories**: Astrophysics, Space Exploration, Software, Games, Planets & Moons
 - **Difficulty**: Intermediate to Advanced
@@ -161,8 +161,9 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 
 ## 🏆 Awards & Recognition
 
-- **Global Nominee** - 2024 NASA International Space Apps Challenge
+- **Global Finalist** - 2024 NASA International Space Apps Challenge
   - Selected as one of the global nominees from thousands of international submissions
+  - Selected as one of the Global Finalists (Top 40 from 10000 submissions )
 
 ## 📄 License
 
