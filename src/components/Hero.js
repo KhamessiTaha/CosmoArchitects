@@ -61,10 +61,11 @@ const Hero = ({ handleNavigateRelative, handleNavigateAccurate }) => {
       });
     };
 
+    let frameId;
     const animate = () => {
       drawParticles();
       updateParticles();
-      requestAnimationFrame(animate);
+      frameId = requestAnimationFrame(animate);
     };
 
     const handleMouseMove = e => {
@@ -77,6 +78,7 @@ const Hero = ({ handleNavigateRelative, handleNavigateAccurate }) => {
     animate();
 
     return () => {
+      cancelAnimationFrame(frameId);
       window.removeEventListener('resize', resizeCanvas);
       window.removeEventListener('mousemove', handleMouseMove);
     };
@@ -109,7 +111,7 @@ const Hero = ({ handleNavigateRelative, handleNavigateAccurate }) => {
                 Accurate Orrery
               </button>
               <p className="choice-description">
-              A dynamic orrery that accurately represents the solar system with precise sizes and distances. It features planetary orbits calculated using Keplerian parameters and highlights Near-Earth Objects (NEOs) from the NASA Horizons API, focusing on those in the Apollo orbit class for an insightful exploration of our cosmic neighborhood.
+              A dynamic orrery that accurately represents the solar system with precise sizes and distances. Planets are placed where they are right now using Keplerian orbital elements, alongside live Near-Earth Objects (NEOs) from NASA's NeoWs API, for an insightful exploration of our cosmic neighborhood.
               </p>
             </div>
           </div>

@@ -1,35 +1,48 @@
 import React from 'react';
-import './ObjectCard.css'; 
+import './ObjectCard.css';
+
+const fields = [
+  ['Type', 'type'],
+  ['Star Type', 'starType'],
+  ['Planet Type', 'planetType'],
+  ['Radius', 'radius', (v) => `${v.toLocaleString()} km`],
+  ['Distance from Sun', 'distanceFromSun', (v) => (v === 0 ? null : `${v.toLocaleString()} million km`)],
+  ['Distance from Earth', 'distanceFromEarth', (v) => `${v.toLocaleString()} million km`],
+  ['Atmosphere', 'atmosphere'],
+  ['Composition', 'composition'],
+  ['Has Rings', 'hasRings'],
+  ['Moons Count', 'moonsCount', (v) => (v > 0 ? v : null)],
+  ['Orbital Period', 'orbitalPeriod'],
+  ['Temperature', 'temperature'],
+  ['Age', 'age'],
+  ['Discovered By', 'discoveredBy'],
+  ['Life', 'hasLife'],
+];
 
 const ObjectCard = ({ objectData, onClose }) => {
   if (!objectData) {
-    return null; 
+    return null;
   }
 
   return (
     <div className="object-card">
-      {/* Close Button */}
-      <button className="close-button" onClick={onClose}>&times;</button>
-
+      <button className="close-button" onClick={onClose} aria-label="Close">&times;</button>
       <h2>{objectData.name}</h2>
       <div className="object-info">
-        <p><strong>Type:</strong> {objectData.type}</p>
-        {objectData.starType && <p><strong>Star Type:</strong> {objectData.starType}</p>} {/* Show star type for Sun */}
-        <p><strong>Planet Type:</strong> {objectData.planetType}</p>
-        <p><strong>Radius:</strong> {objectData.radius} km</p>
-        <p><strong>Distance from Sun:</strong> {objectData.distanceFromSun} million km</p>
-        <p><strong>Atmosphere:</strong> {objectData.atmosphere}</p>
-        {objectData.hasRings && <p><strong>Has Rings:</strong> {objectData.hasRings}</p>}
-        {objectData.moonsCount > 0 && <p><strong>Moons Count:</strong> {objectData.moonsCount}</p>}
-        <p><strong>Orbital Period:</strong> {objectData.orbitalPeriod}</p>
-        <p><strong>Temperature:</strong> {objectData.temperature}</p>
-        {objectData.age && <p><strong>Age:</strong> {objectData.age}</p>} {/* Show age for all planets */}
-        <p><strong>Discovered By:</strong> {objectData.discoveredBy}</p>
-        {objectData.hasLife && <p><strong>Life:</strong> {objectData.hasLife}</p>}
+        {fields.map(([label, key, format]) => {
+          const raw = objectData[key];
+          if (raw === undefined || raw === null || raw === '') return null;
+          const value = format ? format(raw) : raw;
+          if (value === null) return null;
+          return (
+            <p key={key}>
+              <strong>{label}:</strong> {value}
+            </p>
+          );
+        })}
       </div>
     </div>
   );
 };
 
 export default ObjectCard;
-

@@ -1,28 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import NavbarAccSim from '../components/NavbarAccSim';
+import React, { useState } from 'react';
+import Navbar from '../components/Navbar';
 import AccurateOrrery from '../components/AccurateOrrery';
 import LoadingScreen from '../components/LoadingScreen';
 
 function AccurateSimulation() {
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setIsLoading(false);
-    }, 3000); 
-
-    return () => clearTimeout(timeoutId);
-  }, []);
+  const [progress, setProgress] = useState(0);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   return (
     <div>
-      <NavbarAccSim />
-      <LoadingScreen isVisible={isLoading} />
-      {!isLoading && (
-        <div>
-          <AccurateOrrery />
-        </div>
-      )}
+      <Navbar links={[{ to: '/', label: 'Home' }, { to: '/simulation', label: 'Visual Orrery' }]} />
+      <LoadingScreen isVisible={!isLoaded} progress={progress} />
+      <AccurateOrrery onLoadProgress={setProgress} onLoaded={() => setIsLoaded(true)} />
     </div>
   );
 }
