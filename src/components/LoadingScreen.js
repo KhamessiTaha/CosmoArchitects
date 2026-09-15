@@ -1,38 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import './LoadingScreen.css'; 
+import React from 'react';
+import './LoadingScreen.css';
 
-function LoadingScreen({ isVisible }) {
-  const [progress, setProgress] = useState(0);
-  const [buffer, setBuffer] = useState(0);
-  const [message, setMessage] = useState('Loading Orrery Simulation...');
+// Overlay shown while the 3D scene's assets download. `progress` is 0..1.
+function LoadingScreen({ isVisible, progress = 0, message }) {
+  const percent = Math.round(progress * 100);
 
-  useEffect(() => {
-    
-    const intervalId = setInterval(() => {
-      if (progress < 100) {
-        setProgress((prev) => prev + 1);
-        setBuffer((prev) => Math.max(prev, progress + Math.random() * 10));
-        setMessage('Preparing celestial bodies...');
-      } 
-      else {
-        clearInterval(intervalId);
-        setMessage('Simulation ready to explore!');
-      }
-    }, 100); 
-
-    return () => clearInterval(intervalId);
-  }, [progress]);
-  if (!isVisible) return null;
   return (
-    <div className="loading-screen">
+    <div className={`loading-screen ${isVisible ? '' : 'hidden'}`} aria-hidden={!isVisible}>
       <div className="loading-container">
-        <h1 className="loading-title">{message}</h1>
+        <h1 className="loading-title">
+          {message || (percent < 100 ? 'Preparing celestial bodies...' : 'Simulation ready to explore!')}
+        </h1>
         <div className="progress-bar-container">
-          <div className="progress-bar">
-            <div className="progress" style={{ width: `${progress}%` }} />
-            <div className="buffer" style={{ width: `${buffer}%` }} />
+          <div className="progress-bar" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>
+            <div className="progress" style={{ width: `${percent}%` }} />
           </div>
-          <div className="progress-percentage">{progress}%</div>
+          <div className="progress-percentage">{percent}%</div>
         </div>
         <div className="loading-animation">
           <div className="loading-spinner"></div>

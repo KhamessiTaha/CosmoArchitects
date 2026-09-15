@@ -405,5 +405,6 @@ canvas {
   z-index: 10000 !important;
 }
 
-
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css');
+.time-button svg {
+  vertical-align: -2px;
+}

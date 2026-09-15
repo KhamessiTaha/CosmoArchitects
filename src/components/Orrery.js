@@ -1,16 +1,16 @@
-import React, { useRef, useEffect, useState , useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { TextureLoader } from 'three';
 import { gsap } from 'gsap';
 import './Orrery.css';
 import StatsJS from 'stats.js';
-import { Maximize2, Minimize2 } from 'lucide-react';
+import { Maximize2, Minimize2, Rewind, RotateCcw, FastForward, Pause, Play } from 'lucide-react';
 import ObjectCard from './ObjectCard';
-import { asteroids } from './asteroids.js';
-import { comets } from './comets.js';
-
-
+import { asteroids } from '../data/asteroids';
+import { comets } from '../data/comets';
+import { elementsToEcliptic, eclipticToScene, sampleOrbit } from '../lib/kepler';
+import { toVisualScale } from '../lib/visualScale';
+import { disposeScene } from '../lib/disposeScene';
 
 // Textures for celestial bodies
 import earthTexture from './textures/Earth/earth.jpg';
@@ -23,43 +23,44 @@ import jupiterTexture from './textures/Jupiter/jupiter2.jpg';
 import saturnTexture from './textures/Saturn/saturn.jpg';
 import uranusTexture from './textures/Uranus/uranus.jpg';
 import neptuneTexture from './textures/Neptune/neptune.jpg';
-import saturnRingTexture from './textures/Saturn/saturn_ring.png'; 
-import earthbump from "./textures/Earth/earthbump.jpg" ;
-import earthcloud from "./textures/Earth/earthcloud.jpg" ;
-import earthcloudtrans from "./textures/Earth/earthcloudtrans.jpg" ;
-import earthlights from "./textures/Earth/earthlights.jpg" ;
-import earthspec from "./textures/Earth/earthspec.jpg" ;
-import plutoTexture from "./textures/Pluto/plutomap.jpg";
-import asteroidTexture from "./textures/Asteroid/asteroid3.jpg";
+import saturnRingTexture from './textures/Saturn/saturn_ring.png';
+import earthbump from './textures/Earth/earthbump.jpg';
+import earthcloud from './textures/Earth/earthcloud.jpg';
+import earthcloudtrans from './textures/Earth/earthcloudtrans.jpg';
+import earthspec from './textures/Earth/earthspec.jpg';
+import plutoTexture from './textures/Pluto/plutomap.jpg';
+import asteroidTexture from './textures/Asteroid/asteroid3.jpg';
 
-import music1 from "./Stars in Our Eyes.mp3";
-import music2 from "./Some Sand.mp3";
-import music3 from "./Whispers of the Stars.mp3";
+import music1 from '../assets/music/Stars in Our Eyes.mp3';
+import music2 from '../assets/music/Some Sand.mp3';
+import music3 from '../assets/music/Whispers of the Stars.mp3';
 
-import x1 from './textures/skybox/right.png' ;
-import x2 from './textures/skybox/left.png' ;
-import y1 from './textures/skybox/top.png' ;
-import y2 from './textures/skybox/bottom.png' ;
-import z1 from './textures/skybox/front.png'  ;
-import z2 from './textures/skybox/back.png'  ;
+import x1 from './textures/skybox/right.png';
+import x2 from './textures/skybox/left.png';
+import y1 from './textures/skybox/top.png';
+import y2 from './textures/skybox/bottom.png';
+import z1 from './textures/skybox/front.png';
+import z2 from './textures/skybox/back.png';
+
+const playlist = [music2, music1, music3];
 
 const celestialData = {
   sun: {
     name: 'Sun',
-    radius: 696340, 
-    distanceFromSun: 0, 
+    radius: 696340,
+    distanceFromSun: 0,
     atmosphere: 'No',
     type: 'Star',
-    starType: 'G-type Main Sequence (G2V)', 
+    starType: 'G-type Main Sequence (G2V)',
     composition: 'Hydrogen, Helium',
-    age: '4.6 billion years', 
+    age: '4.6 billion years',
     temperature: '5500°C (surface), 15 million°C (core)',
     discoveredBy: 'Ancient civilizations',
   },
   mercury: {
     name: 'Mercury',
     radius: 2439.7,
-    distanceFromSun: 57.91, 
+    distanceFromSun: 57.91,
     atmosphere: 'No',
     type: 'Planet',
     planetType: 'Terrestrial',
@@ -67,7 +68,7 @@ const celestialData = {
     temperature: '-173°C to 427°C',
     moonsCount: 0,
     discoveredBy: 'Ancient civilizations',
-    age: '4.5 billion years', 
+    age: '4.5 billion years',
   },
   venus: {
     name: 'Venus',
@@ -107,7 +108,7 @@ const celestialData = {
     temperature: '-60°C (average)',
     moonsCount: 2,
     discoveredBy: 'Ancient civilizations',
-    age: '4.6 billion years', 
+    age: '4.6 billion years',
   },
   jupiter: {
     name: 'Jupiter',
@@ -149,7 +150,7 @@ const celestialData = {
     moonsCount: 27,
     hasRings: 'Yes',
     discoveredBy: 'William Herschel (1781)',
-    age: '4.5 billion years', 
+    age: '4.5 billion years',
   },
   neptune: {
     name: 'Neptune',
@@ -168,18 +169,18 @@ const celestialData = {
   moon: {
     name: 'Moon',
     radius: 1737.1,
-    distanceFromSun: '0.384 (from Earth)', // distance from Earth in million km
+    distanceFromEarth: 0.384,
     atmosphere: 'No',
     type: 'Moon',
     planetType: 'Natural Satellite',
     orbitalPeriod: '27.3 days',
     discoveredBy: 'Not applicable',
-    age: '4.5 billion years', 
+    age: '4.5 billion years',
   },
   pluto: {
     name: 'Pluto',
-    radius: 1188.3, 
-    distanceFromSun: 5906.4, 
+    radius: 1188.3,
+    distanceFromSun: 5906.4,
     atmosphere: 'Yes (Nitrogen, Methane, Carbon Monoxide)',
     type: 'Dwarf Planet',
     planetType: 'Ice Dwarf',
@@ -191,1043 +192,339 @@ const celestialData = {
   },
 };
 
+// Visual-scale layout: orbit radius, relative orbital speed, relative spin speed, atmosphere glow.
+const planetLayout = {
+  mercury: { radius: 0.3, orbit: 8, orbitSpeed: 2, spin: 1 },
+  venus: { radius: 0.6, orbit: 12, orbitSpeed: 1.5, spin: 0.5, glow: 0xffa500 },
+  earth: { radius: 0.5, orbit: 16, orbitSpeed: 1, spin: 1, glow: 0x0000ff },
+  mars: { radius: 0.6, orbit: 22, orbitSpeed: 0.8, spin: 0.8, glow: 0xff4500 },
+  jupiter: { radius: 2, orbit: 30, orbitSpeed: 0.6, spin: 2, glow: 0xffff00 },
+  saturn: { radius: 1.8, orbit: 40, orbitSpeed: 0.5, spin: 1.8, glow: 0xfffacd },
+  uranus: { radius: 1.4, orbit: 50, orbitSpeed: 0.3, spin: 1.5, glow: 0x00ffff },
+  neptune: { radius: 1.3, orbit: 60, orbitSpeed: 0.25, spin: 1.2, glow: 0x0000ff },
+  pluto: { radius: 0.3, orbit: 70, orbitSpeed: 0.2, spin: 1.2, glow: 0x87ceeb },
+};
+const orbitColors = {
+  mercury: 0xaaaaaa,
+  venus: 0xffa500,
+  earth: 0x0000ff,
+  mars: 0xff0000,
+  jupiter: 0xffff00,
+  saturn: 0xffa500,
+  uranus: 0x00ffff,
+  neptune: 0x0000ff,
+  pluto: 0x87ceeb,
+};
 
-function keplerianToCartesian(a, e, i, om, w, ma) {
- 
-  i = THREE.MathUtils.degToRad(i);
-  om = THREE.MathUtils.degToRad(om);
-  w = THREE.MathUtils.degToRad(w);
-  ma = THREE.MathUtils.degToRad(ma);
+// Simulation clock: radians of Earth's orbit per millisecond at 1x speed.
+const EARTH_ORBIT_RATE = 0.00009;
+// Planet self-rotation in radians per millisecond at 1x speed.
+const SPIN_RATE = 0.0006;
+const DEFAULT_CAMERA = { x: 10, y: 5, z: 30 };
 
-  // Solve Kepler's Equation for eccentric anomaly E
-  let E = ma;
-  for (let j = 0; j < 10; j++) {
-      E = ma + e * Math.sin(E);
-  }
-
-  // True anomaly v
-  const nu = 2 * Math.atan2(Math.sqrt(1 + e) * Math.sin(E / 2), Math.sqrt(1 - e) * Math.cos(E / 2));
-
-  // Distance r
-  const r = a * (1 - e * e) / (1 + e * Math.cos(nu));
-
-
-  // Convert to 3D space
-  const x = (Math.cos(om) * Math.cos(w + nu) - Math.sin(om) * Math.sin(w + nu) * Math.cos(i)) * r;
-  const y = (Math.sin(om) * Math.cos(w + nu) + Math.cos(om) * Math.sin(w + nu) * Math.cos(i)) * r;
-  const z = Math.sin(w + nu) * Math.sin(i) * r;
-
-  return new THREE.Vector3(x, z, -y);
+// Rim-glow shader; the intensity is computed from the true per-vertex view direction.
+function createGlowMaterial(color, base, power) {
+  return new THREE.ShaderMaterial({
+    uniforms: { glowColor: { value: new THREE.Color(color) } },
+    vertexShader: `
+      varying float intensity;
+      void main() {
+        vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+        vec3 viewNormal = normalize(normalMatrix * normal);
+        vec3 viewDirection = normalize(-viewPosition.xyz);
+        intensity = pow(max(${base.toFixed(2)} - dot(viewNormal, viewDirection), 0.0), ${power.toFixed(1)});
+        gl_Position = projectionMatrix * viewPosition;
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 glowColor;
+      varying float intensity;
+      void main() {
+        gl_FragColor = vec4(glowColor * intensity, 1.0);
+      }
+    `,
+    side: THREE.BackSide,
+    blending: THREE.AdditiveBlending,
+    transparent: true,
+    depthWrite: false,
+  });
 }
 
+function createLabel(text) {
+  const fontSize = 60;
+  const padding = 20;
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  context.font = `${fontSize}px Arial`;
+  canvas.width = Math.ceil(context.measureText(text).width + padding * 2);
+  canvas.height = fontSize + padding;
 
+  context.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.font = `${fontSize}px Arial`;
+  context.fillStyle = 'white';
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.fillText(text, canvas.width / 2, canvas.height / 2);
 
-function Orrery({ isInitializing,  }) {
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, depthWrite: false }));
+  const height = 0.4;
+  label.scale.set((height * canvas.width) / canvas.height, height, 1);
+  return label;
+}
+
+function Orrery({ onLoadProgress, onLoaded }) {
   const mountRef = useRef(null);
-  const cameraRef = useRef(null);     
-  const controlsRef = useRef(null);  
-  const sceneRef = useRef(null);
+  const orreryContainerRef = useRef(null);
+  const audioRef = useRef(null);
   const [showOrbits, setShowOrbits] = useState(true);
+  const [showNeos, setShowNeos] = useState(false);
+  const [showNeoLabels, setShowNeoLabels] = useState(false);
   const [timeSpeed, setTimeSpeed] = useState(1);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [selectedObjectData, setSelectedObjectData] = useState(null);
-  const [showAsteroids, setShowAsteroids] = useState(false);
-  const [showComets, setShowComets] = useState(false);
-  const orreryContainerRef = useRef(null);
-  const statsRef = useRef(null);
-  const asteroidsRef = useRef([]);
-  const cometsRef = useRef([]);
   const [isMuted, setIsMuted] = useState(false);
-  const audioRef = useRef(null);
+  const [trackIndex, setTrackIndex] = useState(0);
 
+  // Values read by the render loop without re-running the scene setup.
+  const simRef = useRef({ timeSpeed: 1, isPaused: false });
+  // Scene objects whose visibility is driven by the menu toggles.
+  const toggleablesRef = useRef(null);
 
-  const playlist = [
-    music2,
-    music1,
-    music3
-  ];
-
-  // Function to toggle mute
-  const toggleMute = () => {
-    if (audioRef.current) {
-        audioRef.current.muted = !isMuted;
-        setIsMuted((prev) => !prev);
-        
-        if (!isMuted) {
-            audioRef.current.play(); 
-        }
-    }
-  };
-
-  
-
-
-
-  const animationRef = useRef({
-    showOrbits: true,
-    showAsteroids: true,
-    showComets: true,
-    timeSpeed: 1,
-    lastTime: 0,
-    elapsedTime: 0,
-    isPaused: false,
-  });
-
-
-  const handleCloseCard = () => {
-    setSelectedObjectData(null); 
-  };
+  // Keep loader callbacks in refs so the scene is not rebuilt when a parent re-renders.
+  const loadCallbacksRef = useRef({ onLoadProgress, onLoaded });
+  loadCallbacksRef.current = { onLoadProgress, onLoaded };
 
   const toggleFullScreen = useCallback(() => {
     if (!document.fullscreenElement) {
-      if (orreryContainerRef.current.requestFullscreen) {
-        orreryContainerRef.current.requestFullscreen();
-      }
+      orreryContainerRef.current.requestFullscreen?.();
     } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
+      document.exitFullscreen?.();
     }
   }, []);
 
-  function createAsteroidOrbit(asteroid) {
-    const segments = 1000;
-    const points = [];
-    const a = asteroid.a * 100;  // Scale the semi-major axis for visualization
-    const e = asteroid.e;
-    const i = asteroid.i;  
-    const om = asteroid.om;
-    const w = asteroid.w;
-
-    for (let j = 0; j <= segments; j++) {
-        const meanAnomaly = (j / segments) * 360;
-        const position = keplerianToCartesian(a, e, i, om, w, meanAnomaly);
-        points.push(position);
-    }
-
-    const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points);
-    const orbitMaterial = new THREE.LineBasicMaterial({
-        color: 0xff0000,  
-        opacity: 0.7,
-        transparent: true,
-    });
-
-    const orbit = new THREE.Line(orbitGeometry, orbitMaterial);
-
-   
-
-    return orbit;
-}
-
-function createCometsOrbit(comet) {
-  const segments = 1000; 
-  const points = [];
-  const a = comet.a * 100;  
-  const e = comet.e;
-  const i = comet.i; 
-  const om = comet.om;
-  const w = comet.w;
-
-  for (let j = 0; j <= segments; j++) {
-      const meanAnomaly = (j / segments) * 360;
-      const position = keplerianToCartesian(a, e, i, om, w, meanAnomaly);
-      points.push(position);
-  }
-
-  const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points);
-  const orbitMaterial = new THREE.LineBasicMaterial({
-      color: 0xa9a9a9, 
-      opacity: 0.7,
-      transparent: true,
-  });
-
-  const orbit = new THREE.Line(orbitGeometry, orbitMaterial);
-
- 
-
-  return orbit;
-}
-
-
-
   useEffect(() => {
-    // Set up scene, camera, and renderer
+    const mount = mountRef.current;
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 30;
-    cameraRef.current = camera;  // Store camera in ref
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+    camera.position.set(0, 0, 30);
 
-    const currentMountRef = mountRef.current;
     const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
-    mountRef.current.appendChild(renderer.domElement);
+    mount.appendChild(renderer.domElement);
 
-    // Set up OrbitControls for camera movement
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true; 
-    controlsRef.current = controls; 
+    controls.enableDamping = true;
 
-    // Load textures
-    const textureLoader = new TextureLoader();
-    const sunTextureMap = textureLoader.load(sunTexture);
-    const earthTextureMap = textureLoader.load(earthTexture);
-    const marsTextureMap = textureLoader.load(marsTexture);
-    const moonTextureMap = textureLoader.load(moonTexture);
-    const mercuryTextureMap = textureLoader.load(mercuryTexture);
-    const venusTextureMap = textureLoader.load(venusTexture);
-    const jupiterTextureMap = textureLoader.load(jupiterTexture);
-    const saturnTextureMap = textureLoader.load(saturnTexture);
-    const uranusTextureMap = textureLoader.load(uranusTexture);
-    const neptuneTextureMap = textureLoader.load(neptuneTexture);
-    const bumpMap = textureLoader.load(earthbump);
-    const specularMap = textureLoader.load(earthspec);
-    const cloudTexture = textureLoader.load(earthcloud);
-    const cloudTransparency = textureLoader.load(earthcloudtrans);
-    const nightLights = textureLoader.load(earthlights);
-    const plutoTextureMap = textureLoader.load(plutoTexture);
-    const asteroidTextureMap = textureLoader.load(asteroidTexture);
+    const loadingManager = new THREE.LoadingManager();
+    loadingManager.onProgress = (_url, loaded, total) => {
+      loadCallbacksRef.current.onLoadProgress?.(loaded / total);
+    };
+    loadingManager.onLoad = () => loadCallbacksRef.current.onLoaded?.();
 
-    // Create starfield
-    const createStars = (scene, numStars, minDistance, maxDistance) => {
-      const starGeometry = new THREE.SphereGeometry(0.4, 24, 24);
-      const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    
-      for (let i = 0; i < numStars; i++) {
-        const star = new THREE.Mesh(starGeometry, starMaterial);
-    
-        
-        const theta = Math.random() * Math.PI * 2;  
-        const phi = Math.random() * Math.PI;  
-        
-        
-        const distance = Math.random() * (maxDistance - minDistance) + minDistance;
-    
-        star.position.x = distance * Math.sin(phi) * Math.cos(theta);
-        star.position.y = distance * Math.sin(phi) * Math.sin(theta);
-        star.position.z = distance * Math.cos(phi);
-    
-        scene.add(star);
-      }
+    const textureLoader = new THREE.TextureLoader(loadingManager);
+    const loadColorTexture = (url) => {
+      const texture = textureLoader.load(url);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      return texture;
     };
 
-    createStars(scene, 500, 500, 1000); 
+    scene.background = new THREE.CubeTextureLoader(loadingManager).load([x1, x2, y1, y2, z1, z2]);
 
-    
-    
-    function addAsteroids(scene) {
-      Object.values(asteroids).forEach(asteroid => {
-        // Create asteroid mesh
-        const asteroidGeometry = new THREE.SphereGeometry(0.2, 32, 32);
-        const asteroidMaterial = new THREE.MeshBasicMaterial({ map: asteroidTextureMap,
-          color: 0xffffff });
-        const asteroidMesh = new THREE.Mesh(asteroidGeometry, asteroidMaterial);
-    
-        // Create orbit
-        const orbit = createAsteroidOrbit(asteroid);
-    
-        // Calculate initial position of the asteroid
-        const position = keplerianToCartesian(asteroid.a * 100, asteroid.e, asteroid.i, asteroid.om, asteroid.w, asteroid.ma);
-        asteroidMesh.position.copy(position); // Set asteroid position
-    
-        // Create asteroid name label using THREE.Sprite
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-    
-        // Adjust canvas size dynamically based on text
-        const text = asteroid.name;
-        const fontSize = 60; // Adjust font size if needed
-        context.font = `${fontSize}px Arial`;
-        const textWidth = context.measureText(text).width;
-    
-        // Calculate canvas dimensions for the rectangle
-        const padding = 20; // Padding inside the rectangle
-        const rectWidth = textWidth + padding * 5; // Add padding on both sides
-        const rectHeight = fontSize + padding; // Add padding above and below text
-    
-        // Set canvas size to fit the text and background rectangle
-        canvas.width = rectWidth ;
-        canvas.height = rectHeight * 5;
-    
-        // Draw rectangular background
-        context.fillStyle = 'rgba(0, 0, 0, 0.7)'; // Semi-transparent black background
-        context.fillRect(0, 0, rectWidth, rectHeight);
-    
-        // Draw the text on top of the rectangle
-        context.font = `${fontSize}px Arial`;
-        context.fillStyle = 'white'; // White text color
-        context.textAlign = 'center';
-        context.textBaseline = 'middle'; // Vertically center the text
-        context.fillText(text, rectWidth / 2, rectHeight / 2); // Draw text in the center of the rectangle
-    
-        // Create a texture from the canvas and make it a sprite
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.needsUpdate = true;
-    
-        const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
-        const label = new THREE.Sprite(spriteMaterial);
-    
-        // Set label's initial position slightly above the asteroid
-        label.position.copy(position);
-        label.position.y += 0.5;
-    
-        // Add mesh, orbit, and label to the scene
-        scene.add(asteroidMesh);
-        scene.add(orbit);
-        scene.add(label);
-    
-        // Store asteroid and label references
-        asteroidsRef.current.push({
-          mesh: asteroidMesh,
-          orbit: orbit,
-          a: asteroid.a * 100, // Scale the semi-major axis
-          e: asteroid.e,
-          i: asteroid.i,
-          om: asteroid.om,
-          w: asteroid.w,
-          ma: asteroid.ma,
-          label: label // Store the label
-        });
-      });
+    // Starfield as a single draw call.
+    const starPositions = new Float32Array(500 * 3);
+    for (let k = 0; k < 500; k++) {
+      const direction = new THREE.Vector3().randomDirection();
+      direction.multiplyScalar(500 + Math.random() * 500).toArray(starPositions, k * 3);
     }
-    
-    function addComets(scene) {
-      Object.values(comets).forEach(comet => {
-        const cometGeometry = new THREE.SphereGeometry(0.2, 32, 32);
-        const cometMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        const cometMesh = new THREE.Mesh(cometGeometry, cometMaterial);
-
-        const orbit = createCometsOrbit(comet);
-
-        cometsRef.current.push({ 
-          mesh: cometMesh, 
-          orbit: orbit,
-          a: comet.a * 100, // Scale the semi-major axis
-          e: comet.e,
-          i: comet.i,
-          om: comet.om,
-          w: comet.w,
-          ma: comet.ma
-        });
-
-        scene.add(cometMesh);
-        scene.add(orbit);
-      });
-    }
-
-    addAsteroids(scene);  
-    addComets(scene);  
-    
-
-   
+    const starGeometry = new THREE.BufferGeometry();
+    starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    scene.add(new THREE.Points(starGeometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.8 })));
 
     // Lighting
-    const sunRadius = 3;
+    scene.add(new THREE.AmbientLight(0x404040, 0.2));
+    scene.add(new THREE.PointLight(0xffffff, 250, 0));
 
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.2); 
-    scene.add(ambientLight);
-
-    const pointLight = new THREE.PointLight(0xffffff, 250, 0);  
-    pointLight.position.set(0, 0); 
-    pointLight.castShadow = true;  
-    pointLight.shadow.mapSize.width = 4096; 
-    pointLight.shadow.mapSize.height = 4096;
-    pointLight.shadow.camera.near = 1;
-    pointLight.shadow.camera.far = 5000; 
-
-    scene.add(pointLight);
-
-
-    
-
-    
-    // Function to create a planet with realistic lighting and atmosphere
-    const createPlanetWithAtmosphere = (planet, radius, atmosphereRadius, color, intensity, opacity) => {
-      planet.material = new THREE.MeshPhongMaterial({
-        map: planet.material.map,
-        bumpMap: planet.material.bumpMap,
-        bumpScale: planet.material.bumpScale,
-        specularMap: planet.material.specularMap,
-        specular: planet.material.specular,
-        shininess: 5,
-      });
-
-      const atmosphereGeometry = new THREE.SphereGeometry(atmosphereRadius, 64, 64);
-      const atmosphereMaterial = new THREE.ShaderMaterial({
-        uniforms: {
-          sunPosition: { value: new THREE.Vector3(1, 0, 0) },
-          planetPosition: { value: planet.position },
-          c: { value: 0.1 },
-          p: { value: 4.5 },
-          glowColor: { value: new THREE.Color(color) },
-          viewVector: { value: camera.position }
-        },
-        vertexShader: `
-          uniform vec3 viewVector;
-          varying float intensity;
-          void main() {
-            vec3 vNormal = normalize(normalMatrix * normal);
-            vec3 vNormel = normalize(normalMatrix * viewVector);
-            intensity = pow(0.5 - dot(vNormal, vNormel), 2.0);
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          }
-        `,
-        fragmentShader: `
-          uniform vec3 glowColor;
-          varying float intensity;
-          void main() {
-            gl_FragColor = vec4(glowColor, 1.0) * intensity;
-          }
-        `,
-        side: THREE.BackSide,
-        blending: THREE.AdditiveBlending,
-        transparent: true
-      });
-
-      const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
-
-      const planetGroup = new THREE.Group();
-      planetGroup.add(planet);
-      planetGroup.add(atmosphere);
-
-      return planetGroup;
-    };
-    // Planet parameters for atmospheres
-    const planets = {
-      earth: { radius: 0.5, atmosphereRadius: 0.511, color: 0x0000ff, intensity: 0.7, opacity: 0.1, positionX: 16 },
-      venus: { radius: 0.6, atmosphereRadius: 0.621, color: 0xFFA500, intensity: 0.5, opacity: 0.4, positionX: 12 },
-      mars: { radius: 0.6, atmosphereRadius: 0.624, color: 0xFF4500, intensity: 0.5, opacity: 0.25, positionX: 22 },
-      jupiter: { radius: 2, atmosphereRadius: 2.05, color: 0xFFFF00, intensity: 0.4, opacity: 0.2, positionX: 30 },
-      saturn: { radius: 1.8, atmosphereRadius: 1.85, color: 0xFFFACD, intensity: 0.3, opacity: 0.2, positionX: 40 },
-      uranus: { radius: 1.4, atmosphereRadius: 1.47, color: 0x00FFFF, intensity: 0.3, opacity: 0.2, positionX: 50 },
-      neptune: { radius: 1.3, atmosphereRadius: 1.33, color: 0x0000FF, intensity: 0.4, opacity: 0.25, positionX: 60 },
-      pluto: { radius: 0.3, atmosphereRadius: 0.31, color: 0x87CEEB, intensity: 0.4, opacity: 0.15, positionX: 70 }
-    };
-
-
-    
     // Sun
-    const sunGeometry = new THREE.SphereGeometry(sunRadius, 64, 64);
-    const sunMaterial = new THREE.MeshBasicMaterial({
-      map: sunTextureMap,
-      emissive: new THREE.Color(0xffff00),
-      emissiveIntensity: 100
-    });
-    const sun = new THREE.Mesh(sunGeometry, sunMaterial);
-    sun.castShadow = false;
-    sun.receiveShadow = false;
+    const sunRadius = 3;
+    const sun = new THREE.Mesh(
+      new THREE.SphereGeometry(sunRadius, 64, 64),
+      new THREE.MeshBasicMaterial({ map: loadColorTexture(sunTexture) })
+    );
     scene.add(sun);
-    
-    // Add a glow effect to the sun
-    const sunGlowGeometry = new THREE.SphereGeometry(sunRadius * 1.5, 64, 64);
-    const sunGlowMaterial = new THREE.ShaderMaterial({
-      uniforms: {
-        viewVector: { value: camera.position }
-      },
-      vertexShader: `
-        uniform vec3 viewVector;
-        varying float intensity;
-        void main() {
-          vec3 vNormal = normalize(normalMatrix * normal);
-          vec3 vNormel = normalize(normalMatrix * viewVector);
-          intensity = pow(0.7 - dot(vNormal, vNormel), 4.0);
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        varying float intensity;
-        void main() {
-          gl_FragColor = vec4(1.0, 0.7, 0.3, 1.0) * intensity;
-        }
-      `,
-      side: THREE.BackSide,
-      blending: THREE.AdditiveBlending,
-      transparent: true
+    scene.add(new THREE.Mesh(new THREE.SphereGeometry(sunRadius * 1.5, 64, 64), createGlowMaterial(0xffb34d, 0.7, 4)));
+
+    // Planets
+    const planetTextures = {
+      mercury: mercuryTexture,
+      venus: venusTexture,
+      earth: earthTexture,
+      mars: marsTexture,
+      jupiter: jupiterTexture,
+      saturn: saturnTexture,
+      uranus: uranusTexture,
+      neptune: neptuneTexture,
+      pluto: plutoTexture,
+    };
+    const planets = {};
+    Object.entries(planetLayout).forEach(([key, layout]) => {
+      const materialOptions = { map: loadColorTexture(planetTextures[key]), shininess: 5 };
+      if (key === 'earth') {
+        Object.assign(materialOptions, {
+          bumpMap: textureLoader.load(earthbump),
+          bumpScale: 0.2,
+          specularMap: textureLoader.load(earthspec),
+          specular: new THREE.Color('black'),
+        });
+      }
+      const mesh = new THREE.Mesh(
+        new THREE.SphereGeometry(layout.radius, 64, 64),
+        new THREE.MeshPhongMaterial(materialOptions)
+      );
+      if (key === 'earth') mesh.rotation.z = THREE.MathUtils.degToRad(23.5);
+      if (key === 'mars') mesh.rotation.z = THREE.MathUtils.degToRad(25);
+
+      const group = new THREE.Group();
+      group.add(mesh);
+      if (layout.glow !== undefined) {
+        const atmosphereRadius = layout.radius * 1.025;
+        group.add(new THREE.Mesh(new THREE.SphereGeometry(atmosphereRadius, 64, 64), createGlowMaterial(layout.glow, 0.5, 2)));
+      }
+      group.position.x = layout.orbit;
+      group.userData.objectKey = key;
+      scene.add(group);
+      planets[key] = group;
     });
-    const sunGlow = new THREE.Mesh(sunGlowGeometry, sunGlowMaterial);
-    scene.add(sunGlow);
 
-    
-    
+    const clouds = new THREE.Mesh(
+      new THREE.SphereGeometry(0.51, 64, 64),
+      new THREE.MeshPhongMaterial({
+        map: loadColorTexture(earthcloud),
+        alphaMap: textureLoader.load(earthcloudtrans),
+        transparent: true,
+        opacity: 0.2,
+        depthWrite: false,
+      })
+    );
+    scene.add(clouds);
 
-    // Mercury
-    const mercuryGeometry = new THREE.SphereGeometry(0.3, 64, 64);
-    const mercuryMaterial = new THREE.MeshStandardMaterial({ map: mercuryTextureMap,
-      roughness: 1,
-      metalness: 0, 
-      emissive: new THREE.Color(0x111111),  
-      emissiveIntensity: 0.5,   });
-    const mercury = new THREE.Mesh(mercuryGeometry, mercuryMaterial);
-    mercury.position.x = 8;  
-    scene.add(mercury);
-
-    // Venus
-    const venusGeometry = new THREE.SphereGeometry(planets.venus.radius, 64, 64);
-    const venusMaterial = new THREE.MeshStandardMaterial({ map: venusTextureMap, 
-      roughness: 1,
-      metalness: 0,  });
-    const venus = new THREE.Mesh(venusGeometry, venusMaterial);
-
-    const venusWithAtmosphere = createPlanetWithAtmosphere(venus, planets.venus.radius , planets.venus.atmosphereRadius, planets.venus.color, planets.venus.intensity, planets.venus.opacity);
-    venusWithAtmosphere.position.x = planets.venus.positionX;
-    scene.add(venusWithAtmosphere);
-
-
-    // Earth
-    const earthGeometry = new THREE.SphereGeometry(planets.earth.radius, 64, 64);
-    const earthMaterial = new THREE.MeshStandardMaterial({ map: earthTextureMap,
-      bumpMap: bumpMap,
-      bumpScale: 0.2,
-      specularMap: specularMap,
-      specular: new THREE.Color('black'),
-      emissiveMap: nightLights,
-      emissive: new THREE.Color('white'),
-      emissiveIntensity: 1,
-      color: new THREE.Color('rgb(70,130,180)'),
-      roughness: 1,
-      metalness: 0, 
-  
-    
-    });
-    const earth = new THREE.Mesh(earthGeometry, earthMaterial);
-    earth.rotation.z = THREE.MathUtils.degToRad(23.5); // Earth's axial tilt
-
-    const earthWithAtmosphere = createPlanetWithAtmosphere(earth, planets.earth.radius, planets.earth.atmosphereRadius, planets.earth.color, planets.earth.intensity, planets.earth.opacity);
-    earthWithAtmosphere.position.x = planets.earth.positionX;
-    scene.add(earthWithAtmosphere);
-    // Add cloud layer
-    const cloudGeometry = new THREE.SphereGeometry(0.51, 64, 64);
-    const cloudMaterial = new THREE.MeshPhongMaterial({
-      map: cloudTexture,
-      alphaMap: cloudTransparency,
-      transparent: true,
-      opacity: 0.2,
-      depthWrite: false,
-    });
-    const cloudMesh = new THREE.Mesh(cloudGeometry, cloudMaterial);
-    cloudMesh.position.x = earthWithAtmosphere.position.x;
-    cloudMesh.position.y = earthWithAtmosphere.position.y;
-
-    scene.add(cloudMesh);
-
-    // Earth's Moon
-    const moonGeometry = new THREE.SphereGeometry(0.2, 64, 64);
-    const moonMaterial = new THREE.MeshStandardMaterial({ map: moonTextureMap,
-      roughness: 1,
-      metalness: 0,  });
-    const moon = new THREE.Mesh(moonGeometry, moonMaterial);
-    moon.position.set(6.5, 0, 0);
+    const moon = new THREE.Mesh(
+      new THREE.SphereGeometry(0.2, 64, 64),
+      new THREE.MeshStandardMaterial({ map: loadColorTexture(moonTexture), roughness: 1, metalness: 0 })
+    );
+    moon.userData.objectKey = 'moon';
     scene.add(moon);
 
-    // Mars
-    const marsGeometry = new THREE.SphereGeometry(planets.mars.radius, 64, 64);
-    const marsMaterial = new THREE.MeshStandardMaterial({ map: marsTextureMap,
-      roughness: 1,
-      metalness: 0,  });
-    const mars = new THREE.Mesh(marsGeometry, marsMaterial);
-    mars.rotation.z = THREE.MathUtils.degToRad(25); // Mars's axial tilt
-
-    const marsWithAtmosphere = createPlanetWithAtmosphere(mars,planets.mars.radius , planets.mars.atmosphereRadius, planets.mars.color, planets.mars.intensity, planets.mars.opacity);
-    marsWithAtmosphere.position.x = planets.mars.positionX;
-    scene.add(marsWithAtmosphere);
-
-    // Jupiter
-    const jupiterGeometry = new THREE.SphereGeometry(planets.jupiter.radius, 64, 64);
-    const jupiterMaterial = new THREE.MeshStandardMaterial({ map: jupiterTextureMap,
-      roughness: 1,
-      metalness: 0,  });
-    const jupiter = new THREE.Mesh(jupiterGeometry, jupiterMaterial);
-
-    const jupiterWithAtmosphere = createPlanetWithAtmosphere(jupiter,planets.jupiter.radius , planets.jupiter.atmosphereRadius, planets.jupiter.color, planets.jupiter.intensity, planets.jupiter.opacity);
-    jupiterWithAtmosphere.position.x = planets.jupiter.positionX;
-    scene.add(jupiterWithAtmosphere);
-
-
-    // Saturn
-    const saturnGeometry = new THREE.SphereGeometry(planets.saturn.radius, 64, 64);
-    const saturnMaterial = new THREE.MeshStandardMaterial({ map: saturnTextureMap,
-      roughness: 1,
-      metalness: 0,  });
-    const saturn = new THREE.Mesh(saturnGeometry, saturnMaterial);
-
-    const saturnWithAtmosphere = createPlanetWithAtmosphere(saturn,planets.saturn.radius , planets.saturn.atmosphereRadius, planets.saturn.color, planets.saturn.intensity, planets.saturn.opacity);
-    saturnWithAtmosphere.position.x = planets.saturn.positionX;
-    scene.add(saturnWithAtmosphere);
-
-    // Saturn's rings
+    // Saturn's rings: RingGeometry has one radial segment, so u = 0 (inner) / 1 (outer) spans the strip texture.
     const ringGeometry = new THREE.RingGeometry(2.2, 3.2, 120);
-    const ringPos = ringGeometry.attributes.position;
-    const ringVec = new THREE.Vector3();
-    for (let i = 0; i < ringPos.count; i++) {
-      ringVec.fromBufferAttribute(ringPos, i);
-      ringGeometry.attributes.uv.setXY(i, ringVec.length() < 2.7 ? 0 : 1, 1);
+    const ringPositions = ringGeometry.attributes.position;
+    const ringVertex = new THREE.Vector3();
+    for (let k = 0; k < ringPositions.count; k++) {
+      ringVertex.fromBufferAttribute(ringPositions, k);
+      ringGeometry.attributes.uv.setXY(k, ringVertex.length() < 2.7 ? 0 : 1, 1);
     }
-    const ringMaterial = new THREE.MeshBasicMaterial({
-      map: textureLoader.load(saturnRingTexture),
-      side: THREE.DoubleSide,
-      transparent: true,
-      roughness: 1,
-      metalness: 0,
-    });
-    const rings = new THREE.Mesh(ringGeometry, ringMaterial);
-    rings.rotation.x = Math.PI / 2; 
-    rings.position.x = 40;  
+    const rings = new THREE.Mesh(
+      ringGeometry,
+      new THREE.MeshBasicMaterial({ map: loadColorTexture(saturnRingTexture), side: THREE.DoubleSide, transparent: true })
+    );
+    rings.rotation.x = Math.PI / 2;
     scene.add(rings);
 
-    // Uranus
-    const uranusGeometry = new THREE.SphereGeometry(planets.uranus.radius, 64, 64);
-    const uranusMaterial = new THREE.MeshStandardMaterial({ map: uranusTextureMap,
-      roughness: 1,
-      metalness: 0,  });
-    const uranus = new THREE.Mesh(uranusGeometry, uranusMaterial);
+    // Planet orbit rings
+    const planetOrbits = Object.entries(planetLayout).map(([key, { orbit }]) => {
+      const mesh = new THREE.Mesh(
+        new THREE.RingGeometry(orbit, orbit + 0.05, 256),
+        new THREE.MeshBasicMaterial({ color: orbitColors[key], side: THREE.DoubleSide })
+      );
+      mesh.rotation.x = Math.PI / 2;
+      scene.add(mesh);
+      return mesh;
+    });
 
-    const uranusWithAtmosphere = createPlanetWithAtmosphere(uranus,planets.uranus.radius , planets.uranus.atmosphereRadius, planets.uranus.color, planets.uranus.intensity, planets.uranus.opacity);
-    uranusWithAtmosphere.position.x = planets.uranus.positionX;
-    scene.add(uranusWithAtmosphere);
+    // Asteroids and comets share geometry and materials; positions come from their real orbital elements.
+    const smallBodyGeometry = new THREE.SphereGeometry(0.2, 16, 16);
+    const asteroidMaterial = new THREE.MeshBasicMaterial({ map: loadColorTexture(asteroidTexture) });
+    const cometMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const asteroidOrbitMaterial = new THREE.LineBasicMaterial({ color: 0xff0000, opacity: 0.7, transparent: true });
+    const cometOrbitMaterial = new THREE.LineBasicMaterial({ color: 0xa9a9a9, opacity: 0.7, transparent: true });
 
-    // Neptune
-    const neptuneGeometry = new THREE.SphereGeometry(planets.neptune.radius, 64, 64);
-    const neptuneMaterial = new THREE.MeshStandardMaterial({ map: neptuneTextureMap,
-      roughness: 1,
-      metalness: 0,  });
-    const neptune = new THREE.Mesh(neptuneGeometry, neptuneMaterial);
-
-    const neptuneWithAtmosphere = createPlanetWithAtmosphere(neptune,planets.neptune.radius , planets.neptune.atmosphereRadius, planets.neptune.color, planets.neptune.intensity, planets.neptune.opacity);
-    neptuneWithAtmosphere.position.x = planets.neptune.positionX;
-    scene.add(neptuneWithAtmosphere);
-
-    // Pluto
-    const plutoGeometry = new THREE.SphereGeometry(planets.pluto.radius, 64, 64);
-    const plutoMaterial = new THREE.MeshStandardMaterial({ map: plutoTextureMap, 
-      roughness: 1,
-      metalness: 0,  });
-    const pluto = new THREE.Mesh(plutoGeometry, plutoMaterial);
-
-    const plutoWithAtmosphere = createPlanetWithAtmosphere(pluto, planets.pluto.radius , planets.pluto.atmosphereRadius, planets.pluto.color, planets.pluto.intensity, planets.pluto.opacity);
-    plutoWithAtmosphere.position.x = planets.pluto.positionX;
-    scene.add(plutoWithAtmosphere);
-    
-
-    // Shadow Casting
-    // Sun
-    sun.castShadow = false; 
-    sun.receiveShadow = false;
-
-    // Mercury
-    mercury.castShadow = true;
-    mercury.receiveShadow = true;
-
-    // Venus
-    venus.castShadow = true;
-    venus.receiveShadow = true;
-
-    // Earth
-    earth.castShadow = true;
-    earth.receiveShadow = true;
-
-    // Moon
-    moon.castShadow = true;
-    moon.receiveShadow = true;
-
-    // Mars
-    mars.castShadow = true;
-    mars.receiveShadow = true;
-
-    // Jupiter
-    jupiter.castShadow = true;
-    jupiter.receiveShadow = true;
-
-    // Saturn and Rings
-    saturn.castShadow = true;
-    saturn.receiveShadow = true;
-    rings.castShadow = true; 
-    rings.receiveShadow = true;
-
-    // Uranus 
-    uranus.castShadow = true;
-    uranus.receiveShadow = true;
-    
-    // Neptune
-    neptune.castShadow = true;
-    neptune.receiveShadow = true;
-
-    // Pluto
-    pluto.castShadow = true;
-    pluto.receiveShadow = true;
-
-    renderer.shadowMap.enabled = true;  
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
-    
-    const updatePlanetLighting = (planet, lightPosition) => {
-      if (planet.material && planet.material.emissive) { 
-        const planetPosition = planet.position.clone();
-        const lightDirection = lightPosition.clone().sub(planetPosition).normalize();
-        // Calculate how much light the planet gets on the sun-facing side
-        const lightIntensity = Math.max(0, lightDirection.dot(planetPosition.normalize())) * 0.7;
-        planet.material.emissive.setHSL(0.1, 0.9, lightIntensity);
-      }
+    const smallBodies = [];
+    const addSmallBodies = (catalog, material, orbitMaterial) => {
+      Object.values(catalog).forEach((body) => {
+        const mesh = new THREE.Mesh(smallBodyGeometry, material);
+        const orbitPoints = sampleOrbit(body, 360, () => new THREE.Vector3(), toVisualScale);
+        const orbit = new THREE.Line(new THREE.BufferGeometry().setFromPoints(orbitPoints), orbitMaterial);
+        const label = createLabel(body.name);
+        scene.add(mesh, orbit, label);
+        smallBodies.push({ ...body, mesh, orbit, label });
+      });
     };
+    addSmallBodies(asteroids, asteroidMaterial, asteroidOrbitMaterial);
+    addSmallBodies(comets, cometMaterial, cometOrbitMaterial);
 
+    toggleablesRef.current = { planetOrbits, smallBodies };
+    applyVisibility();
 
-    const cubeTextureLoader = new THREE.CubeTextureLoader();
-    const reflectionMap = cubeTextureLoader.load([
-      x1, // +X face
-      x2, // -X face
-      y1, // +Y face
-      y2, // -Y face
-      z1, // +Z face
-      z2, // -Z face
-    ]);
+    // Stats
+    const stats = new StatsJS();
+    stats.showPanel(0);
+    Object.assign(stats.dom.style, { position: 'absolute', top: '70px', left: '10px' });
+    mount.appendChild(stats.dom);
 
-    scene.background = reflectionMap;  
-
-
-    const getObjectRadius = (object) => {
-      if (object.geometry && object.geometry.boundingSphere) {
-        return object.geometry.boundingSphere.radius;
-      } else if (object.children && object.children.length > 0) {
-        return object.children[0].geometry.boundingSphere.radius;
-      }
-      return 1; 
-    };
-    
-    // SelectableObjects
-    const selectableObjects = [
-      mercury, 
-      venusWithAtmosphere,
-      earthWithAtmosphere,
-      marsWithAtmosphere,
-      jupiterWithAtmosphere,
-      saturnWithAtmosphere,
-      uranusWithAtmosphere,
-      neptuneWithAtmosphere,
-      plutoWithAtmosphere,
-      moon,
-      sun
-    ];
-    let selectedObject = null;  
-    let isTracking = false; 
-
-
-
+    // Selection & camera tracking
+    const selectable = [sun, moon, ...Object.values(planets)];
+    let trackedObject = null;
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
 
-    // HandleDoubleClick function
     const handleDoubleClick = (event) => {
-      event.preventDefault();
-    
-      pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-      pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
       raycaster.setFromCamera(pointer, camera);
-      const intersects = raycaster.intersectObjects(selectableObjects, true);
-    
-      if (intersects.length > 0) {
-        let targetObject = intersects[0].object;
-    
-        while (targetObject.parent && !selectableObjects.includes(targetObject)) {
-          targetObject = targetObject.parent;
-        }
-    
-        selectedObject = targetObject;
-        isTracking = true;
-    
-        controls.target.copy(selectedObject.position);
-    
-        const objectRadius = getObjectRadius(targetObject);
-        const offsetDistance = objectRadius * 3;
-    
-        gsap.to(camera.position, {
-          duration: 2,
-          x: targetObject.position.x + offsetDistance,
-          y: targetObject.position.y + offsetDistance * 0.5,
-          z: targetObject.position.z + offsetDistance,
-          ease: 'power2.inOut',
-          onUpdate: () => {
-            controls.update();
-          }
-        });
-    
-        let objectKey = '';
-    
-        if (targetObject === mercury) objectKey = 'mercury';
-        else if (targetObject === venusWithAtmosphere) objectKey = 'venus';
-        else if (targetObject === earthWithAtmosphere) objectKey = 'earth';
-        else if (targetObject === marsWithAtmosphere) objectKey = 'mars';
-        else if (targetObject === jupiterWithAtmosphere) objectKey = 'jupiter';
-        else if (targetObject === saturnWithAtmosphere) objectKey = 'saturn';
-        else if (targetObject === uranusWithAtmosphere) objectKey = 'uranus';
-        else if (targetObject === neptuneWithAtmosphere) objectKey = 'neptune';
-        else if (targetObject === plutoWithAtmosphere) objectKey = 'pluto';
-        else if (targetObject === moon) objectKey = 'moon';
-        else if (targetObject === sun) objectKey = 'sun'; 
-    
-        const objectData = celestialData[objectKey] || {
-          name: 'Unknown Object',
-          type: targetObject.type || 'Unknown',
-          radius: 'Unknown',
-          distanceFromSun: 'Unknown',
-          atmosphere: 'Unknown',
-          planetType: 'Unknown',
-          hasRings: 'Unknown',
-        };
-    
-        // Update the card with the selected object data
-        setSelectedObjectData(objectData);
-      } else {
-        selectedObject = null;
-        isTracking = false;
-        setSelectedObjectData(null); 
+      const hit = raycaster.intersectObjects(selectable, true)[0];
+
+      if (!hit) {
+        trackedObject = null;
+        setSelectedObjectData(null);
+        return;
       }
+
+      let target = hit.object;
+      while (target.parent && !selectable.includes(target)) target = target.parent;
+      trackedObject = target;
+
+      const bounds = new THREE.Sphere();
+      new THREE.Box3().setFromObject(target).getBoundingSphere(bounds);
+      const offset = bounds.radius * 3;
+      controls.target.copy(target.position);
+      gsap.to(camera.position, {
+        duration: 2,
+        x: target.position.x + offset,
+        y: target.position.y + offset * 0.5,
+        z: target.position.z + offset,
+        ease: 'power2.inOut',
+      });
+
+      const key = target === sun ? 'sun' : target.userData.objectKey;
+      setSelectedObjectData(celestialData[key] || null);
     };
-    
-    
-    
-    
+    renderer.domElement.addEventListener('dblclick', handleDoubleClick);
 
-    window.addEventListener('dblclick', handleDoubleClick);
-
-    // Reset camera on "R" key press
-    const handleKeyPress = (event) => {
-      if (event.key === 'r' || event.key === 'R') {
-        gsap.to(camera.position, {
-          duration: 2,
-          x: 10,  
-          y: 5,
-          z: 30,
-          ease: 'power2.inOut',
-          onUpdate: () => {
-            camera.lookAt(0, 0, 0); 
-            controls.update();
-          }
-        });
-        gsap.to(controls.target, {
-          duration: 2,
-          x: 0,
-          y: 0,
-          z: 0,
-          ease: 'power2.inOut',
-          onUpdate: () => {
-            controls.update();
-          }
-        });
-
-        selectedObject = sun;
-        setSelectedObjectData(null);  
-        isTracking = false;     // Disable tracking
-      }
+    const handleKeyDown = (event) => {
+      if (event.key.toLowerCase() !== 'r' || event.target.closest?.('input, textarea')) return;
+      trackedObject = null;
+      setSelectedObjectData(null);
+      gsap.to(camera.position, { duration: 2, ...DEFAULT_CAMERA, ease: 'power2.inOut' });
+      gsap.to(controls.target, { duration: 2, x: 0, y: 0, z: 0, ease: 'power2.inOut' });
     };
-    window.addEventListener('keypress', handleKeyPress);
+    window.addEventListener('keydown', handleKeyDown);
 
-    sceneRef.current = scene;
-    cameraRef.current = camera;
-    controlsRef.current = controls;
-
-
-    // Orbits
-    const createOrbit = (radius, color) => {
-      const orbitGeometry = new THREE.RingGeometry(radius, radius + 0.05, 256);
-      const orbitMaterial = new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide });
-      const orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
-      orbit.rotation.x = Math.PI / 2; 
-      orbit.isOrbit = true;
-      return orbit;
-    };
-
-  
-      const orbits = [
-        createOrbit(8, 0xaaaaaa),
-        createOrbit(12, 0xffa500),
-        createOrbit(16, 0x0000ff),
-        createOrbit(22, 0xff0000),
-        createOrbit(30, 0xffff00),
-        createOrbit(40, 0xffa500),
-        createOrbit(50, 0x00ffff),
-        createOrbit(60, 0x0000ff),
-        createOrbit(70, 0x87CEEB)
-      ];
-  
-      
-      orbits.forEach(orbit => {
-        orbit.visible = animationRef.current.showOrbits;
-        scene.add(orbit);
-      });
-      
-
-    // Set up stats.js
-    const stats = new StatsJS();
-    stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-    stats.dom.style.position = 'absolute';
-    stats.dom.style.top = '70px';
-    stats.dom.style.left = '10px';
-    mountRef.current.appendChild(stats.dom);
-    statsRef.current = stats;
-
-
-    
-
-    // Animation loop!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    const animate = (currentTime) => {
-      requestAnimationFrame(animate);
-      if (!isInitializing && !animationRef.current.isPaused) {
-        
-
-      const { showOrbits, timeSpeed, lastTime } = animationRef.current;
-
-      stats.begin();
-      const deltaTime = currentTime - lastTime;
-      animationRef.current.lastTime = currentTime;
-      animationRef.current.elapsedTime += deltaTime * 0.0009 * timeSpeed;
-      
-      scene.children.filter(child => child.isOrbit).forEach(orbit => {
-        orbit.visible = showOrbits;
-      });
-
-
-      // Update asteroid visibility
-      asteroidsRef.current.forEach(({ mesh, orbit }) => {
-        mesh.visible = animationRef.current.showAsteroids;
-        orbit.visible = animationRef.current.showAsteroids && animationRef.current.showOrbits;
-      });
-
-      // Update comet visibility
-      cometsRef.current.forEach(({ mesh, orbit }) => {
-        mesh.visible = animationRef.current.showComets;
-        orbit.visible = animationRef.current.showComets && animationRef.current.showOrbits;
-      });
-
-      // Animate asteroids
-      asteroidsRef.current.forEach((asteroidObj) => {
-        const { mesh, a, e, i, om, w, ma, label } = asteroidObj;
-      
-        const meanAnomaly = (ma + animationRef.current.elapsedTime * 0.1) % 360;
-        const position = keplerianToCartesian(a, e, i, om, w, meanAnomaly);
-      
-        // Update the asteroid's position
-        mesh.position.copy(position);
-      
-        // Update the label's position to stay above the asteroid
-        label.position.copy(position);
-        label.position.y += 0.5;
-      
-        // Update visibility based on "Show NEOs" toggle
-        const showAsteroids = animationRef.current.showAsteroids;
-        mesh.visible = showAsteroids;
-        label.visible = showAsteroids; // Label is shown when the asteroid is visible
-        asteroidObj.orbit.visible = showAsteroids && animationRef.current.showOrbits;
-      });
-
-      // Animate comets
-      asteroidsRef.current.forEach((cometObj) => {
-        const { mesh, a, e, i, om, w, ma } = cometObj;
-        
-        const meanAnomaly = (ma + animationRef.current.elapsedTime * 0.1) % 360;
-        const position = keplerianToCartesian(a, e, i, om, w, meanAnomaly);
-        
-        mesh.position.copy(position);
-        mesh.visible = animationRef.current.showComets;
-        cometObj.orbit.visible = animationRef.current.showComets && animationRef.current.showOrbits;
-      });
-
-      const time = animationRef.current.elapsedTime*0.1;
-      const rotationSpeed = 0.01 * timeSpeed;
-        mercury.rotation.y += rotationSpeed * 1;
-        venusWithAtmosphere.rotation.y += rotationSpeed * 0.5;
-        earthWithAtmosphere.rotation.y += rotationSpeed;
-        cloudMesh.rotation.y += rotationSpeed * 0.8;
-        marsWithAtmosphere.rotation.y += rotationSpeed * 0.8;
-        jupiterWithAtmosphere.rotation.y += rotationSpeed * 2;
-        saturnWithAtmosphere.rotation.y += rotationSpeed * 1.8;
-        uranusWithAtmosphere.rotation.y += rotationSpeed * 1.5;
-        neptuneWithAtmosphere.rotation.y += rotationSpeed * 1.2;
-        plutoWithAtmosphere.rotation.y += rotationSpeed * 1.2;
-      
-        //Planets Orbits and Rotations (Scaled Down for better Visibility/Control)
-        // Mercury Orbit and Rotation
-      
-      mercury.position.x = Math.cos(time * 2) * 8;
-      mercury.position.z = Math.sin(time * 2) * 8;
-
-      // Venus Orbit and Rotation
-      
-      venusWithAtmosphere.position.x = Math.cos(time * 1.5) * 12; 
-      venusWithAtmosphere.position.z = Math.sin(time * 1.5) * 12; 
-
-      // Earth Orbit and Rotation
-      
-      earthWithAtmosphere.position.x = Math.cos(time) * 16; 
-      earthWithAtmosphere.position.z = Math.sin(time) * 16;  
-      cloudMesh.rotation.y += 0.008;
-      cloudMesh.position.x = earthWithAtmosphere.position.x;
-      cloudMesh.position.z = earthWithAtmosphere.position.z;
-
-
-      // Moon's Orbit and Rotation (relative to Earth)
-      moon.position.x = earthWithAtmosphere.position.x + Math.cos(time * 10) * 1.5; 
-      moon.position.z = earthWithAtmosphere.position.z + Math.sin(time * 10) * 1.5;
-      moon.rotation.y += 0; // Moon rotation
-
-      // Mars rotation and orbit
-      
-      marsWithAtmosphere.position.x = Math.cos(time * 0.8) * 22; 
-      marsWithAtmosphere.position.z = Math.sin(time * 0.8) * 22; 
-
-
-      // Jupiter rotation and orbit
-      
-      jupiterWithAtmosphere.position.x = Math.cos(time * 0.6) * 30; 
-      jupiterWithAtmosphere.position.z = Math.sin(time * 0.6) * 30; 
-
-      // Saturn rotation and orbit
-      
-      saturnWithAtmosphere.position.x = Math.cos(time * 0.5) * 40; 
-      saturnWithAtmosphere.position.z = Math.sin(time * 0.5) * 40; 
-      rings.position.x = saturnWithAtmosphere.position.x;
-      rings.position.z = saturnWithAtmosphere.position.z;
-
-      // Uranus rotation and orbit
-      
-      uranusWithAtmosphere.position.x = Math.cos(time * 0.3) * 50; 
-      uranusWithAtmosphere.position.z = Math.sin(time * 0.3) * 50; 
-
-
-      // Neptune rotation and orbit
-      
-      neptuneWithAtmosphere.position.x = Math.cos(time * 0.25) * 60; 
-      neptuneWithAtmosphere.position.z = Math.sin(time * 0.25) * 60; 
-      
-      // Pluto rotation and orbit
-      
-      plutoWithAtmosphere.position.x = Math.cos(time * 0.20) * 70; 
-      plutoWithAtmosphere.position.z = Math.sin(time * 0.20) * 70; 
-
-      const sunPosition = new THREE.Vector3(0, 0, 0);
-      updatePlanetLighting(earthWithAtmosphere, sunPosition);
-      updatePlanetLighting(venusWithAtmosphere, sunPosition);
-      updatePlanetLighting(marsWithAtmosphere, sunPosition);
-      updatePlanetLighting(jupiterWithAtmosphere, sunPosition);
-      updatePlanetLighting(saturnWithAtmosphere, sunPosition);
-      updatePlanetLighting(uranusWithAtmosphere, sunPosition);
-      updatePlanetLighting(neptuneWithAtmosphere, sunPosition);
-      updatePlanetLighting(plutoWithAtmosphere, sunPosition);
-
-
-      // If a planet is selected we have to keep the camera focused and tracking its movement!!
-      if (selectedObject && isTracking) {
-        controls.target.copy(selectedObject.position);
-      }
-      controlsRef.current.update();
-      renderer.render(scene, camera);
-      }
-      stats.end();
-    };
-    
-    animate(0);
-
-    // Handle window resize
     const handleResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -1235,94 +532,132 @@ function createCometsOrbit(comet) {
     };
     window.addEventListener('resize', handleResize);
 
-    
+    // Animation loop
+    let simTime = 0;
+    let lastFrame = performance.now();
+    let frameId;
+    const ecliptic = new THREE.Vector3();
 
+    const animate = (now) => {
+      frameId = requestAnimationFrame(animate);
+      stats.begin();
 
+      // Clamp so returning to a background tab doesn't make everything jump.
+      const dt = Math.min(now - lastFrame, 100);
+      lastFrame = now;
+      const { timeSpeed: speed, isPaused: paused } = simRef.current;
 
-    
+      if (!paused) {
+        simTime += dt * EARTH_ORBIT_RATE * speed;
+        const spin = dt * SPIN_RATE * speed;
 
+        // Planets orbit counter-clockwise seen from above (prograde), matching the Keplerian bodies.
+        Object.entries(planets).forEach(([key, group]) => {
+          const { orbit, orbitSpeed, spin: spinFactor } = planetLayout[key];
+          const angle = simTime * orbitSpeed;
+          group.position.set(Math.cos(angle) * orbit, 0, -Math.sin(angle) * orbit);
+          group.rotation.y += spin * spinFactor;
+        });
 
-    // Clean up on component unmount
-    return () => {
-      if (currentMountRef && currentMountRef.contains(renderer.domElement)) {
-          currentMountRef.removeChild(renderer.domElement);
-          currentMountRef.removeChild(stats.dom);
+        const earth = planets.earth.position;
+        clouds.position.copy(earth);
+        clouds.rotation.y += spin * 1.3;
+        moon.position.set(earth.x + Math.cos(simTime * 10) * 1.5, 0, earth.z - Math.sin(simTime * 10) * 1.5);
+        rings.position.copy(planets.saturn.position);
+
+        // Mean motion scales with a^-1.5 (Kepler's third law), relative to Earth's orbit.
+        const earthOrbitDegrees = THREE.MathUtils.radToDeg(simTime);
+        smallBodies.forEach((body) => {
+          const meanAnomaly = body.ma + earthOrbitDegrees / Math.pow(body.a, 1.5);
+          eclipticToScene(elementsToEcliptic(body.a, body.e, body.i, body.om, body.w, meanAnomaly), ecliptic);
+          toVisualScale(ecliptic);
+          body.mesh.position.copy(ecliptic);
+          body.label.position.set(ecliptic.x, ecliptic.y + 0.5, ecliptic.z);
+        });
       }
-      
-      // remove event listeners
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('dblclick', handleDoubleClick);
-      window.removeEventListener('keypress', handleKeyPress);
-  };
-  }, [isInitializing]);
-  
-  
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-  useEffect(() => {
-    animationRef.current.showOrbits = showOrbits;
-  }, [showOrbits]);
-  useEffect(() => {
-    // If music is started, set muted state
-    if (audioRef.current) {
-        audioRef.current.muted = isMuted;
-    }
-    const playAudio = () => {
-      if (audioRef.current && !isMuted) {
-          audioRef.current.play().catch((error) => {
-              console.error("Audio playback failed:", error);
-          });
-      }
-  };
-    playAudio();
-}, [isMuted]);
-  useEffect(() => {
-    animationRef.current.showAsteroids = showAsteroids;
-  }, [showAsteroids]);
-  useEffect(() => {
-    animationRef.current.showComets = showComets;
-  }, [showComets]);
-  useEffect(() => {
-    animationRef.current.timeSpeed = timeSpeed;
-  }, [timeSpeed]);
-  useEffect(() => {
-    animationRef.current.isPaused = isPaused;
-  }, [isPaused]);
-  useEffect(() => {
-    const handleFullScreenChange = () => {
-      setIsFullScreen(!!document.fullscreenElement);
+
+      if (trackedObject) controls.target.copy(trackedObject.position);
+      controls.update();
+      renderer.render(scene, camera);
+      stats.end();
     };
+    frameId = requestAnimationFrame(animate);
 
-    
+    return () => {
+      cancelAnimationFrame(frameId);
+      gsap.killTweensOf(camera.position);
+      gsap.killTweensOf(controls.target);
+      renderer.domElement.removeEventListener('dblclick', handleDoubleClick);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('resize', handleResize);
+      toggleablesRef.current = null;
+      controls.dispose();
+      disposeScene(scene);
+      renderer.dispose();
+      mount.removeChild(renderer.domElement);
+      mount.removeChild(stats.dom);
+    };
+    // applyVisibility reads refs only, so the scene is intentionally built once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const visibilityRef = useRef({ showOrbits, showNeos, showNeoLabels });
+  visibilityRef.current = { showOrbits, showNeos, showNeoLabels };
+
+  function applyVisibility() {
+    const objects = toggleablesRef.current;
+    if (!objects) return;
+    const { showOrbits: orbits, showNeos: neos, showNeoLabels: labels } = visibilityRef.current;
+    objects.planetOrbits.forEach((orbit) => {
+      orbit.visible = orbits;
+    });
+    objects.smallBodies.forEach((body) => {
+      body.mesh.visible = neos;
+      body.orbit.visible = neos && orbits;
+      body.label.visible = neos && labels;
+    });
+  }
+
+  useEffect(applyVisibility, [showOrbits, showNeos, showNeoLabels]);
+
+  useEffect(() => {
+    simRef.current.timeSpeed = timeSpeed;
+    simRef.current.isPaused = isPaused;
+  }, [timeSpeed, isPaused]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.muted = isMuted;
+    if (!isMuted) {
+      // Browsers block autoplay until the user interacts; fall back to the muted state.
+      audio.play().catch(() => setIsMuted(true));
+    }
+  }, [isMuted, trackIndex]);
+
+  useEffect(() => {
+    const handleFullScreenChange = () => setIsFullScreen(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', handleFullScreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullScreenChange);
   }, []);
 
-  const handleTimeControl = (adjustment) => {
-    setTimeSpeed(prevSpeed => {
-      const newSpeed = prevSpeed * adjustment;
-      
-      return Math.max(0.01, Math.min(newSpeed, 10));
-    });
-  
+  const handleTimeControl = (factor) => {
+    setTimeSpeed((prev) => Math.max(0.01, Math.min(prev * factor, 10)));
   };
-  const togglePause = () => {
-    setIsPaused(!isPaused);
-  };
+
   return (
     <div className={`orrery-container ${isFullScreen ? 'fullscreen' : ''}`} ref={orreryContainerRef}>
       <div style={{ width: '100%', height: '100%' }} ref={mountRef}></div>
-      <audio ref={audioRef} loop>
-        {playlist.map((track, index) => (
-          <source key={index} src={track} type="audio/mpeg" />
-          ))}
-          Your browser does not support the audio element.
-      </audio>
+      <audio
+        ref={audioRef}
+        src={playlist[trackIndex]}
+        preload="none"
+        onEnded={() => setTrackIndex((index) => (index + 1) % playlist.length)}
+      />
       {selectedObjectData && (
-        <ObjectCard objectData={selectedObjectData} onClose={handleCloseCard} />
+        <ObjectCard objectData={selectedObjectData} onClose={() => setSelectedObjectData(null)} />
       )}
-      <div className={`menu-toggle ${isMenuOpen ? 'open' : ''}`} onClick={toggleMenu}>
+      <div className={`menu-toggle ${isMenuOpen ? 'open' : ''}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
         <div className="bar"></div>
         <div className="bar"></div>
         <div className="bar"></div>
@@ -1331,29 +666,17 @@ function createCometsOrbit(comet) {
       {isMenuOpen && (
         <div className="menu space-theme">
           <label className="orbit-toggle">
-            <input
-              type="checkbox"
-              checked={showOrbits}
-              onChange={() => setShowOrbits(!showOrbits)}
-            />
+            <input type="checkbox" checked={showOrbits} onChange={() => setShowOrbits(!showOrbits)} />
             <span className="slider"></span>
             <span className="label-text">Show Orbits</span>
           </label>
           <label className="comet-toggle">
-            <input
-              type="checkbox"
-              checked={showComets}
-              onChange={() => setShowComets(!showComets)}
-            />
+            <input type="checkbox" checked={showNeos} onChange={() => setShowNeos(!showNeos)} />
             <span className="slider"></span>
-            <span className="label-text">Show NEOs</span> 
+            <span className="label-text">Show NEOs</span>
           </label>
           <label className="asteroid-toggle">
-            <input
-            type="checkbox"
-            checked={showAsteroids}
-            onChange={() => setShowAsteroids(!showAsteroids)}
-            />
+            <input type="checkbox" checked={showNeoLabels} onChange={() => setShowNeoLabels(!showNeoLabels)} />
             <span className="slider"></span>
             <span className="label-text">Show NEO Names</span>
           </label>
@@ -1361,37 +684,35 @@ function createCometsOrbit(comet) {
             <h3>Time Control</h3>
             <div className="button-group">
               <button onClick={() => handleTimeControl(0.5)} className="time-button slow">
-                <i className="fas fa-backward"></i> Slower
+                <Rewind size={14} /> Slower
               </button>
               <button onClick={() => setTimeSpeed(1)} className="time-button normal">
-                <i className="fas fa-sync"></i> Normal
+                <RotateCcw size={14} /> Normal
               </button>
               <button onClick={() => handleTimeControl(2)} className="time-button fast">
-                <i className="fas fa-forward"></i> Faster
+                <FastForward size={14} /> Faster
               </button>
-              <button onClick={togglePause} className={`time-button ${isPaused ? 'play' : 'pause'}`}>
-                <i className={`fas fa-${isPaused ? 'play' : 'pause'}`}></i> {isPaused ? 'Play' : 'Pause'}
+              <button onClick={() => setIsPaused(!isPaused)} className={`time-button ${isPaused ? 'play' : 'pause'}`}>
+                {isPaused ? <Play size={14} /> : <Pause size={14} />} {isPaused ? 'Play' : 'Pause'}
               </button>
             </div>
-            <div className="speed-display">
-              Current Speed: {timeSpeed.toFixed(2)}x
-            </div>
+            <div className="speed-display">Current Speed: {timeSpeed.toFixed(2)}x</div>
           </div>
         </div>
       )}
-      
-      <button 
-        className="fullscreen-button" 
+
+      <button
+        className="fullscreen-button"
         onClick={toggleFullScreen}
-        aria-label={isFullScreen ? "Exit full screen" : "Enter full screen"}
+        aria-label={isFullScreen ? 'Exit full screen' : 'Enter full screen'}
       >
         {isFullScreen ? <Minimize2 size={24} /> : <Maximize2 size={24} />}
       </button>
-      <div className="controls-text" style={{ position: 'absolute', bottom: '10px', left: '10px', color: 'white', fontSize: '14px' }}>
-        <p>Press 'R' to reset the camera. </p>
-        <p>Double click on a celestial object to select/track it and view details.</p> 
-        <p>Control Menu is on Top Right.</p>   
-        <button className="mute-button" onClick={toggleMute}>
+      <div className="controls-text">
+        <p>Press 'R' to reset the camera.</p>
+        <p>Double click on a celestial object to select/track it and view details.</p>
+        <p>Control Menu is on Top Right.</p>
+        <button className="mute-button" onClick={() => setIsMuted(!isMuted)}>
           {isMuted ? 'Unmute' : 'Mute'}
         </button>
       </div>

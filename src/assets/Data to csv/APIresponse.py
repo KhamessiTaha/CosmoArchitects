@@ -1,8 +1,9 @@
+import os
 import requests
 import csv
 
-# Initial API URL with your API key
-api_key = 'lf9ca3nAatRf8yfpG7V0Vn8fH8OYjMGYqGMV63fF'
+# Get a free key at https://api.nasa.gov and export it as NASA_API_KEY
+api_key = os.environ.get('NASA_API_KEY', 'DEMO_KEY')
 base_url = f'https://api.nasa.gov/neo/rest/v1/neo/browse?api_key={api_key}'
 
 # File path for saving the CSV in the same directory as the script
