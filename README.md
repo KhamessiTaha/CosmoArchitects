@@ -102,6 +102,7 @@ npm run dev
 | `npm test` | Unit tests, including positions checked against JPL Horizons |
 | `npm run lint` | ESLint, including React hooks rules |
 | `node scripts/fetch-horizons.mjs` | Refresh the JPL Horizons reference data used by the tests |
+| `node scripts/fetch-featured-bodies.mjs` | Refresh elements for bodies used by moments (e.g. Apophis) |
 
 Add `?stats` to a URL to show the FPS meter in production.
 
@@ -122,21 +123,37 @@ scripts/      Maintenance scripts (Horizons reference data)
 
 ## 🎮 User Guide
 
-The explorer lives at `/explore`. `/simulation` opens it at visual scale and `/accuratesimulation` at true scale; add `?scale=true` or `?scale=visual` to any of them.
+The explorer lives at `/explore`. `/simulation` opens it at visual scale and `/accuratesimulation` at true scale.
 
 ### Controls
 | Input | Action |
 |---|---|
 | Drag / right-drag / scroll | Rotate / pan / zoom |
 | Click or tap a body, or use the bottom bar | Fly to it and show its facts |
+| `/` | Search the Sun, Moon, planets, asteroids, comets and live NEOs |
 | `0`–`9` | Fly to the Sun, Mercury … Pluto |
 | `V` | Switch between visual and true scale |
-| `P` | Pause / resume time |
+| `P` / `N` | Pause / resume time, jump back to now |
 | `[` / `]` | Slower / faster time |
 | `L` | Toggle planet names |
 | `R` / `Esc` | Reset the camera / close the fact card |
 
-The menu (top right) also toggles orbits, the near-Earth asteroid & comet catalog, and live NEOs from NASA, and has a **Now** button to return to the present.
+The menu (top right) has the scale switch, time controls (speed, **Go to date**, a year scrubber for 1800–2100, **Now**), curated **Moments** (Apophis's 2029 flyby, Mars's 2003 close approach, Halley's 1986 perihelion, Pluto inside Neptune's orbit), and layer toggles.
+
+### Shareable links
+The address bar tracks the view, and **Share view** copies a link that includes the simulated date:
+
+```
+/explore?focus=earth&date=2029-04-13T18:46Z&scale=true&speed=1h&paused=1
+```
+
+| Parameter | Values |
+|---|---|
+| `focus` | `sun`, `moon`, a planet (`mars`), or a small body's slug (`1p-halley`, `99942-apophis-2004-mn4`) |
+| `date` | ISO date or date-time, UTC (`1986-02-09`, `2029-04-13T21:46Z`) |
+| `scale` | `visual` or `true` |
+| `speed` | `realtime`, `1min`, `1h`, `1d`, `1w`, `1mo`, `1y` |
+| `paused` | `1` to start paused |
 
 ## 🔬 Technical Details
 
@@ -146,6 +163,7 @@ The menu (top right) also toggles orbits, the near-Earth asteroid & comet catalo
 - **Moon**: lunar theory's largest periodic terms, corrected from the equinox of date to J2000.
 - **Asteroids & comets**: two-body propagation from each body's osculating elements and epoch.
 - **Accuracy, checked in `src/lib/ephemeris.test.js` against JPL Horizons**: planets within 0.2° and 0.5% of distance (1950–2049), the Moon within 0.5°, catalog asteroids within 0.5° near their epoch. Comets with old epochs (e.g. Halley) drift, because planetary perturbations are not modelled.
+- **Moments** are verified in `src/data/moments.test.js` against the same engine (and Horizons for Apophis, which our two-body model places within 10,000 km of JPL's 38,000 km pass). Planet positions are flagged as approximate outside 1800–2050.
 
 ### Rendering
 - Logarithmic depth buffer so a 1,700 km Moon and Pluto's orbit share one scene at true scale.

@@ -9,6 +9,7 @@ import { pickNearest } from './picking';
 import { planetStyles, MOON_VISUAL_DISTANCE } from './visualLayout';
 import { planetElements } from '../../data/planets';
 import { asteroids } from '../../data/asteroids';
+import featuredBodies from '../../data/featuredBodies.json';
 import { comets } from '../../data/comets';
 import { celestialFacts } from '../../data/celestialFacts';
 import { smallBodyFacts } from '../../data/smallBodyFacts';
@@ -49,12 +50,24 @@ function addStarfield(scene, count = 1500) {
  * The CosmicVue orrery: every body positioned from its orbital elements for the simulation date,
  * shown at visual (compressed) or true scale with an animated transition between the two.
  *
- * options: initialScale ('visual' | 'true'), speedIndex, showStats
+ * options: initialScale ('visual' | 'true'), initialJd, speedIndex, paused, showStats
  * callbacks: onLoadProgress(0..1), onLoaded(), onTime({ jd, offsetFromNowMs }), onSelect({ key, facts } | null),
  *            onNeoStatus({ state: 'idle' | 'loading' | 'ready' | 'error', count })
+ * Body keys: 'sun', 'moon', planet keys ('mars'), or slugs of small-body names ('1p-halley').
  */
 export function createOrrery(mount, options = {}) {
-  const { initialScale = 'visual', speedIndex = 4, showStats = false, onLoadProgress, onLoaded, onTime, onSelect, onNeoStatus } = options;
+  const {
+    initialScale = 'visual',
+    initialJd,
+    speedIndex = 4,
+    paused = false,
+    showStats = false,
+    onLoadProgress,
+    onLoaded,
+    onTime,
+    onSelect,
+    onNeoStatus,
+  } = options;
 
   // The clock holds still until textures have loaded, so the date on screen starts at "now".
   let ready = false;
@@ -85,7 +98,7 @@ export function createOrrery(mount, options = {}) {
   const planetByKey = Object.fromEntries(planets.map((planet) => [planet.key, planet]));
   const moon = createMoon(stage);
 
-  const clock = createClock({ speedIndex });
+  const clock = createClock({ jd: initialJd, speedIndex, paused });
 
   let planetOrbits = [];
   let orbitsSampledAt = null;
@@ -108,7 +121,7 @@ export function createOrrery(mount, options = {}) {
   samplePlanetOrbits(clock.jd);
 
   const catalogSets = [
-    createSmallBodySet(stage, Object.values(asteroids), {
+    createSmallBodySet(stage, [...Object.values(asteroids), ...Object.values(featuredBodies)], {
       kind: 'asteroid',
       pointColor: 0xff6b6b,
       orbitColor: 0xff0000,
@@ -174,37 +187,43 @@ export function createOrrery(mount, options = {}) {
   let selectedKey = null;
 
   const bodyCandidates = () => [
-    { key: 'sun', body: sun },
-    { key: 'moon', body: moon },
-    ...planets.map((planet) => ({ key: planet.key, body: planet })),
-  ].map(({ key, body }) => ({
+    { key: 'sun', body: sun, kind: 'star' },
+    { key: 'moon', body: moon, kind: 'moon' },
+    ...planets.map((planet) => ({ key: planet.key, body: planet, kind: planet.key === 'pluto' ? 'dwarf planet' : 'planet' })),
+  ].map(({ key, body, kind }) => ({
     key,
+    name: body.name,
+    kind,
     position: body.root.position,
     radius: body.root.scale.x,
     subject: { getPosition: () => body.root.position, getRadius: () => body.root.scale.x },
-    facts: celestialFacts[key],
+    getFacts: () => celestialFacts[key],
   }));
 
-  const smallBodyCandidates = () =>
+  const smallBodyCandidates = ({ visibleOnly }) =>
     [...catalogSets, liveNeoSet]
-      .filter((set) => set?.visible)
+      .filter((set) => set && (!visibleOnly || set.visible))
       .flatMap((set) =>
         set.entries.map((entry) => ({
-          key: `${entry.kind}:${entry.body.name}`,
+          key: entry.key,
+          name: entry.body.name,
+          kind: entry.kind,
           position: entry.position,
           radius: entry.radius,
           subject: { getPosition: () => entry.position, getRadius: () => entry.radius },
-          facts: smallBodyFacts(entry.body, entry.kind),
+          getFacts: () => smallBodyFacts(entry.body, entry.kind),
         }))
       );
 
-  const select = (candidate) => {
+  // Small bodies are enlarged spheres at visual scale; frame them with surrounding context rather than filling the view.
+  const SMALL_BODY_KINDS = new Set(['asteroid', 'comet', 'neo']);
+  const select = (candidate, { viewRadii = SMALL_BODY_KINDS.has(candidate.kind) ? 40 : 4 } = {}) => {
     selectedKey = candidate.key;
     // Approach from the sunward side, slightly above the ecliptic, so bodies arrive lit.
     const position = candidate.subject.getPosition();
     const sunward = position.lengthSq() > 0 ? position.clone().negate().normalize().add(new THREE.Vector3(0, 0.35, 0)).normalize() : null;
-    rig.flyTo(candidate.subject, { preferredDirection: sunward });
-    onSelect?.({ key: candidate.key, facts: candidate.facts });
+    rig.flyTo(candidate.subject, { preferredDirection: sunward, viewRadii });
+    onSelect?.({ key: candidate.key, facts: candidate.getFacts() });
   };
 
   // Click/tap (not drag) picks the nearest body on screen; planets win over small bodies.
@@ -216,7 +235,8 @@ export function createOrrery(mount, options = {}) {
     const rect = renderer.domElement.getBoundingClientRect();
     const pointer = { x: event.clientX - rect.left, y: event.clientY - rect.top };
     const hit =
-      pickNearest(bodyCandidates(), camera, rect, pointer) || pickNearest(smallBodyCandidates(), camera, rect, pointer, 10);
+      pickNearest(bodyCandidates(), camera, rect, pointer) ||
+      pickNearest(smallBodyCandidates({ visibleOnly: true }), camera, rect, pointer, 10);
     if (hit) select(hit);
   };
   renderer.domElement.addEventListener('pointerdown', handlePointerDown);
@@ -243,6 +263,46 @@ export function createOrrery(mount, options = {}) {
   // Reports the simulated date and how far it is from the real present (ms, positive = future).
   const reportTime = () => onTime?.({ jd: clock.jd, offsetFromNowMs: msFromJulianDate(clock.jd) - Date.now() });
 
+  // Places every body for date `jd` at scale blend `t`.
+  const updateBodies = (jd, t) => {
+    // Resample planet orbits after large time jumps (their elements drift slowly).
+    if (Math.abs(jd - orbitsSampledAt) > 3652.5) {
+      samplePlanetOrbits(jd);
+      setOrbitBlend();
+      applyVisibility();
+    }
+
+    const moonGeocentric = eclipticToScene(moonGeocentricPosition(jd), moonOffset);
+
+    planets.forEach((planet) => {
+      eclipticToScene(planetPosition(planet.elements, jd), position);
+      if (planet.key === 'earth') position.addScaledVector(moonGeocentric, -1 / EARTH_MOON_MASS_RATIO);
+      scalePosition(position, t, scratch);
+      planet.root.position.copy(position);
+      planet.root.scale.setScalar(blendSize(planet.visualRadius, planet.trueRadius, t));
+      planet.label.position.copy(position);
+      planet.label.visible = visibility.planetLabels && selectedKey !== planet.key;
+    });
+
+    sun.root.scale.setScalar(blendSize(sun.visualRadius, sun.trueRadius, t));
+
+    // Moon: real direction from Earth; distance blends from the visual separation to the real one.
+    moonVisualOffset.copy(moonGeocentric).normalize().multiplyScalar(MOON_VISUAL_DISTANCE);
+    moonOffset.multiplyScalar(UNITS_PER_AU).lerp(moonVisualOffset, 1 - t);
+    moon.root.position.copy(planetByKey.earth.root.position).add(moonOffset);
+    moon.root.scale.setScalar(blendSize(moon.visualRadius, moon.trueRadius, t));
+    moon.label.position.copy(moon.root.position);
+    // Only label the Moon once the camera is close enough to separate it from Earth.
+    moon.label.visible =
+      visibility.planetLabels && selectedKey !== 'moon' && camera.position.distanceTo(moon.root.position) < moonOffset.length() * 12;
+
+    // Hidden sets are updated too, so searching or deep-linking to a hidden body lands on its true position.
+    catalogSets.forEach((set) => set.update(jd, t));
+    liveNeoSet?.update(jd, t);
+  };
+
+  updateBodies(clock.jd, scale.t);
+
   stage.start(
     (dt) => {
       stats?.begin();
@@ -255,49 +315,18 @@ export function createOrrery(mount, options = {}) {
         if (p >= 1) scale.animating = false;
         setOrbitBlend();
       }
-      const { t } = scale;
 
-      // Resample planet orbits after large time jumps (their elements drift slowly).
-      if (Math.abs(jd - orbitsSampledAt) > 3652.5) {
-        samplePlanetOrbits(jd);
-        setOrbitBlend();
-        applyVisibility();
-      }
+      updateBodies(jd, scale.t);
 
-      const moonGeocentric = eclipticToScene(moonGeocentricPosition(jd), moonOffset);
-      const spinRate = (dt / 1000) * clock.daysPerSecond * 24 * 2 * Math.PI;
-
-      planets.forEach((planet) => {
-        eclipticToScene(planetPosition(planet.elements, jd), position);
-        if (planet.key === 'earth') position.addScaledVector(moonGeocentric, -1 / EARTH_MOON_MASS_RATIO);
-        scalePosition(position, t, scratch);
-        planet.root.position.copy(position);
-        planet.root.scale.setScalar(blendSize(planet.visualRadius, planet.trueRadius, t));
-
-        if (!clock.paused) {
+      if (!clock.paused) {
+        const spinRate = (dt / 1000) * clock.daysPerSecond * 24 * 2 * Math.PI;
+        planets.forEach((planet) => {
           const rate = spinRate / planet.elements.rotationPeriod;
           const capped = Math.sign(rate) * Math.min(Math.abs(rate), (MAX_SPIN_RATE * dt) / 1000);
           planet.spin.rotation.y += capped;
           if (planet.clouds) planet.clouds.rotation.y += capped * 0.15;
-        }
-        planet.label.position.copy(position);
-        planet.label.visible = visibility.planetLabels && selectedKey !== planet.key;
-      });
-
-      sun.root.scale.setScalar(blendSize(sun.visualRadius, sun.trueRadius, t));
-
-      // Moon: real direction from Earth; distance blends from the visual separation to the real one.
-      moonVisualOffset.copy(moonGeocentric).normalize().multiplyScalar(MOON_VISUAL_DISTANCE);
-      moonOffset.multiplyScalar(UNITS_PER_AU).lerp(moonVisualOffset, 1 - t);
-      moon.root.position.copy(planetByKey.earth.root.position).add(moonOffset);
-      moon.root.scale.setScalar(blendSize(moon.visualRadius, moon.trueRadius, t));
-      moon.label.position.copy(moon.root.position);
-      // Only label the Moon once the camera is close enough to separate it from Earth.
-      moon.label.visible =
-        visibility.planetLabels && selectedKey !== 'moon' && camera.position.distanceTo(moon.root.position) < moonOffset.length() * 12;
-
-      catalogSets.forEach((set) => set.visible && set.update(jd, t));
-      if (liveNeoSet?.visible) liveNeoSet.update(jd, t);
+        });
+      }
 
       rig.update(dt);
 
@@ -331,11 +360,24 @@ export function createOrrery(mount, options = {}) {
     },
     setJulianDate(jd) {
       clock.setJulianDate(jd);
+      // Move bodies now, so a focus() right after a date jump flies to the new positions.
+      updateBodies(jd, scale.t);
       reportTime();
     },
-    focus(key) {
-      const candidate = bodyCandidates().find((c) => c.key === key);
-      if (candidate) select(candidate);
+    // Returns false if no body has that key (e.g. a live NEO that hasn't loaded).
+    focus(key, { viewRadii } = {}) {
+      const candidate =
+        bodyCandidates().find((c) => c.key === key) || smallBodyCandidates({ visibleOnly: false }).find((c) => c.key === key);
+      if (!candidate) return false;
+      select(candidate, viewRadii ? { viewRadii } : {});
+      return true;
+    },
+    // Everything that can be focused: [{ key, name, kind }].
+    getSearchEntries() {
+      const seen = new Set();
+      return [...bodyCandidates(), ...smallBodyCandidates({ visibleOnly: false })]
+        .filter(({ key }) => !seen.has(key) && seen.add(key))
+        .map(({ key, name, kind }) => ({ key, name, kind }));
     },
     resetCamera() {
       selectedKey = null;

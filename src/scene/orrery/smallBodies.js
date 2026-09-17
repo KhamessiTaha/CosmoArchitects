@@ -4,6 +4,7 @@ import { createOrbitLine } from './orbitLines';
 import { eclipticToScene } from '../../lib/kepler';
 import { smallBodyPosition } from '../../lib/ephemeris';
 import { blendSize, kmToUnits, scalePosition } from '../../lib/scale';
+import { slugify } from '../../lib/search';
 import { SMALL_BODY_VISUAL_RADIUS } from './visualLayout';
 
 const unitSphere = new THREE.SphereGeometry(1, 16, 16);
@@ -37,7 +38,7 @@ export function createSmallBodySet(stage, bodies, { kind, pointColor, orbitColor
     }
 
     const trueRadius = kmToUnits(Math.max((body.diameter || 1) / 2, 0.05));
-    return { body, kind, orbit, mesh, label, trueRadius, position: new THREE.Vector3(), radius: 0 };
+    return { key: slugify(body.name), body, kind, orbit, mesh, label, trueRadius, position: new THREE.Vector3(), radius: 0 };
   });
 
   const pointPositions = new Float32Array(entries.length * 3);

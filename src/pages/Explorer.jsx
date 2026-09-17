@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Orrery from '../components/orrery/Orrery';
 import LoadingScreen from '../components/LoadingScreen';
+import { parseViewState } from '../lib/viewState';
 
-// `?scale=true` or `?scale=visual` overrides the route's default starting scale.
+// Reads the shareable view (?focus=&date=&scale=&speed=&paused=) once on entry; the orrery keeps the URL in sync afterwards.
 function Explorer({ defaultScale = 'visual' }) {
-  const [searchParams] = useSearchParams();
-  const requested = searchParams.get('scale');
-  const initialScale = requested === 'true' || requested === 'visual' ? requested : defaultScale;
+  const [initialView] = useState(() => ({ scale: defaultScale, ...parseViewState(window.location.search) }));
   const [progress, setProgress] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -16,7 +14,7 @@ function Explorer({ defaultScale = 'visual' }) {
     <div>
       <Navbar links={[{ to: '/', label: 'Home' }, { to: '/explore', label: 'Explore' }]} />
       <LoadingScreen isVisible={!isLoaded} progress={progress} />
-      <Orrery key={initialScale} initialScale={initialScale} onLoadProgress={setProgress} onLoaded={() => setIsLoaded(true)} />
+      <Orrery initialView={initialView} onLoadProgress={setProgress} onLoaded={() => setIsLoaded(true)} />
     </div>
   );
 }

@@ -1,6 +1,5 @@
 import React from 'react';
-import { Rewind, FastForward, Pause, Play, Clock } from 'lucide-react';
-import { SPEED_PRESETS } from '../../lib/clock';
+import TimeControls from './TimeControls';
 
 function Toggle({ checked, onChange, label, disabled = false }) {
   return (
@@ -14,10 +13,10 @@ function Toggle({ checked, onChange, label, disabled = false }) {
 
 const scaleHints = {
   visual: 'Distances compressed and bodies enlarged so everything fits on screen.',
-  true: 'Real distances and sizes. Planets become specks: click one, or use the bar below, to fly to it.',
+  true: 'Real distances and sizes. Planets become specks: click one, search, or use the bar below to fly to it.',
 };
 
-function OrreryMenu({ scale, onScaleChange, visibility, onVisibilityChange, speedIndex, onSpeedIndexChange, isPaused, onPausedChange, onNow }) {
+function OrreryMenu({ scale, onScaleChange, visibility, onVisibilityChange, time }) {
   const toggle = (key) => (value) => onVisibilityChange({ ...visibility, [key]: value });
 
   return (
@@ -35,6 +34,8 @@ function OrreryMenu({ scale, onScaleChange, visibility, onVisibilityChange, spee
         <p className="scale-hint">{scaleHints[scale]}</p>
       </section>
 
+      <TimeControls {...time} />
+
       <section className="menu-section">
         <h3>Show</h3>
         <Toggle checked={visibility.orbits} onChange={toggle('orbits')} label="Orbits" />
@@ -47,39 +48,6 @@ function OrreryMenu({ scale, onScaleChange, visibility, onVisibilityChange, spee
           label="Asteroid & comet names"
         />
         <Toggle checked={visibility.liveNeos} onChange={toggle('liveNeos')} label="Live NEOs from NASA" />
-      </section>
-
-      <section className="menu-section">
-        <h3>Time</h3>
-        <div className="speed-row">
-          <button
-            type="button"
-            className="icon-button"
-            aria-label="Slower"
-            disabled={speedIndex === 0}
-            onClick={() => onSpeedIndexChange(speedIndex - 1)}
-          >
-            <Rewind size={16} />
-          </button>
-          <span className="speed-label">{SPEED_PRESETS[speedIndex].label}</span>
-          <button
-            type="button"
-            className="icon-button"
-            aria-label="Faster"
-            disabled={speedIndex === SPEED_PRESETS.length - 1}
-            onClick={() => onSpeedIndexChange(speedIndex + 1)}
-          >
-            <FastForward size={16} />
-          </button>
-        </div>
-        <div className="time-actions">
-          <button type="button" className="icon-button" onClick={() => onPausedChange(!isPaused)}>
-            {isPaused ? <Play size={16} /> : <Pause size={16} />} {isPaused ? 'Play' : 'Pause'}
-          </button>
-          <button type="button" className="icon-button" onClick={onNow}>
-            <Clock size={16} /> Now
-          </button>
-        </div>
       </section>
     </div>
   );
