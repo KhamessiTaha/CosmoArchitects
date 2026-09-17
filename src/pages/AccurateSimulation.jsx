@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
-import Orrery from '../components/Orrery';
+import AccurateOrrery from '../components/orrery/AccurateOrrery';
 import LoadingScreen from '../components/LoadingScreen';
 
-function Simulation() {
+function AccurateSimulation() {
   const [progress, setProgress] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
 
   return (
     <div>
-      <Navbar links={[{ to: '/', label: 'Home' }, { to: '/accuratesimulation', label: 'Accurate Orrery' }]} />
+      <Navbar links={[{ to: '/', label: 'Home' }, { to: '/simulation', label: 'Visual Orrery' }]} />
       <LoadingScreen isVisible={!isLoaded} progress={progress} />
-      <Orrery onLoadProgress={setProgress} onLoaded={() => setIsLoaded(true)} />
+      <AccurateOrrery onLoadProgress={setProgress} onLoaded={() => setIsLoaded(true)} />
     </div>
   );
 }
 
-export default Simulation;
+export default AccurateSimulation;
