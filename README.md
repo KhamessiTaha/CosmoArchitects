@@ -51,13 +51,14 @@ CosmicVue is our award-nominated submission for the **2024 NASA International Sp
 
 ### Core Technologies
 - 📊 **Three.js** - 3D graphics engine
-- 🚀 **Vue.js** - Frontend framework
+- ⚛️ **React** + **Vite** - Frontend framework and build tooling
 - 📡 **NASA APIs** - Data sources
 
 ### Data Sources
-- 🛰️ NASA's Small Body Database
-- 🌠 NASA's Horizon API
-- 🌍 NASA's Open API
+- 🪐 JPL "Keplerian Elements for Approximate Positions of the Major Planets" (planet orbits)
+- 🛰️ NASA JPL Small-Body Database (asteroid & comet catalog)
+- 🌠 NASA JPL Horizons (reference positions used to test accuracy)
+- 🌍 NASA NeoWs Open API (live near-Earth objects)
 
 ## 💻 Getting Started
 
@@ -98,55 +99,58 @@ npm run dev
 | `npm run dev` | Vite dev server with hot reload (FPS meter shown) |
 | `npm run build` | Production build into `build/` |
 | `npm run preview` | Serve the production build locally |
-| `npm test` | Unit tests (orbital mechanics, NeoWs parsing) |
+| `npm test` | Unit tests, including positions checked against JPL Horizons |
 | `npm run lint` | ESLint, including React hooks rules |
+| `node scripts/fetch-horizons.mjs` | Refresh the JPL Horizons reference data used by the tests |
 
 Add `?stats` to a URL to show the FPS meter in production.
 
 ### Project structure
 ```
 src/
-  lib/        Orbital mechanics (Kepler solver, element → position), visual scale, GPU cleanup
-  data/       Planet elements (JPL J2000), asteroid & comet catalogs, fact-card content
+  lib/        Ephemeris (planets, Moon, small bodies), Kepler solver, simulation clock, scale modes
+  data/       Planet elements (JPL), asteroid & comet catalogs, fact-card content
   services/   NASA NeoWs client
-  scene/      Framework-free three.js scenes
+  scene/      Framework-free three.js code
     core/       Shared stage (renderer, camera, controls, loop), glow materials, labels
-    visual/     Stylised, compressed-scale orrery
-    accurate/   True-scale orrery for the current date
+    orrery/     The orrery: bodies, orbit lines, small bodies, camera rig, screen-space picking
   hooks/      React glue: scene lifecycle, keyboard shortcuts, fullscreen, music
-  components/ UI (orrery/ holds the simulator overlays)
-  pages/      Routes (simulators are lazy-loaded)
+  components/ UI (orrery/ holds the explorer overlays)
+  pages/      Routes (the explorer is lazy-loaded)
+scripts/      Maintenance scripts (Horizons reference data)
 ```
 
 ## 🎮 User Guide
 
-### Basic Controls
-- **🖱️ Mouse Controls**
-  - Left Click + Drag: Rotate view
-  - Right Click + Drag: Pan view
-  - Scroll: Zoom in/out
+The explorer lives at `/explore`. `/simulation` opens it at visual scale and `/accuratesimulation` at true scale; add `?scale=true` or `?scale=visual` to any of them.
 
-### Advanced Features
-- **⚙️ Control Panel**
-  - Speed adjustment
-  - Object filters
-  - Label toggles
-  - Orbital path visualization
+### Controls
+| Input | Action |
+|---|---|
+| Drag / right-drag / scroll | Rotate / pan / zoom |
+| Click or tap a body, or use the bottom bar | Fly to it and show its facts |
+| `0`–`9` | Fly to the Sun, Mercury … Pluto |
+| `V` | Switch between visual and true scale |
+| `P` | Pause / resume time |
+| `[` / `]` | Slower / faster time |
+| `L` | Toggle planet names |
+| `R` / `Esc` | Reset the camera / close the fact card |
+
+The menu (top right) also toggles orbits, the near-Earth asteroid & comet catalog, and live NEOs from NASA, and has a **Now** button to return to the present.
 
 ## 🔬 Technical Details
 
 ### Orbital Mechanics
-- Implements Keplerian orbital parameters
-  - Eccentricity
-  - Semi-major axis
-  - Inclination
-  - Argument of periapsis
-  - True anomaly
+- One simulation clock (Julian date) drives every body; both scale modes show the same positions, only distances and sizes are rescaled.
+- **Planets & Pluto**: JPL mean elements with per-century rates, solved with Newton's method on Kepler's equation.
+- **Moon**: lunar theory's largest periodic terms, corrected from the equinox of date to J2000.
+- **Asteroids & comets**: two-body propagation from each body's osculating elements and epoch.
+- **Accuracy, checked in `src/lib/ephemeris.test.js` against JPL Horizons**: planets within 0.2° and 0.5% of distance (1950–2049), the Moon within 0.5°, catalog asteroids within 0.5° near their epoch. Comets with old epochs (e.g. Halley) drift, because planetary perturbations are not modelled.
 
-### Performance Optimizations
-- Dynamic level of detail
-- Efficient render cycles
-- Optimized data structures
+### Rendering
+- Logarithmic depth buffer so a 1,700 km Moon and Pluto's orbit share one scene at true scale.
+- Screen-space picking and fixed-pixel markers keep sub-pixel bodies selectable and visible.
+- The explorer and three.js are code-split away from the landing page.
 
 ## 🎯 Objectives
 

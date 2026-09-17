@@ -1,43 +1,86 @@
 import React from 'react';
-import { Rewind, RotateCcw, FastForward, Pause, Play } from 'lucide-react';
+import { Rewind, FastForward, Pause, Play, Clock } from 'lucide-react';
+import { SPEED_PRESETS } from '../../lib/clock';
 
-function Toggle({ className, checked, onChange, label }) {
+function Toggle({ checked, onChange, label, disabled = false }) {
   return (
-    <label className={className}>
-      <input type="checkbox" checked={checked} onChange={() => onChange(!checked)} />
+    <label className="orbit-toggle">
+      <input type="checkbox" checked={checked} disabled={disabled} onChange={() => onChange(!checked)} />
       <span className="slider"></span>
       <span className="label-text">{label}</span>
     </label>
   );
 }
 
-function OrreryMenu({ visibility, onVisibilityChange, timeSpeed, onTimeSpeedChange, isPaused, onPausedChange }) {
-  const setFlag = (key) => (value) => onVisibilityChange({ ...visibility, [key]: value });
-  const scaleSpeed = (factor) => onTimeSpeedChange(Math.max(0.01, Math.min(timeSpeed * factor, 10)));
+const scaleHints = {
+  visual: 'Distances compressed and bodies enlarged so everything fits on screen.',
+  true: 'Real distances and sizes. Planets become specks: click one, or use the bar below, to fly to it.',
+};
+
+function OrreryMenu({ scale, onScaleChange, visibility, onVisibilityChange, speedIndex, onSpeedIndexChange, isPaused, onPausedChange, onNow }) {
+  const toggle = (key) => (value) => onVisibilityChange({ ...visibility, [key]: value });
 
   return (
     <div className="menu space-theme">
-      <Toggle className="orbit-toggle" checked={visibility.showOrbits} onChange={setFlag('showOrbits')} label="Show Orbits" />
-      <Toggle className="comet-toggle" checked={visibility.showNeos} onChange={setFlag('showNeos')} label="Show NEOs" />
-      <Toggle className="asteroid-toggle" checked={visibility.showNeoLabels} onChange={setFlag('showNeoLabels')} label="Show NEO Names" />
-      <div className="time-control">
-        <h3>Time Control</h3>
-        <div className="button-group">
-          <button onClick={() => scaleSpeed(0.5)} className="time-button slow">
-            <Rewind size={14} /> Slower
+      <section className="menu-section">
+        <h3>Scale</h3>
+        <div className="scale-switch" role="group" aria-label="Scale">
+          <button type="button" className={scale === 'visual' ? 'active' : ''} aria-pressed={scale === 'visual'} onClick={() => onScaleChange('visual')}>
+            Visual
           </button>
-          <button onClick={() => onTimeSpeedChange(1)} className="time-button normal">
-            <RotateCcw size={14} /> Normal
-          </button>
-          <button onClick={() => scaleSpeed(2)} className="time-button fast">
-            <FastForward size={14} /> Faster
-          </button>
-          <button onClick={() => onPausedChange(!isPaused)} className={`time-button ${isPaused ? 'play' : 'pause'}`}>
-            {isPaused ? <Play size={14} /> : <Pause size={14} />} {isPaused ? 'Play' : 'Pause'}
+          <button type="button" className={scale === 'true' ? 'active' : ''} aria-pressed={scale === 'true'} onClick={() => onScaleChange('true')}>
+            True scale
           </button>
         </div>
-        <div className="speed-display">Current Speed: {timeSpeed.toFixed(2)}x</div>
-      </div>
+        <p className="scale-hint">{scaleHints[scale]}</p>
+      </section>
+
+      <section className="menu-section">
+        <h3>Show</h3>
+        <Toggle checked={visibility.orbits} onChange={toggle('orbits')} label="Orbits" />
+        <Toggle checked={visibility.planetLabels} onChange={toggle('planetLabels')} label="Planet names" />
+        <Toggle checked={visibility.smallBodies} onChange={toggle('smallBodies')} label="Near-Earth asteroids & comets" />
+        <Toggle
+          checked={visibility.smallBodyLabels}
+          disabled={!visibility.smallBodies}
+          onChange={toggle('smallBodyLabels')}
+          label="Asteroid & comet names"
+        />
+        <Toggle checked={visibility.liveNeos} onChange={toggle('liveNeos')} label="Live NEOs from NASA" />
+      </section>
+
+      <section className="menu-section">
+        <h3>Time</h3>
+        <div className="speed-row">
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Slower"
+            disabled={speedIndex === 0}
+            onClick={() => onSpeedIndexChange(speedIndex - 1)}
+          >
+            <Rewind size={16} />
+          </button>
+          <span className="speed-label">{SPEED_PRESETS[speedIndex].label}</span>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Faster"
+            disabled={speedIndex === SPEED_PRESETS.length - 1}
+            onClick={() => onSpeedIndexChange(speedIndex + 1)}
+          >
+            <FastForward size={16} />
+          </button>
+        </div>
+        <div className="time-actions">
+          <button type="button" className="icon-button" onClick={() => onPausedChange(!isPaused)}>
+            {isPaused ? <Play size={16} /> : <Pause size={16} />} {isPaused ? 'Play' : 'Pause'}
+          </button>
+          <button type="button" className="icon-button" onClick={onNow}>
+            <Clock size={16} /> Now
+          </button>
+        </div>
+      </section>
     </div>
   );
 }

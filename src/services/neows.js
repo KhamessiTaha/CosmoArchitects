@@ -1,17 +1,15 @@
-import { KM_PER_AU } from '../lib/kepler';
-
 // Set VITE_NASA_API_KEY in .env.local; DEMO_KEY works but is heavily rate limited.
 // Note: anything prefixed VITE_ is embedded in the public bundle.
 const NASA_API_KEY = import.meta.env.VITE_NASA_API_KEY || 'DEMO_KEY';
 
-// Converts a NeoWs "browse" response into orbital elements (a in km, angles in degrees, epoch as JD).
+// Converts a NeoWs "browse" response into orbital elements (a in AU, angles in degrees, epoch as JD).
 // Objects with missing data or open (e >= 1) orbits are skipped.
 export function parseNeoBrowseResponse(data) {
   return (data.near_earth_objects || [])
     .map(({ name, is_potentially_hazardous_asteroid: hazardous, orbital_data: o }) => {
       if (!o) return null;
       const elements = {
-        a: parseFloat(o.semi_major_axis) * KM_PER_AU,
+        a: parseFloat(o.semi_major_axis),
         e: parseFloat(o.eccentricity),
         i: parseFloat(o.inclination),
         om: parseFloat(o.ascending_node_longitude),

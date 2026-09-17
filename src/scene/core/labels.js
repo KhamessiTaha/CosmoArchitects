@@ -1,57 +1,57 @@
 import * as THREE from 'three';
 
-function spriteFromCanvas(canvas, materialOptions = {}) {
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, depthWrite: false, ...materialOptions }));
-}
-
-// Compact name tag sized to its text; `height` is in world units.
-export function createTextLabel(text, height = 0.4) {
-  const fontSize = 60;
-  const padding = 20;
+// Name tag with a constant on-screen size (independent of zoom and scale mode), drawn above its anchor.
+// `height` is a fraction of the viewport height.
+export function createScreenLabel(text, { height = 0.035, fontSize = 48 } = {}) {
+  const padding = 16;
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d');
   context.font = `${fontSize}px Arial`;
   canvas.width = Math.ceil(context.measureText(text).width + padding * 2);
   canvas.height = fontSize + padding;
 
-  context.fillStyle = 'rgba(0, 0, 0, 0.7)';
-  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  context.beginPath();
+  context.roundRect(0, 0, canvas.width, canvas.height, 12);
+  context.fill();
   context.font = `${fontSize}px Arial`;
   context.fillStyle = 'white';
   context.textAlign = 'center';
   context.textBaseline = 'middle';
-  context.fillText(text, canvas.width / 2, canvas.height / 2);
+  context.fillText(text, canvas.width / 2, canvas.height / 2 + 2);
 
-  const label = spriteFromCanvas(canvas);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  const label = new THREE.Sprite(
+    new THREE.SpriteMaterial({ map: texture, sizeAttenuation: false, depthTest: false, depthWrite: false })
+  );
   label.scale.set((height * canvas.width) / canvas.height, height, 1);
+  label.center.set(0.5, -0.6); // sit just above the anchor point
+  label.renderOrder = 10;
   return label;
 }
 
-// Bordered 2:1 badge, drawn on top of everything; the caller scales it.
-export function createBadgeLabel(text) {
+// Soft additive glow with a constant on-screen size, so a star stays visible when its disc is sub-pixel.
+export function createGlareSprite(color = '255, 220, 150', size = 0.18) {
   const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 128;
   const context = canvas.getContext('2d');
-  canvas.width = 512;
-  canvas.height = 256;
+  const gradient = context.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gradient.addColorStop(0, `rgba(${color}, 1)`);
+  gradient.addColorStop(0.15, `rgba(${color}, 0.6)`);
+  gradient.addColorStop(1, `rgba(${color}, 0)`);
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, 128, 128);
 
-  context.fillStyle = 'rgba(0, 0, 0, 0.7)';
-  context.beginPath();
-  context.roundRect(0, 0, canvas.width, canvas.height, 20);
-  context.fill();
-
-  context.font = 'Bold 72px Arial';
-  context.fillStyle = 'white';
-  context.textAlign = 'center';
-  context.textBaseline = 'middle';
-  context.fillText(text, 256, 128);
-
-  context.strokeStyle = 'white';
-  context.lineWidth = 4;
-  context.beginPath();
-  context.roundRect(2, 2, canvas.width - 4, canvas.height - 4, 18);
-  context.stroke();
-
-  return spriteFromCanvas(canvas, { transparent: true, depthTest: false });
+  const sprite = new THREE.Sprite(
+    new THREE.SpriteMaterial({
+      map: new THREE.CanvasTexture(canvas),
+      sizeAttenuation: false,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      transparent: true,
+    })
+  );
+  sprite.scale.set(size, size, 1);
+  return sprite;
 }

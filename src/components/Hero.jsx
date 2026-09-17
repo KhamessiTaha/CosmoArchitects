@@ -103,7 +103,7 @@ const Hero = ({ handleNavigateRelative, handleNavigateAccurate }) => {
                 Visual Orrery
               </button>
               <p className="choice-description">
-              A scaled-down, dynamic orrery that showcases a visually captivating simulation of planets with their atmospheres, along with asteroids depicted in red orbits and comets in grey orbits. The orrery features time control, options to show or hide orbits, and the ability to display or hide Near-Earth Objects (NEOs). Scaled-down distances enhance navigation and control, making exploration intuitive and engaging.
+              Start with compressed distances and enlarged planets, so the whole solar system fits on screen. Every planet, moon, asteroid and comet still follows its real orbit for the simulated date. Speed up time, show near-Earth asteroids and comets, and click any body to fly to it.
               </p>
             </div>
             <div className="card">
@@ -111,7 +111,7 @@ const Hero = ({ handleNavigateRelative, handleNavigateAccurate }) => {
                 Accurate Orrery
               </button>
               <p className="choice-description">
-              A dynamic orrery that accurately represents the solar system with precise sizes and distances. Planets are placed where they are right now using Keplerian orbital elements, alongside live Near-Earth Objects (NEOs) from NASA's NeoWs API, for an insightful exploration of our cosmic neighborhood.
+              Start at true scale: real sizes and distances, with planets where they are right now (validated against NASA JPL Horizons) and live Near-Earth Objects from NASA's NeoWs API. You can switch between the two views at any time.
               </p>
             </div>
           </div>

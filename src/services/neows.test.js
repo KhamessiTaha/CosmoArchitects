@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { parseNeoBrowseResponse } from './neows';
-import { KM_PER_AU } from '../lib/kepler';
 
 const orbit = {
   semi_major_axis: '1.078',
@@ -14,14 +13,14 @@ const orbit = {
 };
 
 describe('parseNeoBrowseResponse', () => {
-  it('converts NeoWs strings into numeric orbital elements in km', () => {
+  it('converts NeoWs strings into numeric orbital elements', () => {
     const [neo] = parseNeoBrowseResponse({
       near_earth_objects: [{ name: '1566 Icarus', is_potentially_hazardous_asteroid: true, orbital_data: orbit }],
     });
     expect(neo).toEqual({
       name: '1566 Icarus',
       hazardous: true,
-      a: 1.078 * KM_PER_AU,
+      a: 1.078,
       e: 0.827,
       i: 22.8,
       om: 88,
