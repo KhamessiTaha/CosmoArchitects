@@ -6,7 +6,6 @@ import {
   meanMotionFromAU,
   solveKepler,
 } from './kepler';
-import { planetElements } from '../data/planets';
 import { comets } from '../data/comets';
 
 describe('solveKepler', () => {
@@ -18,16 +17,8 @@ describe('solveKepler', () => {
   });
 });
 
+// Absolute positions are validated against JPL Horizons in ephemeris.test.js.
 describe('elementsToEcliptic', () => {
-  it('places Earth at its known J2000 heliocentric position', () => {
-    // JPL Horizons, Earth-Moon barycenter at 2000-01-01 12:00 TDB: x ≈ -0.177, y ≈ 0.967 AU.
-    const earth = planetElements.find((p) => p.name === 'Earth');
-    const { x, y, z } = elementsToEcliptic(earth.a, earth.e, earth.i, earth.om, earth.w, earth.ma);
-    expect(x).toBeCloseTo(-0.177, 2);
-    expect(y).toBeCloseTo(0.967, 2);
-    expect(Math.abs(z)).toBeLessThan(1e-4);
-  });
-
   it('keeps every comet on a finite orbit between perihelion and aphelion', () => {
     Object.values(comets).forEach(({ a, e, i, om, w }) => {
       for (let ma = 0; ma < 360; ma += 15) {

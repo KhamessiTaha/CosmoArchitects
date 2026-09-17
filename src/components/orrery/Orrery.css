@@ -410,3 +410,222 @@ canvas {
 .time-button svg {
   vertical-align: -2px;
 }
+
+/* ---- Unified orrery overlays ---- */
+
+.menu {
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+  width: 320px;
+  box-sizing: border-box;
+}
+
+.menu-section + .menu-section {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(48, 160, 255, 0.3);
+}
+
+.menu-section h3 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  color: #3498db;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.menu .orbit-toggle {
+  margin-bottom: 10px;
+}
+
+.menu .orbit-toggle .slider {
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.menu .orbit-toggle .slider:before {
+  width: 20px;
+  height: 20px;
+}
+
+.menu .orbit-toggle input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.menu .orbit-toggle input:disabled + .slider {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.menu .orbit-toggle .label-text {
+  font-size: 14px;
+}
+
+.scale-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #1b2638;
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.scale-switch button {
+  border: none;
+  background: transparent;
+  color: #bdc3c7;
+  padding: 8px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.scale-switch button.active {
+  background: #3498db;
+  color: #fff;
+}
+
+.scale-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #95a5a6;
+  line-height: 1.4;
+}
+
+.speed-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.speed-row .speed-label {
+  flex: 1;
+  text-align: center;
+  font-size: 14px;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #2c3e50;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.icon-button:hover:not(:disabled) {
+  background: #34495e;
+}
+
+.icon-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.time-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.status-panel {
+  position: absolute;
+  bottom: 84px;
+  left: 20px;
+  color: #fff;
+  font-size: 13px;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 10px 14px;
+  border-radius: 8px;
+  z-index: 10;
+  max-width: min(360px, calc(100vw - 110px));
+}
+
+.status-panel p {
+  margin: 0 0 4px;
+}
+
+.status-panel .sim-date {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.status-panel .muted {
+  color: #bdc3c7;
+}
+
+.status-panel .mute-button {
+  margin-top: 6px;
+}
+
+.orrery-container .fullscreen-button {
+  bottom: 84px;
+}
+
+.planet-bar {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  max-width: calc(100vw - 40px);
+  box-sizing: border-box;
+  overflow-x: auto;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 999px;
+  z-index: 10;
+  scrollbar-width: none;
+}
+
+.planet-bar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #fff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.planet-bar button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.planet-bar button.active {
+  border-color: #3498db;
+  background: rgba(52, 152, 219, 0.25);
+}
+
+.planet-bar .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+@media (max-width: 768px) {
+  .menu {
+    width: calc(100vw - 40px);
+  }
+
+  .status-panel {
+    bottom: 76px;
+    left: 10px;
+  }
+
+  .orrery-container .fullscreen-button {
+    bottom: 76px;
+    right: 10px;
+  }
+}
