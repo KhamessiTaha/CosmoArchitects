@@ -6,7 +6,7 @@ import { createSmallBodySet } from './smallBodies';
 import { createOrbitLine } from './orbitLines';
 import { createCameraRig } from './cameraRig';
 import { pickNearest } from './picking';
-import { planetStyles, MOON_VISUAL_DISTANCE } from './visualLayout';
+import { MOON_VISUAL_DISTANCE } from './visualLayout';
 import { planetElements } from '../../data/planets';
 import { asteroids } from '../../data/asteroids';
 import featuredBodies from '../../data/featuredBodies.json';
@@ -34,6 +34,8 @@ const EARTH_MOON_MASS_RATIO = 82.3;
 // Faster simulated spin looks like noise; cap the on-screen rotation rate (radians per real second).
 const MAX_SPIN_RATE = 2;
 const TIME_REPORT_INTERVAL_MS = 250;
+// Mirrors the UI tokens in styles/base.css.
+const PALETTE = { line: 0xf2eef8, muted: 0xa59db5, signal: 0xff9000, hazard: 0xff5c5c };
 
 function addStarfield(scene, count = 1500) {
   const positions = new Float32Array(count * 3);
@@ -104,6 +106,17 @@ export function createOrrery(mount, options = {}) {
   let orbitsSampledAt = null;
   const planetOrbitGroup = new THREE.Group();
   scene.add(planetOrbitGroup);
+  // Orbits are drawn as quiet linework; the selected planet's orbit takes the signal colour.
+  let highlightedOrbitKey = null;
+  const highlightOrbit = (key) => {
+    highlightedOrbitKey = key;
+    planetOrbits.forEach((orbit, index) => {
+      const isSelected = planets[index].key === key;
+      orbit.line.material.color.setHex(isSelected ? PALETTE.signal : PALETTE.line);
+      orbit.line.material.opacity = isSelected ? 0.9 : 0.28;
+    });
+  };
+
   const samplePlanetOrbits = (jd) => {
     planetOrbits.forEach((orbit) => {
       orbit.line.geometry.dispose();
@@ -111,28 +124,31 @@ export function createOrrery(mount, options = {}) {
     });
     planetOrbitGroup.clear();
     planetOrbits = planets.map((planet) => {
-      const material = new THREE.LineBasicMaterial({ color: planetStyles[planet.key].orbitColor, transparent: true, opacity: 0.8 });
+      const material = new THREE.LineBasicMaterial({ color: PALETTE.line, transparent: true, opacity: 0.28 });
       const orbit = createOrbitLine(planetElementsAt(planet.elements, jd), 512, material);
       planetOrbitGroup.add(orbit.line);
       return orbit;
     });
     orbitsSampledAt = jd;
+    highlightOrbit(highlightedOrbitKey);
   };
   samplePlanetOrbits(clock.jd);
 
   const catalogSets = [
     createSmallBodySet(stage, [...Object.values(asteroids), ...Object.values(featuredBodies)], {
       kind: 'asteroid',
-      pointColor: 0xff6b6b,
-      orbitColor: 0xff0000,
+      pointColor: PALETTE.muted,
+      orbitColor: PALETTE.muted,
+      orbitOpacity: 0.22,
       meshMaterial: new THREE.MeshBasicMaterial({ map: stage.loadTexture(asteroidTexture, { color: true }) }),
       labels: true,
     }),
     createSmallBodySet(stage, Object.values(comets), {
       kind: 'comet',
-      pointColor: 0xffffff,
-      orbitColor: 0xa9a9a9,
-      meshMaterial: new THREE.MeshBasicMaterial({ color: 0xffffff }),
+      pointColor: PALETTE.line,
+      orbitColor: PALETTE.line,
+      orbitOpacity: 0.16,
+      meshMaterial: new THREE.MeshBasicMaterial({ color: PALETTE.line }),
       labels: true,
     }),
   ];
@@ -159,7 +175,7 @@ export function createOrrery(mount, options = {}) {
     onNeoStatus?.({ state: 'loading', count: 0 });
     neoRequest = fetchNeos(abortController.signal)
       .then((neos) => {
-        liveNeoSet = createSmallBodySet(stage, neos, { kind: 'neo', pointColor: 0xff3b3b, orbitColor: 0x00fff0, orbitOpacity: 0.3 });
+        liveNeoSet = createSmallBodySet(stage, neos, { kind: 'neo', pointColor: PALETTE.hazard, orbitColor: PALETTE.hazard, orbitOpacity: 0.2 });
         liveNeoSet.setOrbitBlend(scale.t);
         applyVisibility();
         onNeoStatus?.({ state: 'ready', count: neos.length });
@@ -219,6 +235,7 @@ export function createOrrery(mount, options = {}) {
   const SMALL_BODY_KINDS = new Set(['asteroid', 'comet', 'neo']);
   const select = (candidate, { viewRadii = SMALL_BODY_KINDS.has(candidate.kind) ? 40 : 4 } = {}) => {
     selectedKey = candidate.key;
+    highlightOrbit(candidate.key);
     // Approach from the sunward side, slightly above the ecliptic, so bodies arrive lit.
     const position = candidate.subject.getPosition();
     const sunward = position.lengthSq() > 0 ? position.clone().negate().normalize().add(new THREE.Vector3(0, 0.35, 0)).normalize() : null;
@@ -381,11 +398,13 @@ export function createOrrery(mount, options = {}) {
     },
     resetCamera() {
       selectedKey = null;
+      highlightOrbit(null);
       rig.goHome();
       onSelect?.(null);
     },
     clearSelection() {
       selectedKey = null;
+      highlightOrbit(null);
       onSelect?.(null);
     },
     dispose: stage.dispose,

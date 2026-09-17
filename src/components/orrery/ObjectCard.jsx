@@ -1,52 +1,75 @@
-import React from 'react';
-import './ObjectCard.css';
+import React, { useId, useState } from 'react';
+import { ChevronDown, X } from 'lucide-react';
 
 const fields = [
   ['Type', 'type'],
-  ['Star Type', 'starType'],
-  ['Planet Type', 'planetType'],
+  ['Star type', 'starType'],
+  ['Class', 'planetType'],
   ['Radius', 'radius', (v) => `${v.toLocaleString()} km`],
-  ['Distance from Sun', 'distanceFromSun', (v) => (v === 0 ? null : `${v.toLocaleString()} million km`)],
+  ['Distance from the Sun', 'distanceFromSun', (v) => (v === 0 ? null : `${v.toLocaleString()} million km`)],
   ['Distance from Earth', 'distanceFromEarth', (v) => `${v.toLocaleString()} million km`],
-  ['Atmosphere', 'atmosphere'],
-  ['Composition', 'composition'],
-  ['Has Rings', 'hasRings'],
-  ['Moons Count', 'moonsCount', (v) => (v > 0 ? v : null)],
-  ['Semi-major Axis', 'semiMajorAxis'],
+  ['Semi-major axis', 'semiMajorAxis'],
   ['Eccentricity', 'eccentricity'],
   ['Inclination', 'inclination'],
-  ['Orbital Period', 'orbitalPeriod'],
-  ['Hazard', 'hazard'],
+  ['Orbital period', 'orbitalPeriod'],
+  ['Atmosphere', 'atmosphere'],
+  ['Composition', 'composition'],
+  ['Rings', 'hasRings'],
+  ['Moons', 'moonsCount', (v) => (v > 0 ? v : null)],
   ['Temperature', 'temperature'],
   ['Age', 'age'],
-  ['Discovered By', 'discoveredBy'],
+  ['Discovered by', 'discoveredBy'],
   ['Life', 'hasLife'],
 ];
 
-const ObjectCard = ({ objectData, onClose }) => {
-  if (!objectData) {
-    return null;
-  }
+// On phones the card starts collapsed so it doesn't cover the body the camera just flew to.
+const startsCollapsed = () => window.matchMedia('(max-width: 720px)').matches;
+
+// Facts for the selected body. `hazard` is shown as a highlighted note rather than a row.
+function ObjectCard({ objectData, onClose }) {
+  const detailsId = useId();
+  const [isCollapsed, setIsCollapsed] = useState(startsCollapsed);
+  if (!objectData) return null;
 
   return (
-    <div className="object-card">
-      <button className="close-button" onClick={onClose} aria-label="Close">&times;</button>
-      <h2>{objectData.name}</h2>
-      <div className="object-info">
-        {fields.map(([label, key, format]) => {
-          const raw = objectData[key];
-          if (raw === undefined || raw === null || raw === '') return null;
-          const value = format ? format(raw) : raw;
-          if (value === null) return null;
-          return (
-            <p key={key}>
-              <strong>{label}:</strong> {value}
-            </p>
-          );
-        })}
+    <aside className="object-card panel" aria-labelledby={`${detailsId}-title`}>
+      <div className="object-card-header">
+        <h2 id={`${detailsId}-title`} className="display">
+          {objectData.name}
+        </h2>
+        <button
+          type="button"
+          className={`icon-button card-collapse ${isCollapsed ? 'is-collapsed' : ''}`}
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          aria-expanded={!isCollapsed}
+          aria-controls={detailsId}
+          aria-label={isCollapsed ? 'Show details' : 'Hide details'}
+        >
+          <ChevronDown size={18} />
+        </button>
+        <button type="button" className="icon-button" onClick={onClose} aria-label="Close details">
+          <X size={18} />
+        </button>
       </div>
-    </div>
+      <div id={detailsId} hidden={isCollapsed}>
+        {objectData.hazard && <p className="hazard-note">{objectData.hazard}</p>}
+        <dl>
+          {fields.map(([label, key, format]) => {
+            const raw = objectData[key];
+            if (raw === undefined || raw === null || raw === '') return null;
+            const value = format ? format(raw) : raw;
+            if (value === null) return null;
+            return (
+              <div key={key}>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </div>
+            );
+          })}
+        </dl>
+      </div>
+    </aside>
   );
-};
+}
 
 export default ObjectCard;

@@ -116,7 +116,8 @@ src/
     core/       Shared stage (renderer, camera, controls, loop), glow materials, labels
     orrery/     The orrery: bodies, orbit lines, small bodies, camera rig, screen-space picking
   hooks/      React glue: scene lifecycle, keyboard shortcuts, fullscreen, music
-  components/ UI (orrery/ holds the explorer overlays)
+  styles/     Design tokens (colour, type scale, controls) shared by every page
+  components/ UI: home/ (landing sections, line-art orrery), orrery/ (explorer overlays)
   pages/      Routes (the explorer is lazy-loaded)
 scripts/      Maintenance scripts (Horizons reference data)
 ```

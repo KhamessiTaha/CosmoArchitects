@@ -1,0 +1,338 @@
+.home {
+  padding-top: var(--nav-height);
+}
+
+.section {
+  padding: clamp(4rem, 10vw, 7.5rem) var(--gutter);
+  border-top: 1px solid var(--rule);
+}
+
+.section-title {
+  font-size: var(--text-xl);
+  max-width: 18ch;
+}
+
+.section-lede {
+  margin-top: 1rem;
+  max-width: 60ch;
+  color: var(--muted);
+}
+
+.text-link {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--rule-strong);
+  text-underline-offset: 0.3em;
+}
+
+.text-link:hover {
+  text-decoration-color: var(--signal);
+}
+
+.button-large {
+  min-height: 52px;
+  padding: 0 1.6rem;
+  font-size: var(--text-base);
+}
+
+/* Hero: copy on the left, the live line-art orrery on the right. */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  align-items: center;
+  gap: clamp(2rem, 5vw, 5rem);
+  min-height: calc(100vh - var(--nav-height));
+  padding: 2rem var(--gutter) 3rem;
+}
+
+.hero h1 {
+  font-size: var(--text-2xl);
+  max-width: 11ch;
+}
+
+.hero-lede {
+  margin-top: 1.5rem;
+  max-width: 46ch;
+  font-size: var(--text-md);
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.75rem;
+  margin-top: 2.25rem;
+}
+
+.line-orrery {
+  margin: 0;
+  width: 100%;
+  max-width: 720px;
+  justify-self: center;
+}
+
+.line-orrery svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.line-orrery .orbits path {
+  fill: none;
+  stroke: var(--line);
+  stroke-opacity: 0.28;
+  stroke-width: 0.22;
+}
+
+.line-orrery .asteroids circle {
+  fill: var(--muted);
+  opacity: 0.55;
+}
+
+.line-orrery .sun circle {
+  fill: var(--line);
+}
+
+.line-orrery .sun .sun-ring {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 0.3;
+  stroke-dasharray: 0.9 0.9;
+}
+
+.line-orrery .planet .hit {
+  fill: transparent;
+}
+
+.line-orrery .planet .dot {
+  fill: var(--night);
+  stroke: var(--line);
+  stroke-width: 0.45;
+}
+
+.line-orrery .planet text {
+  font-size: 3.4px;
+  font-weight: 500;
+  fill: var(--muted);
+}
+
+.line-orrery .planet-earth .dot {
+  fill: var(--signal);
+  stroke: var(--signal);
+}
+
+.line-orrery .planet-earth text {
+  fill: var(--line);
+}
+
+.line-orrery .planet:hover .dot,
+.line-orrery .planet:focus-visible .dot {
+  fill: var(--line);
+}
+
+.line-orrery .planet:hover text,
+.line-orrery .planet:focus-visible text {
+  fill: var(--line);
+}
+
+.line-orrery .planet:focus-visible {
+  outline: none;
+}
+
+.line-orrery figcaption {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+.line-orrery figcaption .tabular {
+  color: var(--line);
+  font-weight: 600;
+}
+
+.caption-hint {
+  display: block;
+}
+
+/* Capabilities: a plain list, not a card grid. */
+.capability-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3rem clamp(2rem, 6vw, 6rem);
+  margin: 3.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  max-width: 1100px;
+}
+
+.capability-list svg {
+  color: var(--line);
+}
+
+.capability-list h3 {
+  margin-top: 1rem;
+  font-size: var(--text-md);
+  font-weight: 700;
+}
+
+.capability-list p {
+  margin-top: 0.5rem;
+  max-width: 44ch;
+  color: var(--muted);
+}
+
+/* Moments: a real chronology on a single rule. */
+.timeline {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 3.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--rule-strong);
+}
+
+.timeline li {
+  position: relative;
+}
+
+.timeline li::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--night);
+  border: 1px solid var(--line);
+}
+
+.timeline-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  height: 100%;
+  padding: 1.75rem 1.5rem 1.5rem 0;
+  text-decoration: none;
+}
+
+.timeline-year {
+  font-size: var(--text-xl);
+}
+
+.timeline-day {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.timeline-entry strong {
+  margin-top: 0.75rem;
+  font-size: var(--text-md);
+  line-height: 1.3;
+}
+
+.timeline-description {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.timeline-entry:hover strong {
+  text-decoration: underline;
+  text-decoration-color: var(--signal);
+  text-underline-offset: 0.25em;
+}
+
+.not-found {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: calc(100vh - var(--nav-height) - 96px);
+  border-top: none;
+}
+
+/* About */
+.about {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: start;
+}
+
+.about-copy p {
+  margin-top: 1.25rem;
+  max-width: 56ch;
+  color: var(--muted);
+}
+
+.about-copy .text-link {
+  display: inline-block;
+  margin-top: 1.5rem;
+}
+
+.sources {
+  margin: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.sources div {
+  padding: 1.1rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.sources dt {
+  font-weight: 600;
+}
+
+.sources dd {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    padding-top: 2.5rem;
+  }
+
+  .line-orrery {
+    max-width: 520px;
+  }
+
+  .timeline {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 1rem;
+  }
+
+  .about {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .capability-list {
+    grid-template-columns: 1fr;
+  }
+
+  /* Vertical chronology on phones. */
+  .timeline {
+    grid-template-columns: 1fr;
+    border-top: none;
+    border-left: 1px solid var(--rule-strong);
+    margin-left: 4px;
+  }
+
+  .timeline li::before {
+    top: 2rem;
+    left: -5px;
+  }
+
+  .timeline-entry {
+    padding: 1.5rem 0 1.5rem 1.5rem;
+  }
+}

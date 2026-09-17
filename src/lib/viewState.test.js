@@ -20,7 +20,11 @@ describe('parseViewState', () => {
   });
 
   it('ignores invalid values', () => {
-    expect(parseViewState('?focus=<script>&date=soon&scale=huge&speed=warp')).toEqual({});
+    expect(parseViewState('?focus=<script>&date=soon&scale=huge&speed=warp&moment=../x')).toEqual({});
+  });
+
+  it('reads a moment id', () => {
+    expect(parseViewState('?moment=apophis-2029')).toEqual({ moment: 'apophis-2029' });
   });
 });
 

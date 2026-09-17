@@ -2,20 +2,23 @@ import * as THREE from 'three';
 
 // Name tag with a constant on-screen size (independent of zoom and scale mode), drawn above its anchor.
 // `height` is a fraction of the viewport height.
-export function createScreenLabel(text, { height = 0.035, fontSize = 48 } = {}) {
-  const padding = 16;
+// Matches the UI typeface (falls back to Arial if the web font hasn't loaded yet).
+const LABEL_FONT = '"Archivo Variable", Archivo, Arial, sans-serif';
+
+export function createScreenLabel(text, { height = 0.032, fontSize = 44 } = {}) {
+  const padding = 18;
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d');
-  context.font = `${fontSize}px Arial`;
+  context.font = `500 ${fontSize}px ${LABEL_FONT}`;
   canvas.width = Math.ceil(context.measureText(text).width + padding * 2);
   canvas.height = fontSize + padding;
 
-  context.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  context.fillStyle = 'rgba(21, 7, 33, 0.72)';
   context.beginPath();
-  context.roundRect(0, 0, canvas.width, canvas.height, 12);
+  context.roundRect(0, 0, canvas.width, canvas.height, canvas.height / 2);
   context.fill();
-  context.font = `${fontSize}px Arial`;
-  context.fillStyle = 'white';
+  context.font = `500 ${fontSize}px ${LABEL_FONT}`;
+  context.fillStyle = '#f2eef8';
   context.textAlign = 'center';
   context.textBaseline = 'middle';
   context.fillText(text, canvas.width / 2, canvas.height / 2 + 2);
