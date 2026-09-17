@@ -1,7 +1,22 @@
-// The Visual Orrery draws planets on compressed, evenly spaced rings. This maps a real heliocentric
-// distance (AU) onto that same compressed scale so asteroids and comets appear next to the planets
-// they actually orbit near.
-const ANCHORS = [
+// Compressed "visual" distances: planets sit on readable rings, and anything between them (asteroids,
+// comets) is interpolated so it still appears next to the planets it actually orbits near.
+
+// Builds a piecewise-linear AU -> radius mapping from [au, radius] anchors (extrapolates past the last one).
+export function createRadialScale(anchors) {
+  return (au) => {
+    for (let k = 1; k < anchors.length; k++) {
+      const [au1, r1] = anchors[k];
+      if (au <= au1 || k === anchors.length - 1) {
+        const [au0, r0] = anchors[k - 1];
+        return r0 + ((au - au0) * (r1 - r0)) / (au1 - au0);
+      }
+    }
+    return 0;
+  };
+}
+
+// Scale used by the 3D explorer (scene units; Earth at 16 so it matches true scale's 1 AU = 16).
+export const auToVisualRadius = createRadialScale([
   [0, 0],
   [0.387, 8], // Mercury
   [0.723, 12], // Venus
@@ -12,18 +27,7 @@ const ANCHORS = [
   [19.19, 50], // Uranus
   [30.07, 60], // Neptune
   [39.48, 70], // Pluto
-];
-
-export function auToVisualRadius(au) {
-  for (let k = 1; k < ANCHORS.length; k++) {
-    const [au1, r1] = ANCHORS[k];
-    if (au <= au1 || k === ANCHORS.length - 1) {
-      const [au0, r0] = ANCHORS[k - 1];
-      return r0 + ((au - au0) * (r1 - r0)) / (au1 - au0);
-    }
-  }
-  return 0;
-}
+]);
 
 // Rescales a vector (in AU) in place so its length follows the visual scale.
 export function toVisualScale(vector) {

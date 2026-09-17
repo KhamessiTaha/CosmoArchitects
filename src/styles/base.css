@@ -1,0 +1,190 @@
+@import '@fontsource-variable/archivo/wdth.css';
+
+/*
+ * CosmicVue design tokens: "mission patch".
+ * Night and linework come from the logo; signal orange marks "now", "you are here" and primary actions only.
+ */
+:root {
+  --night: #150721;
+  --night-raised: #1e0f2e;
+  --night-panel: rgba(21, 7, 33, 0.82);
+  --line: #f2eef8;
+  --muted: #a59db5;
+  --rule: #3a2e4d;
+  --rule-strong: #57496c;
+  --signal: #ff9000;
+  --signal-ink: #1a0b00;
+  --hazard: #ff5c5c;
+
+  --font: 'Archivo Variable', 'Archivo', system-ui, sans-serif;
+  /* Type scale (1.25 ratio) */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-md: 1.25rem;
+  --text-lg: 1.5625rem;
+  --text-xl: 2.441rem;
+  --text-2xl: clamp(2.5rem, 6vw, 4.768rem);
+
+  --radius-panel: 14px;
+  --radius-control: 8px;
+  --radius-pill: 999px;
+  --gutter: clamp(1rem, 4vw, 3rem);
+  --nav-height: 64px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--night);
+  color: var(--line);
+  font-family: var(--font);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+img,
+svg {
+  display: block;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+/* Expanded, heavy lettering for the wordmark and headlines, echoing the patch. */
+.display {
+  font-stretch: 125%;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.02;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--signal);
+  color: var(--signal-ink);
+}
+
+/* Buttons */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 1.25rem;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--rule-strong);
+  background: transparent;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.button:hover {
+  border-color: var(--line);
+}
+
+.button-primary {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: var(--signal-ink);
+}
+
+.button-primary:hover {
+  background: #ffa733;
+  border-color: #ffa733;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--radius-control);
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+}
+
+.icon-button:hover:not(:disabled) {
+  border-color: var(--rule-strong);
+}
+
+.icon-button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.panel {
+  background: var(--night-panel);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-panel);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
