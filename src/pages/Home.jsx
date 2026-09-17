@@ -1,34 +1,24 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import Hero from '../components/Hero';
-import Features from '../components/Features';
+import Hero from '../components/home/Hero';
+import Capabilities from '../components/home/Capabilities';
+import MomentsTimeline from '../components/home/MomentsTimeline';
+import AboutData from '../components/home/AboutData';
 import Footer from '../components/Footer';
-import About from '../components/About';
+import './Home.css';
 
 function Home() {
-  const navigate = useNavigate();
-
-  
-  const handleNavigateRelative = () => {
-    navigate('/simulation');
-  };
-
-  const handleNavigateAccurate = () => {
-    navigate('/accuratesimulation');
-  };
-
   return (
-    <div>
+    <>
       <Navbar />
-      <Hero 
-        handleNavigateRelative={handleNavigateRelative} 
-        handleNavigateAccurate={handleNavigateAccurate} 
-      />
-      <Features />
-      <About />
+      <main className="home">
+        <Hero />
+        <Capabilities />
+        <MomentsTimeline />
+        <AboutData />
+      </main>
       <Footer />
-    </div>
+    </>
   );
 }
 

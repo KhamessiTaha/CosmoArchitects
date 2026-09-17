@@ -11,15 +11,15 @@ import pluto from '../../assets/textures/Pluto/plutomap.jpg';
 // Appearance of each planet. `visualRadius` is the enlarged size (scene units) used in visual scale;
 // true scale uses the real radius from data/planets.js. `glow` is the atmosphere colour, if any.
 export const planetStyles = {
-  mercury: { texture: mercury, visualRadius: 0.3, orbitColor: 0xaaaaaa },
-  venus: { texture: venus, visualRadius: 0.6, orbitColor: 0xffa500, glow: 0xffa500 },
-  earth: { texture: earth, visualRadius: 0.5, orbitColor: 0x3b6cff, glow: 0x0000ff },
-  mars: { texture: mars, visualRadius: 0.6, orbitColor: 0xff3b1f, glow: 0xff4500 },
-  jupiter: { texture: jupiter, visualRadius: 2, orbitColor: 0xffff00, glow: 0xffff00 },
-  saturn: { texture: saturn, visualRadius: 1.8, orbitColor: 0xffa500, glow: 0xfffacd },
-  uranus: { texture: uranus, visualRadius: 1.4, orbitColor: 0x00ffff, glow: 0x00ffff },
-  neptune: { texture: neptune, visualRadius: 1.3, orbitColor: 0x3b6cff, glow: 0x0000ff },
-  pluto: { texture: pluto, visualRadius: 0.3, orbitColor: 0x87ceeb, glow: 0x87ceeb },
+  mercury: { texture: mercury, visualRadius: 0.3 },
+  venus: { texture: venus, visualRadius: 0.6, glow: 0xffa500 },
+  earth: { texture: earth, visualRadius: 0.5, glow: 0x0000ff },
+  mars: { texture: mars, visualRadius: 0.6, glow: 0xff4500 },
+  jupiter: { texture: jupiter, visualRadius: 2, glow: 0xffff00 },
+  saturn: { texture: saturn, visualRadius: 1.8, glow: 0xfffacd },
+  uranus: { texture: uranus, visualRadius: 1.4, glow: 0x00ffff },
+  neptune: { texture: neptune, visualRadius: 1.3, glow: 0x0000ff },
+  pluto: { texture: pluto, visualRadius: 0.3, glow: 0x87ceeb },
 };
 
 export const SUN_VISUAL_RADIUS = 3;

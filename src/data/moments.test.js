@@ -35,6 +35,7 @@ describe('moments data', () => {
       expect(speedIndexById(m.speed)).toBeGreaterThanOrEqual(0);
       expect(['visual', 'true']).toContain(m.scale);
       expect(bodySlugs.has(m.focus)).toBe(true);
+      expect(m.summary.length).toBeLessThanOrEqual(70);
     });
   });
 });

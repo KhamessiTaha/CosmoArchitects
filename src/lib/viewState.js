@@ -26,6 +26,10 @@ export function parseViewState(search) {
 
   if (params.has('paused')) state.paused = params.get('paused') !== '0';
 
+  // A curated moment (data/moments.js); when present it supplies date, focus, scale and speed.
+  const moment = params.get('moment');
+  if (moment && /^[a-z0-9-]{1,60}$/.test(moment)) state.moment = moment;
+
   return state;
 }
 
