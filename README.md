@@ -62,9 +62,9 @@ CosmicVue is our award-nominated submission for the **2024 NASA International Sp
 ## 💻 Getting Started
 
 ### Prerequisites
-- Node.js (v14 or higher)
-- npm (v6 or higher)
-- Modern web browser
+- Node.js (v20.19+ or v22.12+)
+- npm (v10 or higher)
+- Modern web browser with WebGL
 
 ### Installation
 
@@ -79,12 +79,44 @@ cd CosmoArchitects
 npm install
 ```
 
-3. Start development server
+3. (Optional) Add a NASA API key for live near-Earth objects. Get a free key at [api.nasa.gov](https://api.nasa.gov); without one the app uses the rate-limited `DEMO_KEY`.
 ```bash
-npm run start
+cp .env.example .env.local
+# then set VITE_NASA_API_KEY in .env.local
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+4. Start the development server
+```bash
+npm run dev
+```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+### Scripts
+| Command | What it does |
+|---|---|
+| `npm run dev` | Vite dev server with hot reload (FPS meter shown) |
+| `npm run build` | Production build into `build/` |
+| `npm run preview` | Serve the production build locally |
+| `npm test` | Unit tests (orbital mechanics, NeoWs parsing) |
+| `npm run lint` | ESLint, including React hooks rules |
+
+Add `?stats` to a URL to show the FPS meter in production.
+
+### Project structure
+```
+src/
+  lib/        Orbital mechanics (Kepler solver, element → position), visual scale, GPU cleanup
+  data/       Planet elements (JPL J2000), asteroid & comet catalogs, fact-card content
+  services/   NASA NeoWs client
+  scene/      Framework-free three.js scenes
+    core/       Shared stage (renderer, camera, controls, loop), glow materials, labels
+    visual/     Stylised, compressed-scale orrery
+    accurate/   True-scale orrery for the current date
+  hooks/      React glue: scene lifecycle, keyboard shortcuts, fullscreen, music
+  components/ UI (orrery/ holds the simulator overlays)
+  pages/      Routes (simulators are lazy-loaded)
+```
 
 ## 🎮 User Guide
 

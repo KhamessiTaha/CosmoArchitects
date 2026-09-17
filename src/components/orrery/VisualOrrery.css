@@ -34,6 +34,7 @@ canvas {
     top: 100px;
     right: 20px;
     cursor: pointer;
+    border: none;
     z-index: 1000;
     width: 40px;
     height: 40px;
@@ -52,6 +53,7 @@ canvas {
   }
 
 .menu-toggle .bar {
+  display: block;
   width: 100%;
   height: 4px;
   background-color: white;
